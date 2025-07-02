@@ -1,0 +1,1 @@
+Generation of ideas, concepts and business plans for artificial intelligence agents in the field of DevOps, focusing on automating and optimizing the build, testing, setup, deployment, monitoring, alerting, maintenance and update processes of software applications.

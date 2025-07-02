@@ -1,0 +1,1 @@
+Generation of business ideas in the field of computer gaming which involve artificial intelligence tools like large language models or retrieval augmented generation.

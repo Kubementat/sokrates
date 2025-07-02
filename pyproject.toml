@@ -1,0 +1,48 @@
+[project]
+name = "llm_tools"
+version = "0.1.0"
+description = "A collection of tools for LLM interactions and system monitoring"
+readme = "README.md"
+requires-python = ">=3.6"
+license = { file = "LICENSE" }
+authors = [{ name = "Your Name", email = "your.email@example.com" }]
+keywords = ["llm", "tools", "system-monitoring", "ai"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "openai",
+    "psutil",
+    "requests",
+    "markdownify",
+    "tabulate",
+    "colorama",
+    "click",
+    "html2text",
+    "dotenv"
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/llm_tools"
+Repository = "https://github.com/yourusername/llm_tools"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["llm_tools*"]
+
+[project.scripts]
+benchmark-model = "llm_tools.cli.benchmark_model:main"
+benchmark-results-merger = "llm_tools.cli.benchmark_results_merger:main"
+benchmark-results-to-markdown = "llm_tools.cli.benchmark_results_to_markdown:main"
+fetch-to-md = "llm_tools.cli.fetch_to_md:main"
+list-models = "llm_tools.cli.list_models:main"
+meta-prompt-generator = "llm_tools.cli.meta_prompt_generator:main"
+refine-and-send-prompt = "llm_tools.cli.refine_and_send_prompt:main"
+refine-prompt = "llm_tools.cli.refine_prompt:main"
+send-prompt = "llm_tools.cli.send_prompt:main"

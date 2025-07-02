@@ -1,0 +1,1 @@
+Generation of concepts, activities and learning plans for children of age between 4 and 6 to learn about artificial intelligence and it's proper, safe and child-friendly usage.

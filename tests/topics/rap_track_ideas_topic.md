@@ -1,0 +1,2 @@
+Generation of ideas for writing and composing Rap songs and tracks. This could include creating original lyrics, collaborating with other artists, or using existing songs as inspiration.
+This includes also the generation of concepts for beat genres, ideas and arrangements.

@@ -1,0 +1,7 @@
+*.log
+__pycache__/
+build/
+dist/
+llm_tools.egg-info/
+tmp/
+lm_studio_benchmark_*

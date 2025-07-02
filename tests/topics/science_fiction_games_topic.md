@@ -1,0 +1,1 @@
+Generation of stories and characters for science fiction concepts and imaginary future worlds.

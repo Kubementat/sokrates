@@ -1,0 +1,1 @@
+When 30 T-Shirts need 2 hours to dry in the sun, how long does it take for 50 T-Shirts to dry in the sun?
