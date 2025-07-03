@@ -28,7 +28,7 @@ class PromptRefiner:
             print("🔧 REFINEMENT PROMPT", Colors.BRIGHT_YELLOW, "═")
             print(f"{Colors.DIM}{refinement_prompt}{Colors.RESET}\n")
             print("-"*50)
-        return f"{refinement_prompt}\n <original_prompt>\n{input_prompt}\n</original_prompt>"
+        return f"{refinement_prompt}\n # Original Prompt\n{input_prompt}"
       
     def format_as_markdown(self, content):
         """

@@ -23,7 +23,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
- list_models.py --api-endpoint http://localhost:1234/v1 --api-token not-required
+ list_models.py --api-endpoint http://localhost:1234/v1 --api-key not-required
  list_models.py # for localhost:1234/v1
   
         """
@@ -37,10 +37,10 @@ Examples:
     )
     
     parser.add_argument(
-        '--api-token',
+        '--api-key',
         required=False,
         default=None,
-        help='API token for authentication (many local servers don\'t require this)'
+        help='API key for authentication (many local servers don\'t require this)'
     )
     
     # Parse arguments
@@ -53,8 +53,8 @@ Examples:
         
         if args.api_endpoint:
             api_endpoint = args.api_endpoint
-        if args.api_token:
-            api_key = args.api_token
+        if args.api_key:
+            api_key = args.api_key
         
         llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
         models = llm_api.list_models()

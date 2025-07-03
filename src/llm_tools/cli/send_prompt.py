@@ -22,7 +22,7 @@ import logging
 import os
 from pathlib import Path
 from openai import OpenAI
-from .. import LLMApi, FileHelper, PromptRefiner
+from .. import LLMApi, FileHelper, PromptRefiner, Config
 
 # ANSI escape codes for colors
 COLOR_RESET = "\033[0m"
@@ -49,7 +49,7 @@ def write_output_file(content, model, source_prompt_file, output_directory, verb
         
         FileHelper.save_content_to_file(content, output_file, verbose=verbose)
 
-def prompt_model(llm_api, prompt, model, api_endpoint, api_token, max_tokens, temperature, output_directory, source_prompt_file=None, verbose=False, post_process_results=False):
+def prompt_model(llm_api, prompt, model, max_tokens, temperature, output_directory, source_prompt_file=None, verbose=False, post_process_results=False):
     try:
         logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nQuerying {model} ... \n{COLOR_RESET}")
@@ -81,8 +81,8 @@ def prompt_model(llm_api, prompt, model, api_endpoint, api_token, max_tokens, te
 @click.command()
 @click.argument('prompt', required=False)
 @click.option('--api-endpoint', '-ae', default="http://localhost:1234/v1", help='Local LLM server API endpoint')
-@click.option('--api-token', '-at', default="pw", help='API token for authentication (can be empty for local servers)')
-@click.option('--models', '-m', default="qwen2.5-coder-7b-instruct-mlx,google/gemma-3-12b,unsloth-phi-4,qwen/qwen3-30b-a3b", help='Comma separated model names to use (can be multiple)')
+@click.option('--api-key', '-ak', default="pw", help='API key for authentication (can be empty for local servers)')
+@click.option('--models', '-m', default=None, help='Comma separated model names to use (can be multiple)')
 @click.option('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')
 @click.option('--temperature', '-t', default=0.7, type=float, help='Temperature for response generation')
 @click.option('--verbose','-v', is_flag=True, help='Enable verbose output')
@@ -90,13 +90,13 @@ def prompt_model(llm_api, prompt, model, api_endpoint, api_token, max_tokens, te
 @click.option('--input-file','-i', default=None, help='File containing the prompt to send')
 @click.option('--input-directory','-d', default=None, help='Directory containing text files which should be sent as a series of separate prompts')
 @click.option('--post-process-results', '-pp', is_flag=True, help="Enable response post-processing (e.g. strip out <think> blocks)")
-def main(prompt, api_endpoint, api_token, models, max_tokens, temperature, verbose, output_directory, input_file, input_directory, post_process_results):
+def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose, output_directory, input_file, input_directory, post_process_results):
     """Main function to send a prompt to one or more local LLM servers and handle responses.
 
     Args:
         prompt: The input text to send to the LLMs
         api_endpoint: URL of the LLM server API
-        api_token: Authentication token for the API
+        api_key: Authentication key for the API
         models: Comma-separated list of model names to query
         max_tokens: Maximum number of tokens in the response
         temperature: Controls randomness in response generation (lower = more deterministic)
@@ -108,7 +108,15 @@ def main(prompt, api_endpoint, api_token, models, max_tokens, temperature, verbo
     Returns:
         None
     """
-    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_token, verbose=verbose)
+    config = Config()
+    if not api_endpoint:
+        api_endpoint = config.api_endpoint
+    if not api_key:
+        api_key = config.api_key
+    if not models:
+        models = config.default_model
+
+    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=verbose)
     
     if prompt is None and input_file is None and input_directory is None:
         logging.error(f"{COLOR_RED}{COLOR_BOLD}Either a text prompt or an --input-file or an --input-directory needs to be provided. Exiting.{COLOR_RESET}")
@@ -137,8 +145,7 @@ def main(prompt, api_endpoint, api_token, models, max_tokens, temperature, verbo
     # only prompt is given , no file or directory -> execute for this file
     if prompt is not None:
         for model in models:
-            prompt_model(llm_api, prompt, model,
-                api_endpoint, api_token, max_tokens, 
+            prompt_model(llm_api, prompt, model, max_tokens, 
                 temperature, output_directory, None, verbose, post_process_results)
             sys.exit(0)
 
@@ -152,7 +159,7 @@ def main(prompt, api_endpoint, api_token, models, max_tokens, temperature, verbo
                 next
 
             for model in models:
-                prompt_model(llm_api, prompt, model, api_endpoint, api_token, max_tokens, temperature, output_directory, filepath, verbose, post_process_results)
+                prompt_model(llm_api, prompt, model, max_tokens, temperature, output_directory, filepath, verbose, post_process_results)
 
         
 if __name__ == '__main__':

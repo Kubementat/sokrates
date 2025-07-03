@@ -25,7 +25,7 @@ import argparse
 from pathlib import Path
 import time
 from openai import OpenAI
-from .. import LLMApi, PromptRefiner, Colors, FileHelper
+from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config
 
 # TODOs
 # - improve extraction of the generated prompts (remove think tags, ....)
@@ -99,19 +99,19 @@ Examples:
   python script.py --input-file "initial_prompt.txt" \\
     --refinement-prompt-file refinement.txt \\
     --api-endpoint "http://localhost:1234/v1" \\
-    --api-token "lm-studio"
+    --api-key "lm-studio"
 
   # LM Studio default endpoint with command line prompt
   python script.py --text-prompt "What is machine learning?" \\
     --refinement-prompt-file refinement.txt \\
     --api-endpoint "http://localhost:1234/v1" \\
-    --api-token "lm-studio"
+    --api-key "lm-studio"
 
   # Using input file with output file
   python refine-prompt.py --input-file "complex_prompt.txt" \\
     --refinement-prompt-file prompts/refinement.txt \\
     --api-endpoint "http://localhost:11434/v1" \\
-    --api-token "" \\
+    --api-key "" \\
     --models "llama2,phi4" \\
     --output "detailed_response.md"
 
@@ -119,7 +119,7 @@ Examples:
   python refine-prompt.py --text-prompt "Write a summary" \\
     --refinement-prompt-file refinement.txt \\
     --api-endpoint "http://192.168.1.100:8080/v1" \\
-    --api-token "my-local-token" \\
+    --api-key "my-local-token" \\
     --models "custom-model" \\
     --max-tokens 500 \\
     --output "summary_response.md"
@@ -146,19 +146,19 @@ Examples:
     parser.add_argument(
         '--api-endpoint',
         required=False,
-        default="http://localhost:1234/v1",
+        default=None,
         help='Local LLM server API endpoint (e.g. for a locally running LM Studio http://localhost:1234/v1). Default is http://localhost:1234/v1'
     )
     
     parser.add_argument(
-        '--api-token',
-        default="",
-        help='API token for authentication (many local servers don\'t require this)'
+        '--api-key',
+        default=None,
+        help='API key for authentication (many local servers don\'t require this)'
     )
     
     parser.add_argument(
         '--models', '-m',
-        default='qwen3-4b',
+        default=None,
         help='Comma separated list of models to use (default: qwen3-4b). For multiple models e.g: qwen/qwen3-14b,phi4'
     )
     
@@ -190,6 +190,8 @@ Examples:
     # Parse arguments
     args = parser.parse_args()
     
+    config = Config()
+    
     # Validate that either text_prompt or input-file is provided
     if not args.text_prompt and not args.input_file:
         print_error("Either provide a text_prompt argument or use --input-file option")
@@ -220,20 +222,31 @@ Examples:
         print_error(f"Refinement prompt file not found: {refinement_prompt_file}")
         sys.exit(1)
 
-    if args.api_endpoint:
-        if not validate_endpoint_url(args.api_endpoint):
+    api_endpoint = args.api_endpoint
+    if api_endpoint:
+        if not validate_endpoint_url(api_endpoint):
             print_error(f"Invalid API endpoint URL: {args.api_endpoint}")
             print_warning("URL should start with http:// or https:// (e.g., http://localhost:1234/v1)")
             sys.exit(1)
+    else:
+        api_endpoint = config.api_endpoint
         
+    api_key = args.api_key
+    if not api_key:
+        api_key = config.api_key
+    
+    models = None
     if args.models is not None:
-        args.models = [s.strip() for s in args.models.split(",")]
+        models = [s.strip() for s in args.models.split(",")]
+    # load via env and .env file when not specified via parameter
+    if not models:
+        models = [config.default_model]
     
     if args.verbose:
         print_section("⚙️ CONFIGURATION", Colors.BRIGHT_BLUE, "═")
-        print_info("API Endpoint", args.api_endpoint, Colors.BRIGHT_CYAN)
-        print_info("API Token", '[SET]' if args.api_token else '[EMPTY]', Colors.BRIGHT_CYAN)
-        print_info("Models", ', '.join(args.models), Colors.BRIGHT_CYAN)
+        print_info("API Endpoint", api_endpoint, Colors.BRIGHT_CYAN)
+        print_info("API Key", '[SET]' if api_key else '[EMPTY]', Colors.BRIGHT_CYAN)
+        print_info("Models", ', '.join(models), Colors.BRIGHT_CYAN)
         print_info("Max Tokens", f"{args.max_tokens:,}", Colors.BRIGHT_CYAN)
         print_info("Temperature", f"{args.temperature}", Colors.BRIGHT_CYAN)
         print_info("Refinement prompt file", f"{refinement_prompt_file}", Colors.BRIGHT_CYAN)
@@ -245,9 +258,8 @@ Examples:
         print()
     
     try:
-        # initializer refiner class
         refiner = PromptRefiner(verbose=args.verbose)
-        llm_api = LLMApi(api_endpoint=args.api_endpoint, api_key=args.api_key, verbose=args.verbose)
+        llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
         
         # Load initial prompt (either from command line or file)
         if args.input_file:
@@ -264,7 +276,6 @@ Examples:
         # Combine prompts
         if args.verbose:
             print_progress("Combining prompts...")
-        
         combined_prompt = refiner.combine_refinement_prompt(text_prompt, refinement_prompt)
         
         if args.verbose:
@@ -272,12 +283,12 @@ Examples:
         
         # Send to LLM
         if args.verbose:
-            print_progress(f"Sending request to local LLM server at {Colors.CYAN}{args.api_endpoint}{Colors.RESET}")
+            print_progress(f"Sending request to local LLM server at {Colors.CYAN}{api_endpoint}{Colors.RESET}")
         
         # send to llm
         created_files = []
-        for i, model_name in enumerate(args.models, 1):
-            print_header(f"🎯 MODEL {i}/{len(args.models)}: {model_name}", Colors.BRIGHT_GREEN, 60)
+        for i, model_name in enumerate(models, 1):
+            print_header(f"🎯 MODEL {i}/{len(models)}: {model_name}", Colors.BRIGHT_GREEN, 60)
 
             response_content = llm_api.send(combined_prompt, model=model_name, max_tokens=args.max_tokens)
             processed_content = refiner.clean_response(response_content)
@@ -302,7 +313,7 @@ Examples:
             print_section("", Colors.BRIGHT_MAGENTA, "═")
             
             # Model unload wait
-            if i < len(args.models):  # Don't wait after the last model
+            if i < len(models):  # Don't wait after the last model
                 print_progress(f"Waiting for model to unload... {Colors.DIM}(8 seconds){Colors.RESET}")
                 time.sleep(8)
         

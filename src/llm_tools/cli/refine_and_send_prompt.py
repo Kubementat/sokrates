@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 
 
-from .. import LLMApi, PromptRefiner, Colors, FileHelper
+from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -32,7 +32,7 @@ Example usage:
     --refinement-prompt-file prompts/refine-coding-v3.md \\
     --input-file user_prompt.txt \\
     --api-endpoint http://localhost:1234/v1 \\
-    --api-token lmstudio \\
+    --api-key lmstudio \\
     --output my_result_file.md 
     
   python refine-and-send-prompt.py --api-endpoint "$EVOBOX_LMSTUDIO_ENDPOINT" \\
@@ -92,16 +92,16 @@ Example usage:
     
     parser.add_argument(
         '--api-endpoint',
-        default="http://localhost:1234/v1",
+        default=None,
         required=False,
         help='OpenAI-compatible API endpoint URL'
     )
     
     parser.add_argument(
-        '--api-token',
-        default="lmstudio",
+        '--api-key',
+        default=None,
         required=False,
-        help='API token for authentication'
+        help='API key for authentication'
     )
     
     parser.add_argument(
@@ -145,6 +145,14 @@ def main():
     # Parse arguments
     args = parse_arguments()
     
+    config = Config()
+    api_endpoint = config.api_endpoint
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
+    if args.api_endpoint:
+        api_endpoint = args.api_endpoint
+    
     # Validate temperature ranges
     if not (0.0 <= args.refinement_temperature <= 1.0):
         print(f"{Colors.RED}Refinement temperature must be between 0.0 and 1.0{Colors.RESET}")
@@ -168,7 +176,7 @@ def main():
         sys.exit(1)
         
     # Initialize LLMApi, PromptRefiner
-    llm_api = LLMApi(api_endpoint=args.api_endpoint, api_key=args.api_key, verbose=args.verbose)
+    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
     prompt_refiner = PromptRefiner(verbose=args.verbose)
 
     # Step 1: Read input files

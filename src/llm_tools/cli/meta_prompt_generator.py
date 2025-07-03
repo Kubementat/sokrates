@@ -16,7 +16,7 @@ Call examples
   --execution-llm-model qwen/qwen3-32b \
   --refinement-llm-model qwen/qwen3-32b \
   --api-endpoint http://localhost:1234/v1 \
-  --api-token lmstudio \
+  --api-key lmstudio \
   --output-directory tmp/00_teach_ai_to_children \
   --verbose
 
@@ -31,7 +31,7 @@ Call examples
   --execution-llm-model qwen/qwen3-32b \
   --refinement-llm-model qwen/qwen3-32b \
   --api-endpoint http://localhost:1234/v1 \
-  --api-token lmstudio \
+  --api-key lmstudio \
   --output-directory tmp/00_ai_business_plans \
   --verbose
 
@@ -46,7 +46,7 @@ Call examples
   --execution-llm-model josiefied-qwen3-30b-a3b-abliterated-v2 \
   --refinement-llm-model josiefied-qwen3-30b-a3b-abliterated-v2 \
   --api-endpoint http://localhost:1234/v1 \
-  --api-token lmstudio \
+  --api-key lmstudio \
   --output-directory tmp/00_generated_topic_qwen3_30b_a3b \
   --verbose
 """
@@ -59,7 +59,7 @@ import time
 import math
 from pathlib import Path
 
-from .. import LLMApi, PromptRefiner, Colors, FileHelper
+from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config
 
 def print_header(title, color=Colors.BRIGHT_CYAN, width=60):
     """Print a beautiful header with decorative borders"""
@@ -114,7 +114,7 @@ Example usage:
     --execution-llm-model qwen2.5-coder-7b-instruct-mlx \\
     --refinement-llm-model unsloth-phi-4 \\
     --api-endpoint http://localhost:1234/v1 \\
-    --api-token lmstudio \\
+    --api-key lmstudio \\
     --output-directory tmp/multi_stage_outputs \\
     --verbose
         """
@@ -169,9 +169,9 @@ Example usage:
     )
     
     parser.add_argument(
-        '--api-token',
+        '--api-key',
         default="lmstudio",
-        help='API token for authentication'
+        help='API key for authentication'
     )
     
     parser.add_argument(
@@ -216,7 +216,15 @@ def main():
 
     args = parse_arguments()
 
-    llm_api = LLMApi(api_endpoint=args.api_endpoint, api_key=args.api_key, verbose=args.verbose)
+    config = Config()
+    api_endpoint = config.api_endpoint
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
+    if args.api_endpoint:
+        api_endpoint = args.api_endpoint
+
+    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
     prompt_refiner = PromptRefiner(verbose=args.verbose)
 
     generated_prompt_generator_content = None

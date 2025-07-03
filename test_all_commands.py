@@ -41,21 +41,25 @@ def test_all_commands():
                         "args": args
                     })
                 else:
-                    print(f"{Colors.BLUE}Command excluded:{cmd}{Colors.RESET}")
+                    print(f"{Colors.BLUE}Commands excluded:{cmd}{Colors.RESET}")
 
     # Display all commands to be tested
-    print(f"{Colors.BLUE}\nCOMMAND LIST:{Colors.RESET}")
+    print(f"{Colors.BLUE}\n{"-"*60}{Colors.RESET}")
+    print(f"{Colors.BLUE}\nCOMMAND LIST:{Colors.RESET}\n")
     for cmd in COMMANDS:
         print(f"{Colors.BLUE}{cmd['name'] + ':'} {cmd['cmd']}{Colors.RESET}")
+    print(f"{Colors.BLUE}\n{"-"*60}{Colors.RESET}")
 
     # Execute each command
     print(f"{Colors.BRIGHT_GREEN}\nTEST EXECUTION:{Colors.RESET}")
     for cmd_info in COMMANDS:
+        print(f"{Colors.YELLOW}\n{"-"*60}{Colors.RESET}")
         print(f"{Colors.YELLOW}\nExecuting: {cmd_info['cmd']}{Colors.RESET}")
         result = run(cmd_info['cmd'], shell=True, text=True)
         if result.returncode == 0:
             print(f"{Colors.BRIGHT_GREEN}\nSuccess.{Colors.RESET}")
         else:
             print(f"{Colors.BRIGHT_GREEN}Error: {result.stderr}{Colors.RESET}")
+        print(f"{Colors.YELLOW}\n{"-"*60}{Colors.RESET}")
 
 test_all_commands()
