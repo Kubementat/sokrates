@@ -26,3 +26,7 @@ DO NOT add any further description or any other text in addition to the improved
 Especially DO NOT print descriptions describing the improved prompt at the end or headers with titles like "Improved Prompt" or similar.
 __ANSWER ONLY WITH THE NEWLY GENERATED IMPROVED PROMPT.__
 Print the improved prompt for the following input prompt using the instructions provided above.
+
+---
+
+# __Input Prompt:__

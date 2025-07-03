@@ -1,4 +1,4 @@
-To guide an AI assistant in creating a detailed Product Requirements Document (PRD) in Markdown format, based on an initial user prompt. The PRD should be clear, actionable, and suitable for a junior developer to understand and implement the feature.
+To guide an AI assistant in creating a detailed Product Requirements Document (PRD) in Markdown format, based on an initial user input prompt. The PRD should be clear, actionable, and suitable for a junior developer to understand and implement the feature.
 
 ## Process
 
@@ -50,3 +50,7 @@ Assume the primary reader of the PRD is a **junior developer**. Therefore, requi
 1. Do NOT start implementing the PRD
 2. __Make sure to ask the user clarifying questions__
 3. Take the user's answers to the clarifying questions and improve the PRD
+
+---
+
+# __Input Prompt:__

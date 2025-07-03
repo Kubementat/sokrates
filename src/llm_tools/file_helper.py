@@ -1,29 +1,34 @@
 import os
 from .colors import Colors
 
+"""
+A class for managing file operations.
+"""
 class FileHelper:
     
     @staticmethod
-    def clean_name(name):
-        """
-        Provide a cleaned up name as input to file names
-        
-        Replaces all special characters with underscores, hyphens, asterisks, question marks, and double quotes. 
-        
+    def clean_name(name: str) -> str:
+        """Provide a cleaned-up name as input to file names.
+
+        Replaces all special characters with underscores, hyphens, asterisks, question marks, and double quotes.
+
+        Args:
+            name (str): The original name string.
+
         Returns:
-            str: Cleaned up name
+            str: Cleaned-up name.
         """
         return name.replace('/', '_').replace(':', '-').replace('*', '-').replace('?', '').replace('"', '')
 
     @staticmethod
-    def list_files_in_directory(directory_path, verbose=False):
-        """
-        List all files in a directory.
-          
+    def list_files_in_directory(directory_path: str, verbose: bool = False) -> list[str]:
+        """List all files in a directory.
+
         Args:
-            directory_path (str): Path to the directory
-          Returns:
-            list: List of file names in the directory
+            directory_path (str): Path to the directory.
+
+        Returns:
+            list[str]: List of file names in the directory.
         """
         file_paths = []
         for file_path in os.scandir(directory_path):
@@ -32,19 +37,18 @@ class FileHelper:
         return file_paths
 
     @staticmethod
-    def read_file(file_path, verbose=False):
-        """
-        Load and return the content of a prompt file.
-        
+    def read_file(file_path: str, verbose: bool = False) -> str:
+        """Load and return the content of a prompt file.
+
         Args:
-            file_path (str): Path to the prompt file
-            
+            file_path (str): Path to the prompt file.
+
         Returns:
-            str: Content of the prompt file
-            
+            str: Content of the prompt file.
+
         Raises:
-            FileNotFoundError: If the file doesn't exist
-            IOError: If there's an error reading the file
+            FileNotFoundError: If the file doesn't exist.
+            IOError: If there's an error reading the file.
         """
         try:
             if verbose:
@@ -57,16 +61,15 @@ class FileHelper:
             raise IOError(f"Error reading file: {e}")
 
     @staticmethod
-    def write_to_file(file_path, content, verbose=False):
-        """
-        Save content to a file.
-        
+    def write_to_file(file_path: str, content: str, verbose: bool = False) -> None:
+        """Save content to a file.
+
         Args:
-            content (str): Content to save
-            filename (str): Output filename
-            
+            content (str): Content to save.
+            file_path (str): Output filename.
+
         Raises:
-            IOError: If there's an error writing to the file
+            IOError: If there's an error writing to the file.
         """
         try:
             dirname = os.path.dirname(file_path)
@@ -81,12 +84,11 @@ class FileHelper:
             raise IOError(f"Error writing to file {file_path}: {e}")
 
     @staticmethod
-    def create_new_file(file_path, verbose=False):
-        """
-        Create a new empty file.
+    def create_new_file(file_path: str, verbose: bool = False) -> None:
+        """Create a new empty file.
 
         Args:
-            file_path (str): Path to the file to create
+            file_path (str): Path to the file to create.
         """
         try:
             dirname = os.path.dirname(file_path)

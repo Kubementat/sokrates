@@ -8,6 +8,9 @@ from datetime import datetime
 import json
 from tabulate import tabulate
 
+"""
+A class for benchmarking models in LM Studio.
+"""
 class LMStudioBenchmark:
     def __init__(self, base_url="http://localhost:1234/v1"):
         self.base_url = base_url

@@ -20,14 +20,14 @@ class TestFileHelperBasicFunctionality:
     def test_write_to_file(self, tmp_path):
         content = "Hello, world!"
         test_file = tmp_path / "content.txt"
-        FileHelper.write_to_file(test_file, content)
+        FileHelper.write_to_file(file_path=test_file, content=content)
         assert test_file.read_text() == content
         
     def test_read_file(self, tmp_path):
         test_file = tmp_path / "test.txt"
         FileHelper.create_new_file(test_file)
         expected_content = "Sample content."
-        FileHelper.write_to_file(test_file, expected_content)
+        FileHelper.write_to_file(file_path=test_file, content=expected_content)
         actual_content = FileHelper.read_file(test_file)
         assert actual_content == expected_content
 
@@ -35,7 +35,7 @@ class TestFileHelperEdgeCases:
     def test_write_to_existing_file(self, tmp_path):
         test_file = tmp_path / "test.txt"
         initial_content = "First line."
-        FileHelper.write_to_file(test_file, initial_content)
+        FileHelper.write_to_file(file_path=test_file, content=initial_content)
         new_content = "Second line."
-        FileHelper.write_to_file(test_file, new_content)
+        FileHelper.write_to_file(file_path=test_file, content=new_content)
         assert test_file.read_text() == new_content

@@ -5,6 +5,9 @@ import requests
 
 from openai import OpenAI
 from .colors import Colors
+"""
+A class for interacting with the LLM API.
+"""
 class LLMApi:
     def __init__(self, verbose=False, api_endpoint="http://localhost:1234/v1", api_key='local-server'):
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

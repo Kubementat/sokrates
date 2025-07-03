@@ -10,5 +10,6 @@ For your newly introduced concepts and ideas provide a short explanation and put
 Rewrite the given piece of writing attached below diving deeper into the original concepts and extending all aspects into width and depth.
 __RESPOND WITH THE FULL REWRITTEN TEXT__
 
+---
 
-# Original Piece of Writing
+# __Original Piece of Writing__

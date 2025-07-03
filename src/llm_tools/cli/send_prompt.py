@@ -47,7 +47,7 @@ def write_output_file(content, model, source_prompt_file, output_directory, verb
             source_file_name = FileHelper.clean_name(Path(source_prompt_file).stem)
             output_file = os.path.join(output_directory, f"output_{clean_model_name}_{source_file_name}.md")
         
-        FileHelper.save_content_to_file(content, output_file, verbose=verbose)
+        FileHelper.write_to_file(file_path=output_file, content=content, verbose=verbose)
 
 def prompt_model(llm_api, prompt, model, max_tokens, temperature, output_directory, source_prompt_file=None, verbose=False, post_process_results=False):
     try:

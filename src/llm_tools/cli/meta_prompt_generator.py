@@ -288,7 +288,7 @@ def main():
         print_success("Successfully generated JSON of Execution Prompts.")
 
         generated_prompts_filename = os.path.join(args.output_directory, "generated_prompts.json")
-        FileHelper.save_content_to_file(json_response_content, generated_prompts_filename, args.verbose)
+        FileHelper.write_to_file(file_path=generated_prompts_filename, content=json_response_content, verbose=args.verbose)
         print_file_created(generated_prompts_filename)
         
         # Attempt to parse JSON
@@ -352,7 +352,7 @@ def main():
                 args.output_directory,
                 f"output_execution_prompt_{i+1}_{FileHelper.clean_name(args.execution_llm_model)}.md"
             )
-            FileHelper.save_content_to_file(final_execution_response, output_filename, args.verbose)
+            FileHelper.write_to_file(file_path=output_filename, content=final_execution_response, verbose=args.verbose)
             created_files.append(output_filename)
             print_file_created(output_filename)
 

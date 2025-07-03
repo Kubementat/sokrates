@@ -39,3 +39,7 @@ The intention is to be able to directly send the created new prompt further into
 
 # Main Task
 __ONLY RETURN THE IMPROVED PROMPT__ for the following input prompt using the instructions provided above:
+
+---
+
+# __Input Prompt:__

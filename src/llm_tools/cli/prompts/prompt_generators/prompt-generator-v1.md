@@ -45,5 +45,7 @@ Only respond with a valid json as described in the json specification and the re
 __DO NOT__ include any ``` markdown code block sections in your response. It is crucial that only the plain text json without anything else is returned.
 
 # Task
-Use this topic for generating the prompts:
+Use this topic provided below for generating the prompts:
+---
 
+# __Topic:__

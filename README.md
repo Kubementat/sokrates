@@ -43,3 +43,17 @@ $ git clone https://github.com/Kubementat/llm_tools.git
 $ cd llm_tools
 $ uv sync
 $ uv run pytest
+```
+
+### Available Commands
+The following commands are available for use via the command line:
+
+- `benchmark-model`: Runs a benchmark test on an LLM model.
+- `benchmark-results-merger`: Merges benchmark results from multiple runs.
+- `benchmark-results-to-markdown`: Converts benchmark results to a Markdown report.
+- `fetch-to-md`: Fetches content and converts it to Markdown format.
+- `list-models`: Lists available LLM models.
+- `meta-prompt-generator`: Generates meta prompts for various tasks.
+- `refine-and-send-prompt`: Refines a prompt and sends it to an LLM.
+- `refine-prompt`: Refines a text prompt for better results.
+- `send-prompt`: Sends a prompt to an LLM and receives a response.

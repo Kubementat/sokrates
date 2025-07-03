@@ -12,3 +12,7 @@ Make sure the structure is clear and intuitive.
 Provide a __detailed step by step list of tasks__ that the receiving coding LLM should execute.
 
 __ONLY RETURN THE IMPROVED PROMPT__ for the following input prompt:
+
+---
+
+# __Input Prompt:__

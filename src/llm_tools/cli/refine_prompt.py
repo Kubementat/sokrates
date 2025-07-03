@@ -27,11 +27,11 @@ import time
 from openai import OpenAI
 from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config
 
-# TODOs
-# - improve extraction of the generated prompts (remove think tags, ....)
-# - feature: allow providing other llms to send the resulting prompt to
+# TODO:
+# - Improve extraction of generated prompts (remove "think" tags).
+# Feature: Allow sending the refined prompt to other LLMs.
 # - allow specifying an output directory for the generated prompts (create it if not present)
-# - add parameter for wait for model unload time , default: 0
+# Add a parameter to specify the wait time after model unloading (default: 0 seconds).
 
 def print_header(title, color=Colors.BRIGHT_CYAN, width=60):
     """Print a beautiful header with decorative borders"""
@@ -303,7 +303,7 @@ Examples:
                 new_file_name = f"{f_name}-{model_name_escaped}.{f_extension}"
                 
                 print_progress(f"Saving response to file: {Colors.CYAN}{new_file_name}{Colors.RESET}")
-                FileHelper.save_content_to_file(markdown_output, new_file_name, args.verbose)
+                FileHelper.write_to_file(file_path=new_file_name, content=markdown_output, verbose=args.verbose)
                 created_files.append(new_file_name)
                 print_file_created(new_file_name)
             

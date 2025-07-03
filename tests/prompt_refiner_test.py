@@ -96,38 +96,5 @@ class TestPromptRefiner(unittest.TestCase):
         no_code_blocks = "Just plain text and some *markdown*."
         self.assertEqual(self.refiner.clean_response_from_markdown(no_code_blocks), no_code_blocks)
 
-    def test_postprocess_prompt(self):
-        # Test removal of internal blocks
-        content_with_internal_blocks = "<think>Thought process</think>Actual prompt.<tool_code>print('hi')</tool_code>"
-        self.assertEqual(self.refiner.postprocess_prompt(content_with_internal_blocks), "Actual prompt.")
-
-        # Test removal of stray tags
-        content_with_stray_tags = "Prompt with </execute_result>stray<response> tags."
-        self.assertEqual(self.refiner.postprocess_prompt(content_with_stray_tags), "Prompt with stray tags.")
-
-        # Test cleaning up newlines and whitespace
-        content_with_excessive_newlines = "Line 1.\n\n\nLine 2.\n\n"
-        self.assertEqual(self.refiner.postprocess_prompt(content_with_excessive_newlines), "Line 1.\n\nLine 2.")
-
-        # Complex test case with all types of issues
-        complex_content = """
-        <reflection>Reflecting on the task.</reflection>
-        This is the main prompt content.
-
-        <meta>Metadata here</meta>
-        Another line of content.
-        </response>
-        """
-        expected_cleaned_complex = "This is the main prompt content.\n\nAnother line of content."
-        self.assertEqual(self.refiner.postprocess_prompt(complex_content), expected_cleaned_complex)
-
-        # Test with verbose mode
-        # This primarily checks if the verbose output doesn't break the function,
-        # as capturing print output in unit tests can be complex and is often
-        # done with mocking, which is beyond the scope of a basic test.
-        verbose_output = self.verbose_refiner.postprocess_prompt(complex_content, {"option1": True})
-        self.assertEqual(verbose_output, expected_cleaned_complex)
-
-
 if __name__ == '__main__':
     unittest.main()

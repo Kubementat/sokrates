@@ -245,7 +245,7 @@ def main():
     if args.output:
         try:
             print(f"\n{Colors.CYAN}{'='*60}{Colors.RESET}")
-            FileHelper.save_content_to_file(final_response, args.output, args.verbose)
+            FileHelper.write_to_file(file_path=args.output, content=final_response, verbose=args.verbose)
             print(f"{Colors.GREEN}Final response saved to: {args.output}{Colors.RESET}")
         except IOError as e:
             print(f"{Colors.RED}Error writing to output file: {e}{Colors.RESET}")
