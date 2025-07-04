@@ -7,7 +7,6 @@ Call examples
 
 # with topic input file - teaching children about ai
 ./meta-prompt-generator.py \
-  --meta-prompt-generator-file prompts/prompt_generators/meta-prompt-generator.md \
   --topic-input-file tests/topics/ai_introduction_for_children.md \
   --prompt-generator-file prompts/prompt_generators/prompt-generator-v1.md \
   --refinement-prompt-file prompts/refine-prompt.md \
@@ -122,7 +121,7 @@ Example usage:
     
     parser.add_argument(
         '--meta-prompt-generator-file',
-        required=True,
+        required=False,
         help='Path to the "Meta Prompt Generator Prompt" file'
     )
     
@@ -140,7 +139,7 @@ Example usage:
     
     parser.add_argument(
         '--meta-llm-model',
-        required=True,
+        required=False,
         help='Name of the model to use for the Meta Prompt Generator step'
     )
     
@@ -226,6 +225,25 @@ def main():
 
     llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
     prompt_refiner = PromptRefiner(verbose=args.verbose)
+    
+    if not args.meta_prompt_generator_file and not args.topic_input_file:
+        print_error(f"You must specify either a --meta-prompt-generator-file or a --topic-input-file.")
+        sys.exit(1)
+    
+    print_info("meta-prompt-generator-file", args.meta_prompt_generator_file)
+    print_info("topic-input-file", args.topic_input_file)
+    print_info("prompt-generator-file", args.prompt_generator_file)
+    print_info("refinement-prompt-file", args.refinement_prompt_file)
+    
+    print_info("meta-llm-model", args.meta_llm_model)
+    print_info("generator-llm-model", args.generator_llm_model)
+    print_info("execution-llm-model", args.execution_llm_model)
+    print_info("refinement-llm-model", args.refinement_llm_model)
+    print_info("temperature", args.temperature)
+    print_info("max-tokens", args.max_tokens)
+    print_info("verbose", args.verbose)
+    output_directory = FileHelper.generate_postfixed_sub_directory_name(args.output_directory)
+    print_info("output-directory", output_directory)
 
     generated_prompt_generator_content = None
     if args.topic_input_file:
@@ -287,7 +305,7 @@ def main():
         
         print_success("Successfully generated JSON of Execution Prompts.")
 
-        generated_prompts_filename = os.path.join(args.output_directory, "generated_prompts.json")
+        generated_prompts_filename = os.path.join(output_directory, "generated_prompts.json")
         FileHelper.write_to_file(file_path=generated_prompts_filename, content=json_response_content, verbose=args.verbose)
         print_file_created(generated_prompts_filename)
         
@@ -349,7 +367,7 @@ def main():
             
             # Save output
             output_filename = os.path.join(
-                args.output_directory,
+                output_directory,
                 f"output_execution_prompt_{i+1}_{FileHelper.clean_name(args.execution_llm_model)}.md"
             )
             FileHelper.write_to_file(file_path=output_filename, content=final_execution_response, verbose=args.verbose)

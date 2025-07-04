@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from ..src.llm_tools.file_helper import FileHelper
+from ..src.llm_tools import FileHelper
 
 import shutil
 

@@ -42,7 +42,7 @@ These functions help optimize and compare AI prompts.
 $ git clone https://github.com/Kubementat/llm_tools.git
 $ cd llm_tools
 $ uv sync
-$ uv run pytest
+$ uv run pytest -v
 ```
 
 ### Available Commands

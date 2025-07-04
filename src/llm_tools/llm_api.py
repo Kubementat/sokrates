@@ -5,11 +5,12 @@ import requests
 
 from openai import OpenAI
 from .colors import Colors
+from .config import Config
 """
 A class for interacting with the LLM API.
 """
 class LLMApi:
-    def __init__(self, verbose=False, api_endpoint="http://localhost:1234/v1", api_key='local-server'):
+    def __init__(self, verbose=False, api_endpoint=Config.DEFAULT_API_ENDPOINT, api_key=Config.DEFAULT_API_KEY):
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         self.verbose = verbose
         self.api_endpoint = api_endpoint
@@ -51,7 +52,7 @@ class LLMApi:
             print(f"{Colors.RED}{Colors.BOLD}Error listing models: {str(e)}{Colors.RESET}")
             raise(e)
 
-    def send(self, prompt, model=None, max_tokens=2000, temperature=0.7):
+    def send(self, prompt, model=Config.DEFAULT_MODEL, max_tokens=2000, temperature=0.7):
         """
         Send a prompt to local LLM server and return the response.
 

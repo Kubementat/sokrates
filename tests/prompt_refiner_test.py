@@ -1,6 +1,6 @@
 import unittest
 import re
-from ..src.llm_tools.prompt_refiner import PromptRefiner
+from ..src.llm_tools import PromptRefiner
 
 class TestPromptRefiner(unittest.TestCase):
     def setUp(self):

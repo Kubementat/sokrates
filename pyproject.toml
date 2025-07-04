@@ -1,6 +1,6 @@
 [project]
 name = "llm_tools"
-version = "0.1.5"
+version = "0.1.10"
 description = "A collection of tools for LLM interactions and system monitoring"
 readme = "README.md"
 requires-python = ">=3.6"
@@ -21,7 +21,9 @@ dependencies = [
     "colorama",
     "click",
     "html2text",
-    "dotenv"
+    "dotenv",
+    "pytest",
+    "pytest-mock"
 ]
 
 [project.urls]

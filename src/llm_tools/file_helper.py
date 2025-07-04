@@ -1,5 +1,6 @@
 import os
 from .colors import Colors
+from datetime import datetime
 
 """
 A class for managing file operations.
@@ -100,3 +101,10 @@ class FileHelper:
                 print(f"{Colors.GREEN}File successfully created at {file_path}{Colors.RESET}")
         except IOError as e:
             raise IOError(f"Error creating file {file_path}: {e}")
+
+    @staticmethod
+    def generate_postfixed_sub_directory_name(base_directory: str) -> str:
+        current_datetime = datetime.now()
+        # Format the current date and time
+        formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M")
+        return f"{base_directory}/{formatted_datetime}"
