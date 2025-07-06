@@ -9,7 +9,7 @@ def test_all_commands():
     COMMAND_ARGS = {
         "benchmark-model": "--model 'qwen3-1.7b-mlx' --input-directory tests/prompts_minimal --results-directory tmp/benchmark_results --store-results --verbose",
         "fetch-to-md": "--url 'https://de.wikipedia.org/wiki/Schwarzes_Loch' --output tmp/blackhole.md",
-        "meta-prompt-generator": "--verbose --meta-llm-model qwen3-1.7b-mlx --generator-llm-model qwen3-1.7b-mlx --execution-llm-model qwen3-1.7b-mlx --refinement-llm-model qwen3-1.7b-mlx --meta-prompt-generator-file src/llm_tools/cli/prompts/prompt_generators/meta-prompt-generator.md --prompt-generator-file src/llm_tools/cli/prompts/prompt_generators/prompt-generator-v1.md --output-directory tmp/meta_ideas --refinement-prompt-file src/llm_tools/cli/prompts/refine-prompt.md",
+        "meta-prompt-generator": "--verbose --meta-llm-model qwen3-1.7b-mlx --generator-llm-model qwen3-1.7b-mlx --execution-llm-model qwen3-1.7b-mlx --refinement-llm-model qwen3-1.7b-mlx --meta-prompt-generator-file src/llm_tools/prompts/prompt_generators/meta-prompt-generator.md --prompt-generator-file src/llm_tools/prompts/prompt_generators/prompt-generator-v1.md --output-directory tmp/meta_ideas --refinement-prompt-file src/llm_tools/prompts/refine-prompt.md",
         "refine-and-send-prompt": "--verbose --refinement-model 'qwen3-1.7b-mlx' --output-model 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --verbose",
         "refine-prompt": "-m 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt --verbose",
         "send-prompt": "-m 'qwen3-1.7b-mlx' 'Hi, who are you?' --output-directory tmp/ --verbose"

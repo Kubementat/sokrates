@@ -21,7 +21,7 @@ class TestRefinementWorkflow(unittest.TestCase):
         
     def test_refine_and_send_prompt(self):
         input_prompt = "Write a minesweeper clone in Python which can be played on the terminal."
-        refinement_prompt = FileHelper.read_file("src/llm_tools/cli/prompts/refine-coding-v3.md", verbose=True)
+        refinement_prompt = FileHelper.read_file("src/llm_tools/prompts/refine-coding-v3.md", verbose=True)
         result = self.workflow.refine_and_send_prompt(input_prompt, refinement_prompt)
 
         # Add assertions to verify the refined prompt
