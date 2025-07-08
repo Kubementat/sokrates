@@ -57,23 +57,8 @@ import json
 import time
 import math
 from pathlib import Path
-
+from ..output_printer import OutputPrinter
 from .. import Colors, Config, MetaPromptWorkflow, FileHelper
-
-def print_header(title, color=Colors.BRIGHT_CYAN, width=60):
-    """Print a beautiful header with decorative borders"""
-    border = "═" * width
-    print(f"\n{color}{Colors.BOLD}╔{border}╗{Colors.RESET}")
-    print(f"{color}{Colors.BOLD}║{title.center(width)}║{Colors.RESET}")
-    print(f"{color}{Colors.BOLD}╚{border}╝{Colors.RESET}\n")
-
-def print_info(label, value, label_color=Colors.BRIGHT_GREEN, value_color=Colors.WHITE):
-    """Print formatted info with colored labels"""
-    print(f"{label_color}{Colors.BOLD}{label}:{Colors.RESET} {value_color}{value}{Colors.RESET}")
-
-def print_error(message):
-    """Print error message"""
-    print(f"{Colors.BRIGHT_RED}{Colors.BOLD}✗ {message}{Colors.RESET}")
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -123,25 +108,25 @@ Example usage:
     
     parser.add_argument(
         '--generator-llm-model',
-        required=True,
+        required=False,
         help='Name of the model to use for the Prompt Generator step'
     )
     
     parser.add_argument(
         '--execution-llm-model',
-        required=True,
+        required=False,
         help='Name of the model to use for executing the final prompts'
     )
 
     parser.add_argument(
         '--refinement-llm-model',
-        required=True,
+        required=False,
         help='Name of the model to use for the prompt refinement step'
     )
     
     parser.add_argument(
         '--api-endpoint',
-        default="http://localhost:1234/v1",
+        default=Config.DEFAULT_API_ENDPOINT,
         help='OpenAI-compatible API endpoint URL'
     )
     
@@ -187,36 +172,49 @@ Example usage:
 
 def main():
     """Main execution function"""
-    print_header("🚀 Meta Prompt Generator 🚀", Colors.BRIGHT_CYAN, 60)
+    OutputPrinter.print_header("🚀 Meta Prompt Generator 🚀", Colors.BRIGHT_CYAN, 60)
 
     args = parse_arguments()
 
     config = Config()
     api_endpoint = config.api_endpoint
     api_key = config.api_key
+    meta_llm_model = config.default_model
+    generator_llm_model = config.default_model
+    execution_llm_model = config.default_model
+    refinement_llm_model = config.default_model
+    
     if args.api_key:
         api_key = args.api_key
     if args.api_endpoint:
         api_endpoint = args.api_endpoint
+    if args.meta_llm_model:
+        meta_llm_model = args.meta_llm_model
+    if args.generator_llm_model:
+        generator_llm_model = args.generator_llm_model
+    if args.execution_llm_model:
+        execution_llm_model = args.execution_llm_model
+    if args.refinement_llm_model:
+        refinement_llm_model = args.refinement_llm_model
         
     if not args.meta_prompt_generator_file and not args.topic_input_file:
-        print_error(f"You must specify either a --meta-prompt-generator-file or a --topic-input-file.")
+        OutputPrinter.print_error(f"You must specify either a --meta-prompt-generator-file or a --topic-input-file.")
         sys.exit(1)
         
-    print_info("meta-prompt-generator-file", args.meta_prompt_generator_file)
-    print_info("topic-input-file", args.topic_input_file)
-    print_info("prompt-generator-file", args.prompt_generator_file)
-    print_info("refinement-prompt-file", args.refinement_prompt_file)
+    OutputPrinter.print_info("meta-prompt-generator-file", args.meta_prompt_generator_file)
+    OutputPrinter.print_info("topic-input-file", args.topic_input_file)
+    OutputPrinter.print_info("prompt-generator-file", args.prompt_generator_file)
+    OutputPrinter.print_info("refinement-prompt-file", args.refinement_prompt_file)
     
-    print_info("meta-llm-model", args.meta_llm_model)
-    print_info("generator-llm-model", args.generator_llm_model)
-    print_info("execution-llm-model", args.execution_llm_model)
-    print_info("refinement-llm-model", args.refinement_llm_model)
-    print_info("temperature", args.temperature)
-    print_info("max-tokens", args.max_tokens)
-    print_info("verbose", args.verbose)
+    OutputPrinter.print_info("meta-llm-model", args.meta_llm_model)
+    OutputPrinter.print_info("generator-llm-model", args.generator_llm_model)
+    OutputPrinter.print_info("execution-llm-model", args.execution_llm_model)
+    OutputPrinter.print_info("refinement-llm-model", args.refinement_llm_model)
+    OutputPrinter.print_info("temperature", args.temperature)
+    OutputPrinter.print_info("max-tokens", args.max_tokens)
+    OutputPrinter.print_info("verbose", args.verbose)
     output_directory = FileHelper.generate_postfixed_sub_directory_name(args.output_directory)
-    print_info("output-directory", output_directory)
+    OutputPrinter.print_info("output-directory", output_directory)
 
     workflow = MetaPromptWorkflow(
         api_endpoint=api_endpoint,
@@ -242,5 +240,5 @@ if __name__ == "__main__":
         print(f"\n{Colors.YELLOW}Process interrupted by user{Colors.RESET}")
         sys.exit(0)
     except Exception as e:
-        print_error(f"An unexpected error occurred: {str(e)}")
+        OutputPrinter.print_error(f"An unexpected error occurred: {str(e)}")
         sys.exit(1)

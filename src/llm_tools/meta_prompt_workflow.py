@@ -1,4 +1,5 @@
-from . import LLMApi, PromptRefiner, Colors, FileHelper
+from . import LLMApi, PromptRefiner, Colors, FileHelper, Config
+from .output_printer import OutputPrinter
 import os
 import json
 import time
@@ -35,19 +36,19 @@ class MetaPromptWorkflow:
         
         self.generator_llm_model = generator_llm_model
         if not self.generator_llm_model:
-          self.generator_llm_model = self.DEFAULT_MODEL
+          self.generator_llm_model = Config.DEFAULT_MODEL
         
         self.refinement_llm_model = refinement_llm_model
         if not self.refinement_llm_model:
-          self.refinement_llm_model = self.DEFAULT_MODEL
+          self.refinement_llm_model = Config.DEFAULT_MODEL
           
         self.execution_llm_model = execution_llm_model
         if not self.execution_llm_model:
-          self.execution_llm_model = self.DEFAULT_MODEL
+          self.execution_llm_model = Config.DEFAULT_MODEL
           
         self.meta_llm_model = meta_llm_model
         if not self.meta_llm_model:
-          self.meta_llm_model = self.DEFAULT_MODEL
+          self.meta_llm_model = Config.DEFAULT_MODEL
         
     def generate_or_set_topic(self):
         # Decide between topic input file or meta prompt generation
@@ -116,7 +117,7 @@ class MetaPromptWorkflow:
         self.output_directory = FileHelper.generate_postfixed_sub_directory_name(self.output_directory)
         start_time = time.time()
         
-        self.print_header("🚀 Meta Prompt Generator 🚀", Colors.BRIGHT_CYAN, 60)
+        OutputPrinter.print_header("🚀 Meta Prompt Generator 🚀", Colors.BRIGHT_CYAN, 60)
         
         self.generated_content = self.generate_or_set_topic()
         
@@ -135,53 +136,16 @@ class MetaPromptWorkflow:
                 FileHelper.write_to_file(output_filename, result, self.verbose)
                 created_files.append(output_filename)
             except Exception as e:
-                self.print_error(f"Issue processing prompt {idx}: {str(e)}")
+                OutputPrinter.print_error(f"Issue processing prompt {idx}: {str(e)}")
         
         # Final reporting
         end_time = time.time()
         total_seconds = round(end_time - start_time, 2)
-        self.print_header("🎉 Workflow Completed! 🎉", Colors.BRIGHT_GREEN, 60)
-        self.print_info(f"Total execution time: {total_seconds} seconds", Colors.BRIGHT_MAGENTA)
+        OutputPrinter.print_header("🎉 Workflow Completed! 🎉", Colors.BRIGHT_GREEN, 60)
+        OutputPrinter.print_info(f"Total execution time: {total_seconds} seconds", Colors.BRIGHT_MAGENTA)
         
         if created_files:
             for f in created_files:
-                self.print_file_created(f)
+                OutputPrinter.print_file_created(f)
         else:
-            self.print_warning("No output files generated")
-
-    def print_header(self, title, color=Colors.BRIGHT_CYAN, width=60):
-      """Print a beautiful header with decorative borders"""
-      border = "═" * width
-      print(f"\n{color}{Colors.BOLD}╔{border}╗{Colors.RESET}")
-      print(f"{color}{Colors.BOLD}║{title.center(width)}║{Colors.RESET}")
-      print(f"{color}{Colors.BOLD}╚{border}╝{Colors.RESET}\n")
-
-    def print_section(self, title, color=Colors.BRIGHT_BLUE, char="─"):
-        """Print a section separator"""
-        print(f"\n{color}{Colors.BOLD}{char * 50}{Colors.RESET}")
-        print(f"{color}{Colors.BOLD} {title}{Colors.RESET}")
-        print(f"{color}{Colors.BOLD}{char * 50}{Colors.RESET}")
-
-    def print_info(self, label, value, label_color=Colors.BRIGHT_GREEN, value_color=Colors.WHITE):
-        """Print formatted info with colored labels"""
-        print(f"{label_color}{Colors.BOLD}{label}:{Colors.RESET} {value_color}{value}{Colors.RESET}")
-
-    def print_success(self, message):
-        """Print success message"""
-        print(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}✓ {message}{Colors.RESET}")
-
-    def print_warning(self, message):
-        """Print warning message"""
-        print(f"{Colors.BRIGHT_YELLOW}{Colors.BOLD}⚠ {message}{Colors.RESET}")
-
-    def print_error(self, message):
-        """Print error message"""
-        print(f"{Colors.BRIGHT_RED}{Colors.BOLD}✗ {message}{Colors.RESET}")
-
-    def print_progress(self, message):
-        """Print progress message"""
-        print(f"{Colors.BRIGHT_CYAN}{Colors.BOLD}⟳ {message}{Colors.RESET}")
-
-    def print_file_created(self, filename):
-        """Print file creation message"""
-        print(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}📄 Created: {Colors.RESET}{Colors.CYAN}{filename}{Colors.RESET}")
+            OutputPrinter.print_warning("No output files generated")

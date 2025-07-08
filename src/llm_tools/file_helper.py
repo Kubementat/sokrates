@@ -1,4 +1,5 @@
 import os
+from typing import List
 from .colors import Colors
 from datetime import datetime
 
@@ -108,3 +109,15 @@ class FileHelper:
         # Format the current date and time
         formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M")
         return f"{base_directory}/{formatted_datetime}"
+    
+    @staticmethod
+    def combine_files(file_paths: List[str], verbose: bool = False):
+        if file_paths is None:
+            raise Exception("No files provided")
+        
+        combined_content = ""
+        for file_path in file_paths:
+            combined_content = f"{combined_content}\n---\n{FileHelper.read_file(file_path, verbose=verbose)}"
+        return combined_content
+
+                

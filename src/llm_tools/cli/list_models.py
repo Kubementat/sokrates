@@ -33,7 +33,7 @@ Examples:
         '--api-endpoint',
         required=False,
         default=None,
-        help='Local LLM server API endpoint (e.g. for a locally running LM Studio http://localhost:1234/v1). Default is http://localhost:1234/v1'
+        help=f"Local LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
     
     parser.add_argument(

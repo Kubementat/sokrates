@@ -80,7 +80,7 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature, output_directo
 
 @click.command()
 @click.argument('prompt', required=False)
-@click.option('--api-endpoint', '-ae', default="http://localhost:1234/v1", help='Local LLM server API endpoint')
+@click.option('--api-endpoint', '-ae', default=Config.DEFAULT_API_ENDPOINT, help='Local LLM server API endpoint')
 @click.option('--api-key', '-ak', default="pw", help='API key for authentication (can be empty for local servers)')
 @click.option('--models', '-m', default=None, help='Comma separated model names to use (can be multiple)')
 @click.option('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')

@@ -26,49 +26,13 @@ from pathlib import Path
 import time
 from openai import OpenAI
 from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config
+from ..output_printer import OutputPrinter
 
 # TODO:
 # - Improve extraction of generated prompts (remove "think" tags).
 # Feature: Allow sending the refined prompt to other LLMs.
 # - allow specifying an output directory for the generated prompts (create it if not present)
 # Add a parameter to specify the wait time after model unloading (default: 0 seconds).
-
-def print_header(title, color=Colors.BRIGHT_CYAN, width=60):
-    """Print a beautiful header with decorative borders"""
-    border = "═" * width
-    print(f"\n{color}{Colors.BOLD}╔{border}╗{Colors.RESET}")
-    print(f"{color}{Colors.BOLD}║{title.center(width)}║{Colors.RESET}")
-    print(f"{color}{Colors.BOLD}╚{border}╝{Colors.RESET}\n")
-
-def print_section(title, color=Colors.BRIGHT_BLUE, char="─"):
-    """Print a section separator"""
-    print(f"\n{color}{Colors.BOLD}{char * 50}{Colors.RESET}")
-    print(f"{color}{Colors.BOLD} {title}{Colors.RESET}")
-    print(f"{color}{Colors.BOLD}{char * 50}{Colors.RESET}")
-
-def print_info(label, value, label_color=Colors.BRIGHT_GREEN, value_color=Colors.WHITE):
-    """Print formatted info with colored labels"""
-    print(f"{label_color}{Colors.BOLD}{label}:{Colors.RESET} {value_color}{value}{Colors.RESET}")
-
-def print_success(message):
-    """Print success message"""
-    print(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}✓ {message}{Colors.RESET}")
-
-def print_warning(message):
-    """Print warning message"""
-    print(f"{Colors.BRIGHT_YELLOW}{Colors.BOLD}⚠ {message}{Colors.RESET}")
-
-def print_error(message):
-    """Print error message"""
-    print(f"{Colors.BRIGHT_RED}{Colors.BOLD}✗ {message}{Colors.RESET}")
-
-def print_progress(message):
-    """Print progress message"""
-    print(f"{Colors.BRIGHT_CYAN}{Colors.BOLD}⟳ {message}{Colors.RESET}")
-
-def print_file_created(filename):
-    """Print file creation message"""
-    print(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}📄 Created: {Colors.RESET}{Colors.CYAN}{filename}{Colors.RESET}")
 
 def validate_endpoint_url(url):
     """
@@ -87,7 +51,7 @@ def main():
     """Main function to handle command line arguments and orchestrate the process."""
     
     # Print beautiful header
-    print_header("🤖 LLM PROMPT REFINER 🚀", Colors.BRIGHT_CYAN, 60)
+    OutputPrinter.print_header("🤖 LLM PROMPT REFINER 🚀", Colors.BRIGHT_CYAN, 60)
     
     # Set up argument parser
     parser = argparse.ArgumentParser(
@@ -147,7 +111,7 @@ Examples:
         '--api-endpoint',
         required=False,
         default=None,
-        help='Local LLM server API endpoint (e.g. for a locally running LM Studio http://localhost:1234/v1). Default is http://localhost:1234/v1'
+        help=f"Local LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
     
     parser.add_argument(
@@ -194,39 +158,39 @@ Examples:
     
     # Validate that either text_prompt or input-file is provided
     if not args.text_prompt and not args.input_file:
-        print_error("Either provide a text_prompt argument or use --input-file option")
+        OutputPrinter.print_error("Either provide a text_prompt argument or use --input-file option")
         parser.print_help(file=sys.stderr)
         sys.exit(1)
     
     if args.text_prompt and args.input_file:
-        print_error("Cannot use both text_prompt argument and --input-file option simultaneously")
-        print_warning("Choose either command line prompt or input file, not both")
+        OutputPrinter.print_error("Cannot use both text_prompt argument and --input-file option simultaneously")
+        OutputPrinter.print_warning("Choose either command line prompt or input file, not both")
         sys.exit(1)
     
     # Validate text prompt (if provided via command line)
     if args.text_prompt and not args.text_prompt.strip():
-        print_error("Text prompt cannot be empty")
+        OutputPrinter.print_error("Text prompt cannot be empty")
         sys.exit(1)
     
     # Validate input file existence (if provided)
     if args.input_file and not Path(args.input_file).exists():
-        print_error(f"Input prompt file not found: {args.input_file}")
+        OutputPrinter.print_error(f"Input prompt file not found: {args.input_file}")
         sys.exit(1)
     
     refinement_prompt_file = args.refinement_prompt_file
     if not args.refinement_prompt_file:
-        refinement_prompt_file = Path(f"{Path(__file__).parent.resolve()}/prompts/refine-prompt.md")
-        print_info("No refinement prompt file provided. Using default:", refinement_prompt_file, Colors.BRIGHT_CYAN)
+        refinement_prompt_file = Path(f"{Path(__file__).parent.parent.resolve()}/prompts/refine-prompt.md")
+        OutputPrinter.print_info("No refinement prompt file provided. Using default:", refinement_prompt_file, Colors.BRIGHT_CYAN)
         
     if not Path(refinement_prompt_file).exists():
-        print_error(f"Refinement prompt file not found: {refinement_prompt_file}")
+        OutputPrinter.print_error(f"Refinement prompt file not found: {refinement_prompt_file}")
         sys.exit(1)
 
     api_endpoint = args.api_endpoint
     if api_endpoint:
         if not validate_endpoint_url(api_endpoint):
-            print_error(f"Invalid API endpoint URL: {args.api_endpoint}")
-            print_warning("URL should start with http:// or https:// (e.g., http://localhost:1234/v1)")
+            OutputPrinter.print_error(f"Invalid API endpoint URL: {args.api_endpoint}")
+            OutputPrinter.print_warning("URL should start with http:// or https:// (e.g., http://localhost:1234/v1)")
             sys.exit(1)
     else:
         api_endpoint = config.api_endpoint
@@ -243,18 +207,18 @@ Examples:
         models = [config.default_model]
     
     if args.verbose:
-        print_section("⚙️ CONFIGURATION", Colors.BRIGHT_BLUE, "═")
-        print_info("API Endpoint", api_endpoint, Colors.BRIGHT_CYAN)
-        print_info("API Key", '[SET]' if api_key else '[EMPTY]', Colors.BRIGHT_CYAN)
-        print_info("Models", ', '.join(models), Colors.BRIGHT_CYAN)
-        print_info("Max Tokens", f"{args.max_tokens:,}", Colors.BRIGHT_CYAN)
-        print_info("Temperature", f"{args.temperature}", Colors.BRIGHT_CYAN)
-        print_info("Refinement prompt file", f"{refinement_prompt_file}", Colors.BRIGHT_CYAN)
-        print_info("Input Method", 'File' if args.input_file else 'Command Line', Colors.BRIGHT_CYAN)
+        OutputPrinter.print_section("⚙️ CONFIGURATION", Colors.BRIGHT_BLUE, "═")
+        OutputPrinter.print_info("API Endpoint", api_endpoint, Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("API Key", '[SET]' if api_key else '[EMPTY]', Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("Models", ', '.join(models), Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("Max Tokens", f"{args.max_tokens:,}", Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("Temperature", f"{args.temperature}", Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("Refinement prompt file", f"{refinement_prompt_file}", Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("Input Method", 'File' if args.input_file else 'Command Line', Colors.BRIGHT_CYAN)
         if args.input_file:
-            print_info("Input File", args.input_file, Colors.BRIGHT_CYAN)
+            OutputPrinter.print_info("Input File", args.input_file, Colors.BRIGHT_CYAN)
         if args.output:
-            print_info("Output File", args.output, Colors.BRIGHT_CYAN)
+            OutputPrinter.print_info("Output File", args.output, Colors.BRIGHT_CYAN)
         print()
     
     try:
@@ -264,31 +228,31 @@ Examples:
         # Load initial prompt (either from command line or file)
         if args.input_file:
             if args.verbose:
-                print_progress(f"Loading initial prompt from file {Colors.CYAN}{args.input_file}{Colors.RESET}")
+                OutputPrinter.print_progress(f"Loading initial prompt from file {Colors.CYAN}{args.input_file}{Colors.RESET}")
             text_prompt = FileHelper.read_file(args.input_file, args.verbose)
         else:
             text_prompt = args.text_prompt
         # Load refinement prompt
         if args.verbose:
-            print_progress(f"Loading refinement prompt from file {Colors.CYAN}{refinement_prompt_file}{Colors.RESET}")
+            OutputPrinter.print_progress(f"Loading refinement prompt from file {Colors.CYAN}{refinement_prompt_file}{Colors.RESET}")
         refinement_prompt = FileHelper.read_file(refinement_prompt_file, args.verbose)
         
         # Combine prompts
         if args.verbose:
-            print_progress("Combining prompts...")
+            OutputPrinter.print_progress("Combining prompts...")
         combined_prompt = refiner.combine_refinement_prompt(text_prompt, refinement_prompt)
         
         if args.verbose:
-            print_info("Combined prompt length", f"{len(combined_prompt):,} characters", Colors.BRIGHT_MAGENTA)
+            OutputPrinter.print_info("Combined prompt length", f"{len(combined_prompt):,} characters", Colors.BRIGHT_MAGENTA)
         
         # Send to LLM
         if args.verbose:
-            print_progress(f"Sending request to local LLM server at {Colors.CYAN}{api_endpoint}{Colors.RESET}")
+            OutputPrinter.print_progress(f"Sending request to local LLM server at {Colors.CYAN}{api_endpoint}{Colors.RESET}")
         
         # send to llm
         created_files = []
         for i, model_name in enumerate(models, 1):
-            print_header(f"🎯 MODEL {i}/{len(models)}: {model_name}", Colors.BRIGHT_GREEN, 60)
+            OutputPrinter.print_header(f"🎯 MODEL {i}/{len(models)}: {model_name}", Colors.BRIGHT_GREEN, 60)
 
             response_content = llm_api.send(combined_prompt, model=model_name, max_tokens=args.max_tokens)
             processed_content = refiner.clean_response(response_content)
@@ -298,45 +262,52 @@ Examples:
         
             # Save to file if output filename is specified
             if args.output:
-                f_name, f_extension = args.output.rsplit('.', 1)
+                f_name = args.output
+                f_extension = 'md'
+                
+                try:
+                    f_name, f_extension = args.output.rsplit('.', 1)
+                except:
+                    pass
+                
                 model_name_escaped = model_name.replace('/', '-')
                 new_file_name = f"{f_name}-{model_name_escaped}.{f_extension}"
                 
-                print_progress(f"Saving response to file: {Colors.CYAN}{new_file_name}{Colors.RESET}")
+                OutputPrinter.print_progress(f"Saving response to file: {Colors.CYAN}{new_file_name}{Colors.RESET}")
                 FileHelper.write_to_file(file_path=new_file_name, content=markdown_output, verbose=args.verbose)
                 created_files.append(new_file_name)
-                print_file_created(new_file_name)
+                OutputPrinter.print_file_created(new_file_name)
             
             # Print the result to stdout (always print, regardless of file output)
-            print_section(f"✨ GENERATED PROMPT FOR {model_name.upper()}", Colors.BRIGHT_MAGENTA, "═")
+            OutputPrinter.print_section(f"✨ GENERATED PROMPT FOR {model_name.upper()}", Colors.BRIGHT_MAGENTA, "═")
             print(f"{Colors.WHITE}{markdown_output}{Colors.RESET}")
-            print_section("", Colors.BRIGHT_MAGENTA, "═")
+            OutputPrinter.print_section("", Colors.BRIGHT_MAGENTA, "═")
             
             # Model unload wait
             if i < len(models):  # Don't wait after the last model
-                print_progress(f"Waiting for model to unload... {Colors.DIM}(8 seconds){Colors.RESET}")
+                OutputPrinter.print_progress(f"Waiting for model to unload... {Colors.DIM}(8 seconds){Colors.RESET}")
                 time.sleep(8)
         
         # print files created list
         if created_files:
-            print_header("📁 CREATED FILES", Colors.BRIGHT_GREEN, 60)
+            OutputPrinter.print_header("📁 CREATED FILES", Colors.BRIGHT_GREEN, 60)
             for file_name in created_files:
-                print_file_created(file_name)
+                OutputPrinter.print_file_created(file_name)
             print()
         
-        print_header("🎉 PROCESS COMPLETED SUCCESSFULLY! 🎉", Colors.BRIGHT_GREEN, 60)
+        OutputPrinter.print_header("🎉 PROCESS COMPLETED SUCCESSFULLY! 🎉", Colors.BRIGHT_GREEN, 60)
 
     except FileNotFoundError as e:
-        print_error(f"File Error: {e}")
+        OutputPrinter.print_error(f"File Error: {e}")
         sys.exit(1)
     except IOError as e:
-        print_error(f"IO Error: {e}")
+        OutputPrinter.print_error(f"IO Error: {e}")
         sys.exit(1)
     except Exception as e:
-        print_error(f"Error: {e}")
+        OutputPrinter.print_error(f"Error: {e}")
         if args.verbose:
             import traceback
-            print_section("🐛 FULL TRACEBACK", Colors.BRIGHT_RED, "═")
+            OutputPrinter.print_section("🐛 FULL TRACEBACK", Colors.BRIGHT_RED, "═")
             traceback.print_exc(file=sys.stderr)
         sys.exit(1)
 

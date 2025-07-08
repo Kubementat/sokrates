@@ -9,7 +9,6 @@ leveraging the LLMApi and PromptRefiner classes.
 
 import argparse
 import sys
-import os
 from pathlib import Path
 
 
@@ -164,7 +163,7 @@ def main():
 
     refinement_prompt_file = args.refinement_prompt_file
     if not args.refinement_prompt_file:
-        refinement_prompt_file = Path(f"{Path(__file__).parent.resolve()}/prompts/refine-prompt.md")
+        refinement_prompt_file = Path(f"{Path(__file__).parent.parent.resolve()}/prompts/refine-prompt.md").resolve()
         print(f"{Colors.BLUE}No refinement prompt file provided. Using default: {refinement_prompt_file}{Colors.RESET}")
         
     if not Path(refinement_prompt_file).exists():
