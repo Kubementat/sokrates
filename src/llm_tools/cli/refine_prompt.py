@@ -151,6 +151,22 @@ Examples:
         help='Output filename to save the response (e.g., response.md)'
     )
     
+    # context
+    parser.add_argument(
+        '--context-text', '-ct',
+        default=None,
+        help='Optional additional context text to prepend before the prompt'
+    )
+    parser.add_argument(
+        '--context-files', '-cf',
+        help='Optional comma separated additional context text file paths with content that should be prepended before the prompt'
+    )
+    parser.add_argument(
+        '--context-directories', '-cd',
+        default=None,
+        help='Optional comma separated additional directory paths with files with content that should be prepended before the prompt'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -220,6 +236,19 @@ Examples:
         if args.output:
             OutputPrinter.print_info("Output File", args.output, Colors.BRIGHT_CYAN)
         print()
+        
+    context_array = []
+    if args.context_text:
+        context_array.append(args.context_text)
+        OutputPrinter.print_info("Appending context text to prompt:", args.context_text , Colors.BRIGHT_MAGENTA)
+    if args.context_directories:
+        directories = [s.strip() for s in args.context_directories.split(",")]
+        context_array.extend(FileHelper.read_multiple_files_from_directories(directories, verbose=args.verbose))
+        OutputPrinter.print_info("Appending context directories to prompt:", args.context_directories , Colors.BRIGHT_MAGENTA)
+    if args.context_files:
+        files = [s.strip() for s in args.context_files.split(",")]
+        context_array.extend(FileHelper.read_multiple_files(files, verbose=args.verbose))
+        OutputPrinter.print_info("Appending context files to prompt:", args.context_files , Colors.BRIGHT_MAGENTA)
     
     try:
         refiner = PromptRefiner(verbose=args.verbose)
@@ -254,7 +283,8 @@ Examples:
         for i, model_name in enumerate(models, 1):
             OutputPrinter.print_header(f"🎯 MODEL {i}/{len(models)}: {model_name}", Colors.BRIGHT_GREEN, 60)
 
-            response_content = llm_api.send(combined_prompt, model=model_name, max_tokens=args.max_tokens)
+            response_content = llm_api.send(combined_prompt, model=model_name, 
+                max_tokens=args.max_tokens, context_array=context_array)
             processed_content = refiner.clean_response(response_content)
         
             # Format as markdown

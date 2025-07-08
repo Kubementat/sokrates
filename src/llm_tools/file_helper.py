@@ -40,13 +40,13 @@ class FileHelper:
 
     @staticmethod
     def read_file(file_path: str, verbose: bool = False) -> str:
-        """Load and return the content of a prompt file.
+        """Load and return the content of a file.
 
         Args:
-            file_path (str): Path to the prompt file.
+            file_path (str): Path to the file.
 
         Returns:
-            str: Content of the prompt file.
+            str: Content of the file.
 
         Raises:
             FileNotFoundError: If the file doesn't exist.
@@ -61,6 +61,43 @@ class FileHelper:
             raise FileNotFoundError(f"File not found: {file_path}")
         except IOError as e:
             raise IOError(f"Error reading file: {e}")
+    
+    @staticmethod
+    def read_multiple_files(file_paths: List[str], verbose: bool = False) -> List[str]:
+        """Load and return the content of multpiple files as Array of strings.
+
+        Args:
+            file_paths (List[str]): Paths to the files to load.
+
+        Returns:
+            List[str]: Contents of the files as array.
+
+        Raises:
+            FileNotFoundError: If a file doesn't exist.
+            IOError: If there's an error reading a file.
+        """
+        contents = []
+        for file_path in file_paths:
+            contents.append(FileHelper.read_file(file_path))
+        return contents
+    
+    @staticmethod
+    def read_multiple_files_from_directories(directory_paths: List[str], verbose: bool = False) -> List[str]:
+        """Load and return the content of multiple files from multiple directories as Array of strings.
+        Args:
+            directory_paths (List[str]): Paths to the directories to load files from.
+            verbose (bool): Enable verbose output.
+            
+        Returns:
+            List[str]: Contents of the files as array.
+        """
+        contents=[]
+        for directory_path in directory_paths:
+            file_list = FileHelper.list_files_in_directory(directory_path, verbose=verbose)
+            file_contents = FileHelper.read_multiple_files(file_list, verbose=verbose)
+            for fc in file_contents:
+                contents.append(fc)
+        return contents
 
     @staticmethod
     def write_to_file(file_path: str, content: str, verbose: bool = False) -> None:
@@ -119,5 +156,16 @@ class FileHelper:
         for file_path in file_paths:
             combined_content = f"{combined_content}\n---\n{FileHelper.read_file(file_path, verbose=verbose)}"
         return combined_content
+    
+    @staticmethod
+    def combine_files_in_directories(directory_paths: List[str], verbose: bool = False):
+        if directory_paths is None:
+            raise Exception("No directory_paths provided")
+        
+        file_list=[]
+        for directory_path in directory_paths:
+            file_list += FileHelper.list_files_in_directory(directory_path, verbose=verbose)
+        return FileHelper.combine_files(file_list, verbose=verbose)
+
 
                 

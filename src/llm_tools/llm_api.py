@@ -1,11 +1,13 @@
 import logging
 import sys
 import time
+from typing import List
 import requests
 
 from openai import OpenAI
 from .colors import Colors
 from .config import Config
+from .file_helper import FileHelper
 """
 A class for interacting with the LLM API.
 """
@@ -52,12 +54,14 @@ class LLMApi:
             print(f"{Colors.RED}{Colors.BOLD}Error listing models: {str(e)}{Colors.RESET}")
             raise(e)
 
-    def send(self, prompt, model=Config.DEFAULT_MODEL, max_tokens=2000, temperature=0.7):
+    def send(self, prompt, model=Config.DEFAULT_MODEL, context: str = None, context_array: List[str] = None, max_tokens=2000, temperature=0.7):
         """
         Send a prompt to local LLM server and return the response.
 
         Args:
             prompt (str): The prompt to send
+            context (str): A context text to prepend in front of the prompt to send - Optional 
+            context_array (List[str]): A list of context text fragments to prepend in front of the prompt to send - Optional 
             model (str): Model name to use (often not critical for local servers)
             max_tokens (int): Maximum tokens in response
 
@@ -68,6 +72,14 @@ class LLMApi:
             Exception: If API call fails
         """
         print(f"{Colors.CYAN}{Colors.BOLD}Generating with model {model} ...{Colors.RESET}", file=sys.stderr)
+        
+        if context_array:
+            print(f"{Colors.CYAN}{Colors.BOLD}Added provided context array to the prompt.{Colors.RESET}", file=sys.stderr)
+            prompt = f"{self.combine_context(context_array)}\n{prompt}"
+            
+        if context:
+            print(f"{Colors.CYAN}{Colors.BOLD}Added provided text context to the prompt.{Colors.RESET}", file=sys.stderr)
+            prompt = f"{self.combine_context([context])}\n{prompt}"
 
         try:
             # Initialize OpenAI client with custom base URL
@@ -137,3 +149,10 @@ class LLMApi:
             return response_content
         except Exception as e:
             raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling local LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
+
+    def combine_context(self, context: List[str]) -> str:
+        combined_content = ""
+        for context_part in context:
+            combined_content = f"{combined_content}\n---\n{context_part}"
+        combined_content = f"{combined_content}\n ---"
+        return combined_content

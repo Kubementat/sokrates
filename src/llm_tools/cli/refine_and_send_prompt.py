@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 
-from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config
+from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config, OutputPrinter
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -129,6 +129,22 @@ Example usage:
         help='Path to file where the final LLM response will be saved'
     )
     
+    # context
+    parser.add_argument(
+        '--context-text', '-ct',
+        default=None,
+        help='Optional additional context text to prepend before the prompt'
+    )
+    parser.add_argument(
+        '--context-files', '-cf',
+        help='Optional comma separated additional context text file paths with content that should be prepended before the prompt'
+    )
+    parser.add_argument(
+        '--context-directories', '-cd',
+        default=None,
+        help='Optional comma separated additional directory paths with files with content that should be prepended before the prompt'
+    )
+    
     return parser.parse_args()
 
 
@@ -173,6 +189,19 @@ def main():
     if not args.input_file and not args.text_prompt:
         print(f"{Colors.RED}No --input-file or --text-prompt parameters provided. Exiting.{Colors.RESET}")
         sys.exit(1)
+        
+    context_array = []
+    if args.context_text:
+        context_array.append(args.context_text)
+        OutputPrinter.print_info("Appending context text to prompt:", args.context_text , Colors.BRIGHT_MAGENTA)
+    if args.context_directories:
+        directories = [s.strip() for s in args.context_directories.split(",")]
+        context_array.extend(FileHelper.read_multiple_files_from_directories(directories, verbose=args.verbose))
+        OutputPrinter.print_info("Appending context directories to prompt:", args.context_directories , Colors.BRIGHT_MAGENTA)
+    if args.context_files:
+        files = [s.strip() for s in args.context_files.split(",")]
+        context_array.extend(FileHelper.read_multiple_files(files, verbose=args.verbose))
+        OutputPrinter.print_info("Appending context files to prompt:", args.context_files , Colors.BRIGHT_MAGENTA)
         
     # Initialize LLMApi, PromptRefiner
     llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
@@ -236,7 +265,8 @@ def main():
         prompt=cleaned_refined_prompt,
         model=args.output_model,
         max_tokens=args.max_tokens_output,
-        temperature=args.output_temperature
+        temperature=args.output_temperature,
+        context_array=context_array
     )
     print(f"{Colors.GREEN}Received final response: {len(final_response)} characters{Colors.RESET}")
     

@@ -12,9 +12,9 @@ def test_all_commands():
         "benchmark-model": "--model 'qwen3-1.7b-mlx' --input-directory tests/prompts_minimal --results-directory tmp/benchmark_results --store-results",
         "fetch-to-md": "--url 'https://de.wikipedia.org/wiki/Schwarzes_Loch' --output tmp/blackhole.md",
         "meta-prompt-generator": "--meta-llm-model qwen3-1.7b-mlx --generator-llm-model qwen3-1.7b-mlx --execution-llm-model qwen3-1.7b-mlx --refinement-llm-model qwen3-1.7b-mlx --meta-prompt-generator-file src/llm_tools/prompts/prompt_generators/meta-prompt-generator.md --prompt-generator-file src/llm_tools/prompts/prompt_generators/prompt-generator-v1.md --output-directory tmp/meta_ideas --refinement-prompt-file src/llm_tools/prompts/refine-prompt.md",
-        "refine-and-send-prompt": "--refinement-model 'qwen3-1.7b-mlx' --output-model 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md",
-        "refine-prompt": "-m 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt",
-        "send-prompt": "-m 'qwen3-1.7b-mlx' 'Hi, who are you?' --output-directory tmp/"
+        "refine-and-send-prompt": "--refinement-model 'qwen3-1.7b-mlx' --output-model 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md'",
+        "refine-prompt": "-m 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt --context-directories 'tests/contexts/testcase1'",
+        "send-prompt": "-m 'qwen3-1.7b-mlx' 'Hi, write a short article about who you are and what you can do' --output-directory tmp/ --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md' --context-text '__You are a Ferengi from Star Trek__'"
     }
     
     EXCLUDEDED_COMMANDS = ["benchmark-results-merger", "benchmark-results-to-markdown"]

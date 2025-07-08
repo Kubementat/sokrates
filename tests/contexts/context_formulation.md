@@ -1,0 +1,1 @@
+Formulate the output as precise and beautiful as possible.

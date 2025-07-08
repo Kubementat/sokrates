@@ -1,6 +1,6 @@
 [project]
 name = "llm_tools"
-version = "0.1.10"
+version = "0.1.11"
 description = "A collection of tools for LLM interactions and system monitoring"
 readme = "README.md"
 requires-python = ">=3.6"

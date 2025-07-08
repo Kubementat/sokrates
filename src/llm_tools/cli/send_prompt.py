@@ -49,14 +49,28 @@ def write_output_file(content, model, source_prompt_file, output_directory, verb
         
         FileHelper.write_to_file(file_path=output_file, content=content, verbose=verbose)
 
-def prompt_model(llm_api, prompt, model, max_tokens, temperature, output_directory, source_prompt_file=None, verbose=False, post_process_results=False):
+def prompt_model(llm_api, prompt, model, max_tokens, temperature, 
+    output_directory, source_prompt_file=None, verbose=False, post_process_results=False,
+    context_text=None, context_directories=None, context_files=None):
     try:
         logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nQuerying {model} ... \n{COLOR_RESET}")
+            
+        context_array = []
+        if context_text:
+            context_array.append(context_text)
+        if context_directories:
+            directories = [s.strip() for s in context_directories.split(",")]
+            context_array.extend(FileHelper.read_multiple_files_from_directories(directories, verbose=verbose))
+        if context_files:
+            files = [s.strip() for s in context_files.split(",")]
+            context_array.extend(FileHelper.read_multiple_files(files, verbose=verbose))
+
         response = llm_api.send(prompt,
             model=model,
             max_tokens=max_tokens,
-            temperature=temperature
+            temperature=temperature,
+            context_array=context_array
         )
         logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nOutput for model {model} :\n{COLOR_RESET}")
@@ -90,7 +104,10 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature, output_directo
 @click.option('--input-file','-i', default=None, help='File containing the prompt to send')
 @click.option('--input-directory','-d', default=None, help='Directory containing text files which should be sent as a series of separate prompts')
 @click.option('--post-process-results', '-pp', is_flag=True, help="Enable response post-processing (e.g. strip out <think> blocks)")
-def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose, output_directory, input_file, input_directory, post_process_results):
+@click.option('--context-text', '-ct', default=None, required=False, help="Optional additional context text to prepend before the prompt")
+@click.option('--context-files', '-ctf', default=None, required=False, help="Optional comma separated additional context text file paths with content that should be prepended before the prompt")
+@click.option('--context-directories', '-ctd', default=None, required=False, help="Optional comma separated additional directory paths with files with content that should be prepended before the prompt")
+def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose, output_directory, input_file, input_directory, post_process_results, context_text, context_directories, context_files):
     """Main function to send a prompt to one or more local LLM servers and handle responses.
 
     Args:
@@ -105,6 +122,9 @@ def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose
         input_file: Path to file containing prompt text (reads from command line if None)
         input_directory: Directory path with prompt text files (optional)
         post_process_results: Flag to enable response post-processing (e.g. strip out <think> blocks)
+        context_text: Text to include in the prompt (optional)
+        context_directories: List of directories containing prompt text files (optional)
+        context_files: List of files containing prompt text (optional)
     Returns:
         None
     """
@@ -142,11 +162,19 @@ def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose
     if input_file:
         prompt_files = [input_file]
         
+    if verbose:
+        logging.info(f"{COLOR_MAGENTA}context-text: {context_text}{COLOR_RESET}")
+        logging.info(f"{COLOR_MAGENTA}context-directories: {context_directories}{COLOR_RESET}")
+        logging.info(f"{COLOR_MAGENTA}context-files: {context_files}{COLOR_RESET}")
+        
     # only prompt is given , no file or directory -> execute for this file
     if prompt is not None:
         for model in models:
-            prompt_model(llm_api, prompt, model, max_tokens, 
-                temperature, output_directory, None, verbose, post_process_results)
+            prompt_model(llm_api, prompt=prompt, model=model, max_tokens=max_tokens, 
+                temperature=temperature, output_directory=output_directory, source_prompt_file=None, 
+                verbose=verbose, post_process_results=post_process_results,
+                context_text=context_text, context_directories=context_directories, 
+                context_files=context_files)
             sys.exit(0)
 
     for model in models:
@@ -159,7 +187,11 @@ def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose
                 next
 
             for model in models:
-                prompt_model(llm_api, prompt, model, max_tokens, temperature, output_directory, filepath, verbose, post_process_results)
+                prompt_model(llm_api, prompt=prompt, model=model, max_tokens=max_tokens, 
+                    temperature=temperature, output_directory=output_directory, source_prompt_file=filepath, 
+                    verbose=verbose, post_process_results=post_process_results,
+                    context_text=context_text, context_directories=context_directories, 
+                    context_files=context_files)
 
         
 if __name__ == '__main__':
