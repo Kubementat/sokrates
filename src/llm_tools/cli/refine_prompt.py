@@ -237,6 +237,7 @@ Examples:
             OutputPrinter.print_info("Output File", args.output, Colors.BRIGHT_CYAN)
         print()
         
+    # context
     context_array = []
     if args.context_text:
         context_array.append(args.context_text)

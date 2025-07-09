@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from pathlib import Path
 from .colors import Colors
@@ -10,6 +11,7 @@ class Config:
   DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
   DEFAULT_API_KEY = "notrequired"
   DEFAULT_MODEL = "qwen/qwen3-8b"
+  DEFAULT_PROMPTS_DIRECTORY = Path(f"{Path(__file__).parent.resolve()}/prompts").resolve()
   
   def __init__(self, verbose=False) -> None:
     self.verbose = verbose
@@ -31,7 +33,7 @@ class Config:
         self.api_key = self.DEFAULT_API_KEY
       if not self.default_model:
         self.default_model = self.DEFAULT_MODEL
-      
+
       if self.verbose:
         print(f"{Colors.GREEN}{Colors.BOLD}Basic Configuration:{Colors.RESET}")
         print(f"{Colors.BLUE}{Colors.BOLD}API_ENDPOINT: {self.api_endpoint}{Colors.RESET}")

@@ -1,6 +1,6 @@
 [project]
 name = "llm_tools"
-version = "0.1.11"
+version = "0.1.13"
 description = "A collection of tools for LLM interactions and system monitoring"
 readme = "README.md"
 requires-python = ">=3.6"
@@ -27,8 +27,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/llm_tools"
-Repository = "https://github.com/yourusername/llm_tools"
+Homepage = "https://github.com/Kubementat/llm_tools"
+Repository = "https://github.com/Kubementat/llm_tools"
 
 [build-system]
 requires = ["setuptools>=61.0"]
