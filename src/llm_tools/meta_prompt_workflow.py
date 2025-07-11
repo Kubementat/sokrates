@@ -133,6 +133,7 @@ class MetaPromptWorkflow:
                     self.output_directory,
                     f"output_{idx+1}_{self.execution_llm_model}.md"
                 )
+                output_filename = FileHelper.clean_name(output_filename)
                 FileHelper.write_to_file(output_filename, result, self.verbose)
                 created_files.append(output_filename)
             except Exception as e:

@@ -12,8 +12,8 @@ from tabulate import tabulate
 A class for benchmarking models in LM Studio.
 """
 class LMStudioBenchmark:
-    def __init__(self, base_url="http://localhost:1234/v1"):
-        self.base_url = base_url
+    def __init__(self, api_endpoint="http://localhost:1234/v1"):
+        self.api_endpoint = api_endpoint
         self.system_stats = []
         self.monitoring = False
         
@@ -72,7 +72,7 @@ class LMStudioBenchmark:
                 first_token_time = None
                 
                 response = requests.post(
-                    f"{self.base_url}/chat/completions",
+                    f"{self.api_endpoint}/chat/completions",
                     headers={"Content-Type": "application/json"},
                     json={
                         "model": model_name,
@@ -441,7 +441,7 @@ class LMStudioBenchmark:
             try:
                 # Try to make a simple request to verify the model works
                 test_response = requests.post(
-                    f"{self.base_url}/chat/completions",
+                    f"{self.api_endpoint}/chat/completions",
                     headers={"Content-Type": "application/json"},
                     json={
                         "model": model_name,

@@ -150,6 +150,85 @@ class LLMApi:
         except Exception as e:
             raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling local LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
 
+    def chat_completion(self, messages: List[dict], model=Config.DEFAULT_MODEL, max_tokens=2000, temperature=0.7):
+        """
+        Send a list of messages to local LLM server and return the response.
+
+        Args:
+            messages (List[dict]): The conversation history as a list of messages.
+            model (str): Model name to use.
+            max_tokens (int): Maximum tokens in response.
+            temperature (float): Temperature for response generation.
+
+        Returns:
+            str: The LLM response content.
+
+        Raises:
+            Exception: If API call fails.
+        """
+        print(f"{Colors.CYAN}{Colors.BOLD}Generating chat completion with model {model} ...{Colors.RESET}", file=sys.stderr)
+
+        try:
+            client = self.get_openai_client()
+            if self.verbose:
+                print(f"{Colors.BLUE}{'-'*20}{Colors.RESET}")
+                print()
+                print(f"{Colors.BLUE}{Colors.BOLD}Messages:{Colors.RESET}")
+                print()
+                for message in messages:
+                    print(f"  Role: {message['role']}, Content: {message['content'][:100]}...") # Print first 100 chars
+                print()
+                print(f"{Colors.BLUE}{'-'*20}{Colors.RESET}")
+                print()
+
+            stream = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                stream=True
+            )
+
+            start_time = time.time()
+            first_token_time = None
+            print(f"{Colors.GREEN}{'-'*30}{Colors.RESET}")
+            print()
+            print(f"{Colors.GREEN}{Colors.BOLD}Streaming generation ...{Colors.RESET}")
+            print()
+            print(f"{Colors.GREEN}{'-'*30}{Colors.RESET}")
+            response_content = ""
+            for chunk in stream:
+                content = chunk.choices[0].delta.content
+                if content:
+                    if first_token_time is None:
+                        first_token_time = time.time()
+                    print(content, end="", flush=True)
+                    response_content += content
+
+            end_time = time.time()
+            if self.verbose:
+                print(f"{Colors.GREEN}{'-'*30}{Colors.RESET}")
+
+            print()
+            print(f"{Colors.CYAN}{Colors.BOLD}Done generating using model {model}{Colors.RESET}")
+            if self.verbose:
+                print(f"{Colors.CYAN}Received response ({len(response_content)} characters){Colors.RESET}", file=sys.stderr)
+                
+            if first_token_time is not None:
+                duration_to_first = first_token_time - start_time
+                duration_last_to_first = end_time - first_token_time
+                total_duration = end_time - start_time
+                print(f"{Colors.YELLOW}Time to first token: {duration_to_first:.4f}s")
+                print(f"{Colors.YELLOW}Time between first and last token: {duration_last_to_first:.4f}s")
+                print(f"{Colors.YELLOW}Total duration: {total_duration:.4f}s")
+                
+                tops = len(response_content) / duration_last_to_first
+                print(f"{Colors.YELLOW}Tokens / second: {tops:.4f}")
+                
+            return response_content
+        except Exception as e:
+            raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling local LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
+
     def combine_context(self, context: List[str]) -> str:
         combined_content = ""
         for context_part in context:

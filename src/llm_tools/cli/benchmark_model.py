@@ -20,6 +20,8 @@ DEFAULT_TEST_PROMPTS = [
     "Create a Python function that implements a binary search algorithm with comments."
 ]
 
+DEFAULT_ENDPOINT="http://localhost:1234/v1"
+
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Benchmark LLM performance in LM Studio')
@@ -37,14 +39,25 @@ def main():
                        help='Temperature for text generation (default: 0.7). Ignored if --temperatures is provided.')
     parser.add_argument('--temperatures', type=str,
                        help='Comma-separated list of temperature values (e.g., "0.15,0.333,0.7"). Values must be between 0.0 and 1.0. Overrides --temperature.')
-    parser.add_argument('--base-url', type=str, default='http://localhost:1234/v1',
-                       help='LM Studio server base URL (default: http://localhost:1234/v1)')
     parser.add_argument('--input-directory', type=str,
                        help='Directory containing .md files to use as prompts instead of default test prompts')
     parser.add_argument('--all-available-models', action='store_true',
                        help='Benchmark all models available via the LM Studio API endpoint')
     parser.add_argument('--timeout', type=int, default=240,
                         help='Timeout for requests to the benchmarked models')
+    parser.add_argument(
+        '--api-endpoint',
+        required=False,
+        default=DEFAULT_ENDPOINT,
+        help=f"Local LLM server API endpoint. Default is {DEFAULT_ENDPOINT}"
+    )
+    
+    parser.add_argument(
+        '--api-key',
+        required=False,
+        default=None,
+        help='API key for authentication (many local servers don\'t require this)'
+    )
     args = parser.parse_args()
 
     # Parse and validate temperatures
@@ -111,11 +124,11 @@ def main():
     else:
         prompts_to_use = DEFAULT_TEST_PROMPTS
     
-    benchmark = LMStudioBenchmark(base_url=args.base_url)
+    benchmark = LMStudioBenchmark(api_endpoint=args.api_endpoint)
     
     # Test if LM Studio server is running
     try:
-        response = requests.get(f"{benchmark.base_url}/models", timeout=5)
+        response = requests.get(f"{benchmark.api_endpoint}/models", timeout=5)
         if response.status_code == 200:
             models = response.json()
             available_models = [model.get('id', 'Unknown') for model in models.get('data', [])]
@@ -189,7 +202,7 @@ def main():
     print(f"  Models: {', '.join(models_to_test)}")
     print(f"  Max tokens: {args.max_tokens}")
     print(f"  Temperatures: {temperatures_to_test}")
-    print(f"  Base URL: {args.base_url}")
+    print(f"  Base URL: {args.api_endpoint}")
     print(f"  Store results: {args.store_results}")
     if args.store_results:
         results_path = args.results_directory if args.results_directory else "current directory"
