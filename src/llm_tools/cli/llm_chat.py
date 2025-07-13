@@ -123,59 +123,91 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
         if verbose:
             OutputPrinter.print_info("Loaded context", f"{full_context[:200]}...") # Show first 200 chars of context
 
-    if voice:
-        OutputPrinter.print_info("Starting voice chat. Press CTRL+C to exit.", "")
-        asyncio.run(run_voice_chat(llm_api, model, temperature, max_tokens, conversation_history, log_files, hide_reasoning, verbose, refiner))
-    else:
-        OutputPrinter.print_info("Starting text chat. Press CTRL+D or type 'exit' to quit.", "")
-
+    # Define a function for the chat loop to allow switching between modes
+    async def chat_loop(voice_mode):
+        nonlocal conversation_history # Allow modification of conversation_history from outer scope
+        
         while True:
             try:
-                user_input = input(f"{Colors.BLUE}You:{Colors.RESET} ")
-                if user_input.lower() == "exit":
-                    break
-                if not user_input:
-                    continue
-
-                conversation_history.append({"role": "user", "content": user_input})
-
-                if verbose:
-                    OutputPrinter.print_info("Sending request to LLM...", "")
-
-                response_content_full = llm_api.chat_completion(
-                    messages=conversation_history,
-                    model=model,
-                    temperature=temperature,
-                    max_tokens=max_tokens
-                )
-                
-                if response_content_full:
-                    # Always log the full response to all open log files
-                    for lf in log_files:
-                        lf.write(f"User: {user_input}\n---\n")
-                        lf.write(f"LLM: {response_content_full}\n---\n")
-                        lf.flush()
-
-                    display_content = response_content_full
-                    
-                    # Extract and colorize <think> block for display if not hidden
-                    think_match = re.search(r'<think>(.*?)</think>', display_content, re.DOTALL)
-                    if think_match:
-                        think_content = think_match.group(1)
-                        colored_think_content = f"{Colors.DIM}<think>{think_content}</think>{Colors.RESET}"
-                        display_content = display_content.replace(think_match.group(0), colored_think_content)
-
-                    if hide_reasoning:
-                        display_content = refiner.clean_response(display_content)
-                        
-                    OutputPrinter.print_info(f"{Colors.GREEN}LLM", f"{display_content}{Colors.RESET}")
-                    conversation_history.append({"role": "assistant", "content": response_content_full})
+                if voice_mode:
+                    OutputPrinter.print_info("Starting voice chat. Press CTRL+C to exit.", "")
+                    action = await run_voice_chat(llm_api, model, temperature, max_tokens, conversation_history, log_files, hide_reasoning, verbose, refiner)
+                    if action == "toggle_voice":
+                        voice_mode = not voice_mode
+                        OutputPrinter.print_info(f"Switched to {'voice' if voice_mode else 'text'} mode.", "")
+                        continue
+                    elif isinstance(action, tuple) and action[0] == "add_context":
+                        filepath = action[1]
+                        try:
+                            context_content = FileHelper.read_file(filepath)
+                            conversation_history.append({"role": "system", "content": context_content})
+                            OutputPrinter.print_info(f"Added context from {filepath}", "")
+                        except Exception as e:
+                            OutputPrinter.print_error(f"Error reading context file {filepath}: {e}")
+                        continue
+                    elif action == "exit":
+                        break
                 else:
-                    OutputPrinter.print_error("No response from LLM.")
-                    for lf in log_files:
-                        lf.write(f"User: {user_input}\n---\n")
-                        lf.write("LLM: No response\n---\n")
-                        lf.flush()
+                    OutputPrinter.print_info("Starting text chat. Press CTRL+D or type 'exit' to quit.", "")
+                    OutputPrinter.print_info("Commands: /add <Filepath> or /voice", "")
+                    user_input = input(f"{Colors.BLUE}You:{Colors.RESET} ")
+                    if user_input.lower() == "exit":
+                        break
+                    elif user_input.lower() == "/voice":
+                        voice_mode = not voice_mode
+                        OutputPrinter.print_info(f"Switched to {'voice' if voice_mode else 'text'} mode.", "")
+                        continue
+                    elif user_input.lower().startswith("/add "):
+                        filepath = user_input[5:].strip()
+                        try:
+                            context_content = FileHelper.read_file(filepath)
+                            conversation_history.append({"role": "system", "content": context_content})
+                            OutputPrinter.print_info(f"Added context from {filepath}", "")
+                        except Exception as e:
+                            OutputPrinter.print_error(f"Error reading context file {filepath}: {e}")
+                        continue
+                    if not user_input:
+                        continue
+
+                    conversation_history.append({"role": "user", "content": user_input})
+
+                    if verbose:
+                        OutputPrinter.print_info("Sending request to LLM...", "")
+
+                    response_content_full = llm_api.chat_completion(
+                        messages=conversation_history,
+                        model=model,
+                        temperature=temperature,
+                        max_tokens=max_tokens
+                    )
+                    
+                    if response_content_full:
+                        # Always log the full response to all open log files
+                        for lf in log_files:
+                            lf.write(f"User: {user_input}\n---\n")
+                            lf.write(f"LLM: {response_content_full}\n---\n")
+                            lf.flush()
+
+                        display_content = response_content_full
+                        
+                        # Extract and colorize <think> block for display if not hidden
+                        think_match = re.search(r'<think>(.*?)</think>', display_content, re.DOTALL)
+                        if think_match:
+                            think_content = think_match.group(1)
+                            colored_think_content = f"{Colors.DIM}<think>{think_content}</think>{Colors.RESET}"
+                            display_content = display_content.replace(think_match.group(0), colored_think_content)
+
+                        if hide_reasoning:
+                            display_content = refiner.clean_response(display_content)
+                            
+                        OutputPrinter.print_info(f"{Colors.GREEN}LLM", f"{display_content}{Colors.RESET}")
+                        conversation_history.append({"role": "assistant", "content": response_content_full})
+                    else:
+                        OutputPrinter.print_error("No response from LLM.")
+                        for lf in log_files:
+                            lf.write(f"User: {user_input}\n---\n")
+                            lf.write("LLM: No response\n---\n")
+                            lf.flush()
 
             except EOFError:
                 OutputPrinter.print_info("\nExiting chat.", "")
@@ -189,9 +221,11 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
                         lf.write(f"Error: {e}\n")
                         lf.flush()
         
-    # Close all open log files
-    for lf in log_files:
-        lf.close()
+        # Close all open log files
+        for lf in log_files:
+            lf.close()
+
+    asyncio.run(chat_loop(voice))
 
 if __name__ == "__main__":
     main()

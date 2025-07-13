@@ -95,7 +95,8 @@ def main():
     if not model:
         model = config.default_model
     
-    # TODO: implement all parameters....
+# TODO: Implement all parameters and error handling
+    # TODO: Implement all parameters and error handling....
     workflow = RefinementWorkflow(api_endpoint=api_endpoint, api_key=api_key, 
         verbose=args.verbose, model=model,
         temperature=args.temperature, max_tokens=args.max_tokens)

@@ -140,85 +140,93 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
         return # Exit if model cannot be loaded
         
     while True:
-        OutputPrinter.print_info(f"{Colors.BRIGHT_RED}{Colors.BOLD}║Recording... Press Enter to stop.║{Colors.RESET}", "")
-        recorder.recording = True
-        record_thread = threading.Thread(target=recorder.record_audio)
-        record_thread.start()
-        
-        input() # Wait for Enter key
-        
-        play_audio_file(recorder.acknowledge_signal_filepath)
-        
-        recorder.recording = False
-        record_thread.join()
-        
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
-            temp_filename = tmp_file.name
-        
-        recorder.save_recording(temp_filename)
-        
-        start_time = time.time()
-        
-        OutputPrinter.print_info(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}⟳ Transcribing...{Colors.RESET}", "")
-        try:
-            result = whisper_model.transcribe(temp_filename)
-        except Exception as e:
-            OutputPrinter.print_error(f"Error during transcription: {e}")
-            logging.error(f"Error during transcription: {traceback.format_exc()}")
-            os.unlink(temp_filename)
-            continue # Continue to next loop iteration
-            
-        transcribed_text = result['text']
-        OutputPrinter.print_info(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}✓ Recognized text:{Colors.RESET}", "")
-        OutputPrinter.print_info(f"{Colors.CYAN}{Colors.BOLD}{transcribed_text}{Colors.RESET}", "")
+        user_input = input(f"{Colors.BRIGHT_YELLOW}Type 'exit' to exit, 'enter' to record a new question, /add <FILEPATH> for adding context files or '/voice' to toggle voice mode: {Colors.RESET}").strip().lower()
 
-        end_time = time.time()
-        duration = end_time - start_time
-        OutputPrinter.print_info(f"{Colors.CYAN}{Colors.BOLD}Transcription Duration: {duration:.2f} seconds{Colors.RESET}", "")
-
-        if transcribed_text:
-            conversation_history.append({"role": "user", "content": transcribed_text})
-
-            if verbose:
-                OutputPrinter.print_info("Sending request to LLM...", "")
-
-            response_content_full = llm_api.chat_completion(
-                messages=conversation_history,
-                model=model,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            
-            if response_content_full:
-                for lf in log_files:
-                    lf.write(f"User (Voice): {transcribed_text}\n---\n")
-                    lf.write(f"LLM: {response_content_full}\n---\n")
-                    lf.flush()
-
-                display_content = response_content_full
-                play_audio_file(recorder.acknowledge_signal_filepath)
-                
-                # Extract and colorize <think> block for display if not hidden
-                think_match = re.search(r'<think>(.*?)</think>', display_content, re.DOTALL)
-                if think_match:
-                    think_content = think_match.group(1)
-                    colored_think_content = f"{Colors.DIM}<think>{think_content}</think>{Colors.RESET}"
-                    display_content = display_content.replace(think_match.group(0), colored_think_content)
-
-                if hide_reasoning:
-                    display_content = refiner.clean_response(display_content)
-                    
-                OutputPrinter.print_info(f"{Colors.GREEN}LLM", f"{display_content}{Colors.RESET}")
-                conversation_history.append({"role": "assistant", "content": response_content_full})
-            else:
-                OutputPrinter.print_error("No response from LLM.")
-                for lf in log_files:
-                    lf.write(f"User (Voice): {transcribed_text}\n---\n")
-                    lf.write("LLM: No response\n---\n")
-                    lf.flush()
-        
-        os.unlink(temp_filename) # Clean up temp file
-
-        user_input = input(f"{Colors.BRIGHT_YELLOW}Press Enter to record again, or type 'exit' and press Enter to quit: {Colors.RESET}").strip().lower()
-        if user_input == "exit" or user_input == "esc":
+        if user_input == "exit":
             break
+        elif user_input == "/voice":
+            return "toggle_voice" # Signal to toggle voice mode
+        elif user_input.startswith("/add "):
+            filepath = user_input[5:].strip()
+            return "add_context", filepath # Signal to add context
+        elif user_input == "": # User pressed Enter to record
+            OutputPrinter.print_info(f"{Colors.BRIGHT_RED}{Colors.BOLD}║Recording... Press Enter to stop.║{Colors.RESET}", "")
+            recorder.recording = True
+            record_thread = threading.Thread(target=recorder.record_audio)
+            record_thread.start()
+            
+            input() # Wait for Enter key
+            
+            play_audio_file(recorder.acknowledge_signal_filepath)
+            
+            recorder.recording = False
+            record_thread.join()
+            
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
+                temp_filename = tmp_file.name
+            
+            recorder.save_recording(temp_filename)
+            
+            start_time = time.time()
+            
+            OutputPrinter.print_info(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}⟳ Transcribing...{Colors.RESET}", "")
+            try:
+                result = whisper_model.transcribe(temp_filename)
+            except Exception as e:
+                OutputPrinter.print_error(f"Error during transcription: {e}")
+                logging.error(f"Error during transcription: {traceback.format_exc()}")
+                os.unlink(temp_filename)
+                continue # Continue to next loop iteration
+                
+            transcribed_text = result['text']
+            OutputPrinter.print_info(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}✓ Recognized text:{Colors.RESET}", "")
+            OutputPrinter.print_info(f"{Colors.CYAN}{Colors.BOLD}{transcribed_text}{Colors.RESET}", "")
+
+            end_time = time.time()
+            duration = end_time - start_time
+            OutputPrinter.print_info(f"{Colors.CYAN}{Colors.BOLD}Transcription Duration: {duration:.2f} seconds{Colors.RESET}", "")
+
+            if transcribed_text:
+                conversation_history.append({"role": "user", "content": transcribed_text})
+
+                if verbose:
+                    OutputPrinter.print_info("Sending request to LLM...", "")
+
+                response_content_full = llm_api.chat_completion(
+                    messages=conversation_history,
+                    model=model,
+                    temperature=temperature,
+                    max_tokens=max_tokens
+                )
+                
+                if response_content_full:
+                    for lf in log_files:
+                        lf.write(f"User (Voice): {transcribed_text}\n---\n")
+                        lf.write(f"LLM: {response_content_full}\n---\n")
+                        lf.flush()
+
+                    display_content = response_content_full
+                    play_audio_file(recorder.acknowledge_signal_filepath)
+                    
+                    # Extract and colorize <think> block for display if not hidden
+                    think_match = re.search(r'<think>(.*?)</think>', display_content, re.DOTALL)
+                    if think_match:
+                        think_content = think_match.group(1)
+                        colored_think_content = f"{Colors.DIM}<think>{think_content}</think>{Colors.RESET}"
+                        display_content = display_content.replace(think_match.group(0), colored_think_content)
+
+                    if hide_reasoning:
+                        display_content = refiner.clean_response(display_content)
+                        
+                    OutputPrinter.print_info(f"{Colors.GREEN}LLM", f"{display_content}{Colors.RESET}")
+                    conversation_history.append({"role": "assistant", "content": response_content_full})
+                else:
+                    OutputPrinter.print_error("No response from LLM.")
+                    for lf in log_files:
+                        lf.write(f"User (Voice): {transcribed_text}\n---\n")
+                        lf.write("LLM: No response\n---\n")
+                        lf.flush()
+            
+            os.unlink(temp_filename) # Clean up temp file
+        else:
+            OutputPrinter.print_error("Invalid input. Please type 'exit', 'enter', '/voice', or '/add <filepath>'.")
