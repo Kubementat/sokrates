@@ -1,3 +1,9 @@
+# This script defines the `LLMApi` class, which serves as an interface
+# for interacting with OpenAI-compatible Large Language Model (LLM) APIs.
+# It provides functionalities for listing available models, sending prompts
+# for text generation, and managing chat completions, including streaming
+# responses and performance metrics.
+
 import logging
 import sys
 import time
@@ -8,41 +14,54 @@ from openai import OpenAI
 from .colors import Colors
 from .config import Config
 from .file_helper import FileHelper
-"""
-A class for interacting with the LLM API.
-"""
+
 class LLMApi:
-    def __init__(self, verbose=False, api_endpoint=Config.DEFAULT_API_ENDPOINT, api_key=Config.DEFAULT_API_KEY):
+    """
+    Handles interactions with OpenAI-compatible LLM APIs.
+    Provides methods for model listing, text generation, and chat completions.
+    """
+    def __init__(self, verbose: bool = False, api_endpoint: str = Config.DEFAULT_API_ENDPOINT, api_key: str = Config.DEFAULT_API_KEY):
+        """
+        Initializes the LLMApi client.
+
+        Args:
+            verbose (bool): If True, enables verbose output for API interactions.
+            api_endpoint (str): The URL of the LLM API endpoint. Defaults to Config.DEFAULT_API_ENDPOINT.
+            api_key (str): The API key for authentication. Defaults to Config.DEFAULT_API_KEY.
+        """
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         self.verbose = verbose
         self.api_endpoint = api_endpoint
         self.api_key = api_key
         
-    def get_openai_client(self):
+    def get_openai_client(self) -> OpenAI:
         """
-        Create an OpenAI client instance and return it
+        Creates and returns an OpenAI client instance configured with the
+        specified API endpoint and key.
+
+        Returns:
+            OpenAI: An initialized OpenAI client object.
         """
         if self.verbose:
             print(f"{Colors.BLUE}{Colors.BOLD}Initializing openai client for endpoint {self.api_endpoint}...{Colors.RESET}")
         
-        # Initialize OpenAI client with custom base URL
         return OpenAI(
             base_url=self.api_endpoint,
             api_key=self.api_key
         )
 
-    def list_models(self):
+    def list_models(self) -> List[str]:
         """
-        List available models from an OpenAI-compatible endpoint.
+        Lists available models from the configured OpenAI-compatible endpoint.
 
         Returns:
-            list: List of model IDs available at the endpoint
+            List[str]: A sorted list of model IDs available at the endpoint.
+
+        Raises:
+            Exception: If there is an error while listing models.
         """
         try:
-            # Initialize OpenAI client with provided credentials
             client = self.get_openai_client()
-            
-            # Fetch and return available models
             models = client.models.list()
             ret_array = []
             for model in models.data:
@@ -54,22 +73,29 @@ class LLMApi:
             print(f"{Colors.RED}{Colors.BOLD}Error listing models: {str(e)}{Colors.RESET}")
             raise(e)
 
-    def send(self, prompt, model=Config.DEFAULT_MODEL, context: str = None, context_array: List[str] = None, max_tokens=2000, temperature=0.7):
+    def send(self, prompt: str, model: str = Config.DEFAULT_MODEL, context: str = None, context_array: List[str] = None, max_tokens: int = 2000, temperature: float = 0.7) -> str:
         """
-        Send a prompt to local LLM server and return the response.
+        Sends a text prompt to the LLM server for generation and returns the response.
+        Context can be provided as a single string or a list of strings, which will be
+        prepended to the main prompt.
 
         Args:
-            prompt (str): The prompt to send
-            context (str): A context text to prepend in front of the prompt to send - Optional 
-            context_array (List[str]): A list of context text fragments to prepend in front of the prompt to send - Optional 
-            model (str): Model name to use (often not critical for local servers)
-            max_tokens (int): Maximum tokens in response
+            prompt (str): The main text prompt to send to the LLM.
+            model (str): The name of the model to use for generation. Defaults to Config.DEFAULT_MODEL.
+            context (str, optional): A single string of context to prepend to the prompt.
+                                     Defaults to None.
+            context_array (List[str], optional): A list of context text fragments to prepend.
+                                                 Defaults to None.
+            max_tokens (int): The maximum number of tokens to generate in the response. Defaults to 2000.
+            temperature (float): Controls the randomness of the output. Higher values (e.g., 0.8)
+                                 make the output more random, while lower values (e.g., 0.2)
+                                 make it more focused and deterministic. Defaults to 0.7.
 
         Returns:
-            str: The LLM response content
+            str: The generated content from the LLM.
 
         Raises:
-            Exception: If API call fails
+            Exception: If the API call to the LLM server fails.
         """
         print(f"{Colors.CYAN}{Colors.BOLD}Generating with model {model} ...{Colors.RESET}", file=sys.stderr)
         
@@ -82,7 +108,6 @@ class LLMApi:
             prompt = f"{self.combine_context([context])}\n{prompt}"
 
         try:
-            # Initialize OpenAI client with custom base URL
             client = self.get_openai_client()
             if self.verbose:
                 print(f"{Colors.BLUE}{'-'*20}{Colors.RESET}")
@@ -94,7 +119,6 @@ class LLMApi:
                 print(f"{Colors.BLUE}{'-'*20}{Colors.RESET}")
                 print()
 
-            # Make API call with custom temperature
             stream = client.chat.completions.create(
                 model=model,
                 messages=[
@@ -117,7 +141,6 @@ class LLMApi:
             print(f"{Colors.GREEN}{'-'*30}{Colors.RESET}")
             response_content = ""
             for chunk in stream:
-                # Each chunk may contain a 'choices' list with a 'delta' dict
                 content = chunk.choices[0].delta.content
                 if content:
                     if first_token_time is None:
@@ -150,21 +173,24 @@ class LLMApi:
         except Exception as e:
             raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling local LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
 
-    def chat_completion(self, messages: List[dict], model=Config.DEFAULT_MODEL, max_tokens=2000, temperature=0.7):
+    def chat_completion(self, messages: List[dict], model: str = Config.DEFAULT_MODEL, max_tokens: int = 2000, temperature: float = 0.7) -> str:
         """
-        Send a list of messages to local LLM server and return the response.
+        Sends a list of messages (conversation history) to the LLM server for chat completion.
+        The response is streamed back, and performance metrics are calculated.
 
         Args:
-            messages (List[dict]): The conversation history as a list of messages.
-            model (str): Model name to use.
-            max_tokens (int): Maximum tokens in response.
-            temperature (float): Temperature for response generation.
+            messages (List[dict]): A list of message dictionaries representing the conversation history.
+                                   Each dictionary should have "role" (e.g., "user", "assistant")
+                                   and "content" keys.
+            model (str): The name of the model to use for chat completion. Defaults to Config.DEFAULT_MODEL.
+            max_tokens (int): The maximum number of tokens to generate in the response. Defaults to 2000.
+            temperature (float): Controls the randomness of the output. Defaults to 0.7.
 
         Returns:
-            str: The LLM response content.
+            str: The generated content from the LLM for the chat completion.
 
         Raises:
-            Exception: If API call fails.
+            Exception: If the API call to the LLM server fails.
         """
         print(f"{Colors.CYAN}{Colors.BOLD}Generating chat completion with model {model} ...{Colors.RESET}", file=sys.stderr)
 
@@ -230,6 +256,16 @@ class LLMApi:
             raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling local LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
 
     def combine_context(self, context: List[str]) -> str:
+        """
+        Combines a list of context strings into a single string,
+        separated by a '---' delimiter.
+
+        Args:
+            context (List[str]): A list of context strings to combine.
+
+        Returns:
+            str: A single string containing the combined context.
+        """
         combined_content = ""
         for context_part in context:
             combined_content = f"{combined_content}\n---\n{context_part}"

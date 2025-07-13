@@ -1,36 +1,47 @@
+# This script provides a `FileHelper` class with static methods for common
+# file system operations. It includes functionalities for cleaning filenames,
+# listing, reading, writing, and creating files, as well as combining
+# content from multiple files or directories. This utility centralizes
+# file management operations for the LLM tools.
+
 import os
 from typing import List
 from .colors import Colors
 from datetime import datetime
 
-"""
-A class for managing file operations.
-"""
 class FileHelper:
+    """
+    A utility class providing static methods for various file system operations.
+    Encapsulates common tasks like file reading, writing, directory listing,
+    and filename sanitization.
+    """
     
     @staticmethod
     def clean_name(name: str) -> str:
-        """Provide a cleaned-up name as input to file names.
-
-        Replaces all special characters with underscores, hyphens, asterisks, question marks, and double quotes.
+        """
+        Cleans up a given string to be suitable for use as a filename or path component.
+        Replaces common special characters that are problematic in file names with
+        underscores or hyphens, and removes others.
 
         Args:
-            name (str): The original name string.
+            name (str): The original name string that needs cleaning.
 
         Returns:
-            str: Cleaned-up name.
+            str: The cleaned-up string, safe for file system use.
         """
         return name.replace('/', '_').replace(':', '-').replace('*', '-').replace('?', '').replace('"', '')
 
     @staticmethod
-    def list_files_in_directory(directory_path: str, verbose: bool = False) -> list[str]:
-        """List all files in a directory.
+    def list_files_in_directory(directory_path: str, verbose: bool = False) -> List[str]:
+        """
+        Lists all files directly within a specified directory (non-recursive).
 
         Args:
-            directory_path (str): Path to the directory.
+            directory_path (str): The path to the directory to scan.
+            verbose (bool): If True, enables verbose output (currently not used in this method).
 
         Returns:
-            list[str]: List of file names in the directory.
+            List[str]: A list of full file paths found in the directory.
         """
         file_paths = []
         for file_path in os.scandir(directory_path):
@@ -40,17 +51,19 @@ class FileHelper:
 
     @staticmethod
     def read_file(file_path: str, verbose: bool = False) -> str:
-        """Load and return the content of a file.
+        """
+        Reads and returns the entire content of a specified file.
 
         Args:
-            file_path (str): Path to the file.
+            file_path (str): The path to the file to be read.
+            verbose (bool): If True, prints a message indicating the file being loaded.
 
         Returns:
-            str: Content of the file.
+            str: The stripped content of the file.
 
         Raises:
-            FileNotFoundError: If the file doesn't exist.
-            IOError: If there's an error reading the file.
+            FileNotFoundError: If the specified file does not exist.
+            IOError: If an error occurs during file reading.
         """
         try:
             if verbose:
@@ -60,36 +73,40 @@ class FileHelper:
         except FileNotFoundError:
             raise FileNotFoundError(f"File not found: {file_path}")
         except IOError as e:
-            raise IOError(f"Error reading file: {e}")
+            raise IOError(f"Error reading file {file_path}: {e}")
     
     @staticmethod
     def read_multiple_files(file_paths: List[str], verbose: bool = False) -> List[str]:
-        """Load and return the content of multpiple files as Array of strings.
+        """
+        Reads and returns the content of multiple files.
 
         Args:
-            file_paths (List[str]): Paths to the files to load.
+            file_paths (List[str]): A list of paths to the files to be read.
+            verbose (bool): If True, enables verbose output for each file read.
 
         Returns:
-            List[str]: Contents of the files as array.
+            List[str]: A list containing the stripped content of each file.
 
         Raises:
-            FileNotFoundError: If a file doesn't exist.
-            IOError: If there's an error reading a file.
+            FileNotFoundError: If any of the specified files do not exist.
+            IOError: If an error occurs during reading any of the files.
         """
         contents = []
         for file_path in file_paths:
-            contents.append(FileHelper.read_file(file_path))
+            contents.append(FileHelper.read_file(file_path, verbose=verbose))
         return contents
     
     @staticmethod
     def read_multiple_files_from_directories(directory_paths: List[str], verbose: bool = False) -> List[str]:
-        """Load and return the content of multiple files from multiple directories as Array of strings.
+        """
+        Reads and returns the content of all files found within multiple specified directories.
+
         Args:
-            directory_paths (List[str]): Paths to the directories to load files from.
-            verbose (bool): Enable verbose output.
+            directory_paths (List[str]): A list of paths to directories from which to read files.
+            verbose (bool): If True, enables verbose output during file listing and reading.
             
         Returns:
-            List[str]: Contents of the files as array.
+            List[str]: A list containing the stripped content of all files found.
         """
         contents=[]
         for directory_path in directory_paths:
@@ -101,14 +118,16 @@ class FileHelper:
 
     @staticmethod
     def write_to_file(file_path: str, content: str, verbose: bool = False) -> None:
-        """Save content to a file.
+        """
+        Writes the given content to a specified file. Creates parent directories if they don't exist.
 
         Args:
-            content (str): Content to save.
-            file_path (str): Output filename.
+            file_path (str): The path to the file where content will be written.
+            content (str): The string content to write to the file.
+            verbose (bool): If True, prints a success message upon successful writing.
 
         Raises:
-            IOError: If there's an error writing to the file.
+            IOError: If an error occurs during file writing.
         """
         try:
             dirname = os.path.dirname(file_path)
@@ -124,10 +143,15 @@ class FileHelper:
 
     @staticmethod
     def create_new_file(file_path: str, verbose: bool = False) -> None:
-        """Create a new empty file.
+        """
+        Creates a new empty file at the specified path. Creates parent directories if they don't exist.
 
         Args:
-            file_path (str): Path to the file to create.
+            file_path (str): The path to the file to be created.
+            verbose (bool): If True, prints a success message upon successful file creation.
+
+        Raises:
+            IOError: If an error occurs during file creation.
         """
         try:
             dirname = os.path.dirname(file_path)
@@ -142,13 +166,36 @@ class FileHelper:
 
     @staticmethod
     def generate_postfixed_sub_directory_name(base_directory: str) -> str:
+        """
+        Generates a new subdirectory name by appending the current date and time
+        (YYYY-MM-DD_HH-MM format) to a base directory name.
+
+        Args:
+            base_directory (str): The base directory path.
+
+        Returns:
+            str: The new directory path with a datetime postfix.
+        """
         current_datetime = datetime.now()
-        # Format the current date and time
         formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M")
         return f"{base_directory}/{formatted_datetime}"
     
     @staticmethod
-    def combine_files(file_paths: List[str], verbose: bool = False):
+    def combine_files(file_paths: List[str], verbose: bool = False) -> str:
+        """
+        Combines the content of multiple files into a single string,
+        separated by a '---' delimiter.
+
+        Args:
+            file_paths (List[str]): A list of paths to the files to combine.
+            verbose (bool): If True, enables verbose output during file reading.
+
+        Returns:
+            str: A single string containing the combined content of all files.
+
+        Raises:
+            Exception: If no file paths are provided.
+        """
         if file_paths is None:
             raise Exception("No files provided")
         
@@ -158,7 +205,21 @@ class FileHelper:
         return combined_content
     
     @staticmethod
-    def combine_files_in_directories(directory_paths: List[str], verbose: bool = False):
+    def combine_files_in_directories(directory_paths: List[str], verbose: bool = False) -> str:
+        """
+        Combines the content of all files found within multiple specified directories
+        into a single string, separated by a '---' delimiter.
+
+        Args:
+            directory_paths (List[str]): A list of paths to directories containing files to combine.
+            verbose (bool): If True, enables verbose output during file listing and reading.
+
+        Returns:
+            str: A single string containing the combined content of all files from the directories.
+
+        Raises:
+            Exception: If no directory paths are provided.
+        """
         if directory_paths is None:
             raise Exception("No directory_paths provided")
         
@@ -166,6 +227,3 @@ class FileHelper:
         for directory_path in directory_paths:
             file_list += FileHelper.list_files_in_directory(directory_path, verbose=verbose)
         return FileHelper.combine_files(file_list, verbose=verbose)
-
-
-                

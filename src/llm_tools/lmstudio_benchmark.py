@@ -1,3 +1,13 @@
+# This script defines the `LMStudioBenchmark` class, which provides
+# comprehensive functionality for benchmarking Large Language Models (LLMs),
+# particularly those served by LM Studio. It includes features for:
+# - Monitoring system resources (CPU, memory, and optionally GPU) during benchmarks.
+# - Running individual benchmarks with specified prompts and parameters.
+# - Analyzing and displaying detailed benchmark results, including performance metrics
+#   and resource usage.
+# - Saving benchmark results and comparative analyses to JSON files for later review.
+# - Benchmarking multiple models sequentially and generating comparative tables.
+
 import platform
 import time
 import psutil
@@ -8,17 +18,31 @@ from datetime import datetime
 import json
 from tabulate import tabulate
 
-"""
-A class for benchmarking models in LM Studio.
-"""
 class LMStudioBenchmark:
-    def __init__(self, api_endpoint="http://localhost:1234/v1"):
+    """
+    A class designed for benchmarking Large Language Models (LLMs),
+    especially those compatible with LM Studio's OpenAI-like API.
+    It provides tools for performance measurement, resource monitoring,
+    and results analysis and storage.
+    """
+    def __init__(self, api_endpoint: str = "http://localhost:1234/v1"):
+        """
+        Initializes the LMStudioBenchmark with the target API endpoint.
+
+        Args:
+            api_endpoint (str): The URL of the LLM API endpoint to benchmark against.
+                                Defaults to "http://localhost:1234/v1" (LM Studio's default).
+        """
         self.api_endpoint = api_endpoint
         self.system_stats = []
         self.monitoring = False
         
-    def monitor_system(self):
-        """Monitor system resources during benchmark"""
+    def monitor_system(self) -> None:
+        """
+        Monitors system resources (CPU, memory, and optionally GPU) at regular intervals
+        and stores the statistics. This method runs in a separate thread during benchmarking.
+        Requires `psutil` for CPU/memory and `pynvml` (if NVIDIA GPU is present) for GPU stats.
+        """
         while self.monitoring:
             stats = {
                 'timestamp': time.time(),
@@ -27,7 +51,6 @@ class LMStudioBenchmark:
                 'memory_used_gb': psutil.virtual_memory().used / (1024**3)
             }
             
-            # Try to get GPU stats (requires nvidia-ml-py or similar)
             try:
                 import pynvml
                 pynvml.nvmlInit()
@@ -36,16 +59,30 @@ class LMStudioBenchmark:
                 stats['gpu_memory_used_gb'] = gpu_info.used / (1024**3)
                 stats['gpu_memory_total_gb'] = gpu_info.total / (1024**3)
                 stats['gpu_utilization'] = pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
-            except Exception as e:
-                # print("!!!!!!!!!!!!!!!!!! could not load gpu stats for nvidia cards !!!!!!!!!!!!!!!!!!!")
-                # print(e)
+            except Exception:
+                # pynvml might not be installed or no NVIDIA GPU found
                 pass
                 
             self.system_stats.append(stats)
             time.sleep(0.5)
     
-    def benchmark_model(self, model_name, prompts, max_tokens=100, temperature=0.7, results_directory=None, timeout=240):
-        """Benchmark a model with given prompts"""
+    def benchmark_model(self, model_name: str, prompts: list[str], max_tokens: int = 100, temperature: float = 0.7, results_directory: str = None, timeout: int = 240) -> dict:
+        """
+        Benchmarks a single LLM model using a list of prompts.
+        Measures response time, tokens per second, and captures system resource usage.
+
+        Args:
+            model_name (str): The name of the model to benchmark.
+            prompts (list[str]): A list of text prompts to use for benchmarking.
+            max_tokens (int): The maximum number of tokens the model should generate per response. Defaults to 100.
+            temperature (float): The sampling temperature for text generation. Defaults to 0.7.
+            results_directory (str, optional): Directory to save detailed response files. Defaults to None.
+            timeout (int): Timeout in seconds for each API request. Defaults to 240.
+
+        Returns:
+            dict: A dictionary containing benchmark results, including individual prompt results
+                  and captured system statistics.
+        """
         print(f"\n=== Benchmarking {model_name} ===")
         
         results = {
@@ -57,7 +94,6 @@ class LMStudioBenchmark:
             'system_stats': []
         }
         
-        # Start system monitoring
         self.system_stats = []
         self.monitoring = True
         monitor_thread = threading.Thread(target=self.monitor_system)
@@ -69,7 +105,6 @@ class LMStudioBenchmark:
                 print(f"Testing prompt {i+1}/{len(prompts)}...")
                 
                 start_time = time.time()
-                first_token_time = None
                 
                 response = requests.post(
                     f"{self.api_endpoint}/chat/completions",
@@ -90,7 +125,6 @@ class LMStudioBenchmark:
                     data = response.json()
                     total_time = end_time - start_time
                     
-                    # Extract token counts
                     usage = data.get('usage', {})
                     completion_tokens = usage.get('completion_tokens', 0)
                     prompt_tokens = usage.get('prompt_tokens', 0)
@@ -108,15 +142,13 @@ class LMStudioBenchmark:
                     
                     results['individual_results'].append(result)
                     print(f"  Time: {total_time:.2f}s | Tokens/s: {tokens_per_second:.2f} | Tokens: {completion_tokens}")
-# Save full response if results_directory is provided
                     self._save_response_to_file(results_directory, model_name, i, data, temperature)
                 else:
                     print(f"  Error: {response.status_code} - {response.text}")
                     
-                time.sleep(1)  # Brief pause between requests
+                time.sleep(1)
                 
         finally:
-            # Stop monitoring
             self.monitoring = False
             if monitor_thread.is_alive():
                 monitor_thread.join(timeout=1)
@@ -125,16 +157,24 @@ class LMStudioBenchmark:
         
         return results
     
-    def _save_response_to_file(self, results_directory, model_name, prompt_index, response_data, temperature):
-        """Helper function to save the full response to a file."""
+    def _save_response_to_file(self, results_directory: str, model_name: str, prompt_index: int, response_data: dict, temperature: float) -> None:
+        """
+        Helper function to save the full LLM response content to a Markdown file.
+
+        Args:
+            results_directory (str): The directory where the response file will be saved.
+            model_name (str): The name of the model that generated the response.
+            prompt_index (int): The index of the prompt used (for naming the file).
+            response_data (dict): The raw JSON response data from the LLM API.
+            temperature (float): The temperature setting used for the generation.
+        """
         if results_directory:
             temperature_safe = str(temperature).replace('.', '_').replace(',', '_')
             model_name_safe = model_name.replace('/', '_').replace('\\', '_').replace(':', '_')
-            prompt_number_str = f"{prompt_index+1:02d}" # Format with leading zero
+            prompt_number_str = f"{prompt_index+1:02d}"
             filename = f"prompt_{prompt_number_str}_{model_name_safe}_t{temperature_safe}.md"
             filepath = os.path.join(results_directory, filename)
             
-            # Ensure directory exists
             os.makedirs(results_directory, exist_ok=True)
             
             full_response_text = response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
@@ -142,14 +182,22 @@ class LMStudioBenchmark:
                 f.write(full_response_text)
             print(f"  Saved response to: {filepath}")
 
-    def analyze_results(self, results, store_results=False, results_directory=None):
-        """Analyze and display benchmark results"""
+    def analyze_results(self, results: dict, store_results: bool = False, results_directory: str = None) -> None:
+        """
+        Analyzes and displays the benchmark results for a single model.
+        Calculates averages for performance metrics and summarizes system resource usage.
+
+        Args:
+            results (dict): The dictionary containing benchmark results for a model.
+            store_results (bool): If True, saves the comprehensive results to a JSON file. Defaults to False.
+            results_directory (str, optional): Directory to save the comprehensive results JSON.
+                                               Required if store_results is True. Defaults to None.
+        """
         individual = results['individual_results']
         if not individual:
             print("No successful results to analyze")
             return
             
-        # Calculate averages
         avg_tokens_per_second = sum(r['tokens_per_second'] for r in individual) / len(individual)
         avg_total_time = sum(r['total_time'] for r in individual) / len(individual)
         total_completion_tokens = sum(r['completion_tokens'] for r in individual)
@@ -162,7 +210,6 @@ class LMStudioBenchmark:
         print(f"Total completion tokens: {total_completion_tokens}")
         print(f"Total prompt tokens: {total_prompt_tokens}")
         
-        # System resource analysis
         if results['system_stats']:
             stats = results['system_stats']
             avg_cpu = sum(s.get('cpu_percent', 0) for s in stats) / len(stats)
@@ -178,13 +225,20 @@ class LMStudioBenchmark:
                 print(f"Peak GPU Memory: {max_gpu_memory:.2f} GB")
                 print(f"Average GPU Utilization: {avg_gpu_util:.1f}%")
         
-        # Store results if requested
         if store_results:
             self.save_results(results, results_directory)
     
-    def save_results(self, results, results_directory=None):
-        """Save comprehensive benchmark results to JSON file"""
-        # Create comprehensive results with all available data
+    def save_results(self, results: dict, results_directory: str = None) -> None:
+        """
+        Saves comprehensive benchmark results for a single model to a JSON file.
+        Includes metadata about the benchmark run, system information, model details,
+        performance summary, detailed individual results, and system monitoring data.
+
+        Args:
+            results (dict): The dictionary containing benchmark results for a model.
+            results_directory (str, optional): The directory where the JSON file will be saved.
+                                               Defaults to the current directory if None.
+        """
         comprehensive_results = {
             'benchmark_metadata': {
                 'timestamp': datetime.now().isoformat(),
@@ -210,7 +264,6 @@ class LMStudioBenchmark:
             'raw_results': results
         }
         
-        # Add GPU info if available
         try:
             import pynvml
             pynvml.nvmlInit()
@@ -230,7 +283,6 @@ class LMStudioBenchmark:
         except:
             comprehensive_results['benchmark_metadata']['system_info']['gpu_info'] = "Not available"
         
-        # Calculate performance summary
         individual = results['individual_results']
         if individual:
             tokens_per_second_list = [r['tokens_per_second'] for r in individual]
@@ -248,7 +300,6 @@ class LMStudioBenchmark:
                 'total_benchmark_duration_seconds': sum(total_times)
             }
         
-        # Add system resource summary
         if results['system_stats']:
             stats = results['system_stats']
             comprehensive_results['performance_summary']['system_resources'] = {
@@ -259,7 +310,6 @@ class LMStudioBenchmark:
                 'monitoring_samples': len(stats)
             }
             
-            # GPU resource summary if available
             gpu_stats = [s for s in stats if 'gpu_memory_used_gb' in s]
             if gpu_stats:
                 comprehensive_results['performance_summary']['system_resources']['gpu'] = {
@@ -269,7 +319,6 @@ class LMStudioBenchmark:
                     'max_gpu_utilization_percent': max(s.get('gpu_utilization', 0) for s in gpu_stats)
                 }
         
-        # Determine save path
         model_name_safe = results['model'].replace('/', '_').replace('\\', '_').replace(':', '_')
         filename = f"{model_name_safe}_results.json"
         
@@ -281,25 +330,35 @@ class LMStudioBenchmark:
         else:
             filepath = filename
         
-        # Save to file
         try:
             with open(filepath, 'w') as f:
                 json.dump(comprehensive_results, f, indent=2, default=str)
             print(f"\nComprehensive results saved to: {filepath}")
             
-            # Print file size
             file_size = os.path.getsize(filepath)
             print(f"File size: {file_size:,} bytes ({file_size/1024:.1f} KB)")
             
         except Exception as e:
             print(f"Error saving results: {e}")
     
-    def create_comparison_table(self, all_model_results):
-        """Create a comparison table from multiple model results"""
+    def create_comparison_table(self, all_model_results: list[dict]) -> tuple[str, dict]:
+        """
+        Creates a human-readable comparison table and a structured comparison data dictionary
+        from the benchmark results of multiple models. The table is formatted using `tabulate`.
+
+        Args:
+            all_model_results (list[dict]): A list of dictionaries, where each dictionary
+                                            contains the benchmark results for a single model.
+
+        Returns:
+            tuple[str, dict]: A tuple containing:
+                              - str: The formatted comparison table.
+                              - dict: A structured dictionary with detailed comparison data.
+                              Returns (None, None) if no results are provided.
+        """
         if not all_model_results:
             return None, None
         
-        # Prepare data for tabulation
         table_data = []
         comparison_data = {
             'comparison_metadata': {
@@ -315,12 +374,10 @@ class LMStudioBenchmark:
             if not individual:
                 continue
                 
-            # Calculate metrics
             avg_tokens_per_second = sum(r['tokens_per_second'] for r in individual) / len(individual)
             avg_response_time = sum(r['total_time'] for r in individual) / len(individual)
             total_tokens = sum(r['completion_tokens'] for r in individual)
             
-            # System resource metrics
             system_stats = result.get('system_stats', [])
             avg_cpu = 0
             max_memory = 0
@@ -336,7 +393,6 @@ class LMStudioBenchmark:
                     avg_gpu_util = sum(s.get('gpu_utilization', 0) for s in gpu_stats) / len(gpu_stats)
                     max_gpu_memory = max(s.get('gpu_memory_used_gb', 0) for s in gpu_stats)
             
-            # Add to table data
             row = [
                 result['model'],
                 f"{avg_tokens_per_second:.2f}",
@@ -349,7 +405,6 @@ class LMStudioBenchmark:
             ]
             table_data.append(row)
             
-            # Add to comparison data
             model_comparison = {
                 'model_name': result['model'],
                 'performance_metrics': {
@@ -369,19 +424,16 @@ class LMStudioBenchmark:
             }
             comparison_data['model_comparisons'].append(model_comparison)
         
-        # Sort by tokens per second (descending)
         table_data.sort(key=lambda x: float(x[1]), reverse=True)
         comparison_data['model_comparisons'].sort(key=lambda x: x['performance_metrics']['avg_tokens_per_second'], reverse=True)
         
-        # Create table
         headers = [
-            "Model", "Avg Tokens/s", "Avg Time", "Total Tokens", 
+            "Model", "Avg Tokens/s", "Avg Time", "Total Tokens",
             "Avg CPU", "Max RAM", "Avg GPU", "Max VRAM"
         ]
         
         table = tabulate(table_data, headers=headers, tablefmt="github")
         
-        # Add ranking and performance insights
         comparison_data['performance_ranking'] = []
         for i, model_data in enumerate(comparison_data['model_comparisons']):
             comparison_data['performance_ranking'].append({
@@ -390,7 +442,6 @@ class LMStudioBenchmark:
                 'tokens_per_second': model_data['performance_metrics']['avg_tokens_per_second']
             })
         
-        # Calculate relative performance
         if comparison_data['model_comparisons']:
             best_performance = comparison_data['model_comparisons'][0]['performance_metrics']['avg_tokens_per_second']
             for model_data in comparison_data['model_comparisons']:
@@ -400,8 +451,16 @@ class LMStudioBenchmark:
         
         return table, comparison_data
     
-    def save_comparison_results(self, comparison_data, results_directory=None, filename_prefix=""):
-        """Save model comparison results to JSON file"""
+    def save_comparison_results(self, comparison_data: dict, results_directory: str = None, filename_prefix: str = "") -> None:
+        """
+        Saves the structured model comparison results to a JSON file.
+
+        Args:
+            comparison_data (dict): The dictionary containing detailed comparison data for multiple models.
+            results_directory (str, optional): The directory where the JSON file will be saved.
+                                               Defaults to the current directory if None.
+            filename_prefix (str): A prefix to add to the filename. Defaults to "".
+        """
         filename = f"{filename_prefix}model_comparison.json"
         
         if results_directory:
@@ -416,16 +475,32 @@ class LMStudioBenchmark:
                 json.dump(comparison_data, f, indent=2, default=str)
             print(f"\nModel comparison results saved to: {filepath}")
             
-            # Print file size
             file_size = os.path.getsize(filepath)
             print(f"Comparison file size: {file_size:,} bytes ({file_size/1024:.1f} KB)")
             
         except Exception as e:
             print(f"Error saving comparison results: {e}")
     
-    def benchmark_multiple_models(self, model_names, prompts, max_tokens=100, temperature=0.7, 
-                                 store_results=False, results_directory=None, timeout=240):
-        """Benchmark multiple models and return all results"""
+    def benchmark_multiple_models(self, model_names: list[str], prompts: list[str], max_tokens: int = 100, temperature: float = 0.7,
+                                 store_results: bool = False, results_directory: str = None, timeout: int = 240) -> list[dict]:
+        """
+        Orchestrates the benchmarking process for multiple LLM models.
+        Iterates through a list of model names, runs individual benchmarks,
+        and collects all results.
+
+        Args:
+            model_names (list[str]): A list of model names to benchmark.
+            prompts (list[str]): A list of text prompts to use for benchmarking each model.
+            max_tokens (int): The maximum number of tokens the model should generate per response. Defaults to 100.
+            temperature (float): The sampling temperature for text generation. Defaults to 0.7.
+            store_results (bool): If True, saves individual model benchmark results. Defaults to False.
+            results_directory (str, optional): Directory to save individual and comparative results. Defaults to None.
+            timeout (int): Timeout in seconds for each API request. Defaults to 240.
+
+        Returns:
+            list[dict]: A list of dictionaries, where each dictionary contains the
+                        comprehensive benchmark results for a single model.
+        """
         all_results = []
         
         print(f"\n=== Starting Multi-Model Benchmark ===")
@@ -437,9 +512,7 @@ class LMStudioBenchmark:
             print(f"Benchmarking Model {i}/{len(model_names)}: {model_name}")
             print(f"{'='*60}")
             
-            # Check if model is available
             try:
-                # Try to make a simple request to verify the model works
                 test_response = requests.post(
                     f"{self.api_endpoint}/chat/completions",
                     headers={"Content-Type": "application/json"},
@@ -461,12 +534,10 @@ class LMStudioBenchmark:
                 print(f"❌ Could not connect to model '{model_name}': {e}")
                 continue
             
-            # Run benchmark for this model
             try:
                 result = self.benchmark_model(model_name, prompts, max_tokens, temperature, results_directory, timeout=timeout)
                 all_results.append(result)
                 
-                # Analyze individual results
                 self.analyze_results(result, store_results, results_directory)
                 
                 print(f"✅ Completed benchmark for {model_name}")
@@ -475,9 +546,9 @@ class LMStudioBenchmark:
                 print(f"❌ Error benchmarking {model_name}: {e}")
                 continue
             
-            # Small delay between models to avoid overwhelming the server
             if i < len(model_names):
                 print(f"\nPausing 2 seconds before next model...")
                 time.sleep(2)
         
+        return all_results
         return all_results

@@ -1,8 +1,13 @@
-# ANSI Color codes for beautiful console output
-"""
-A class for managing color definitions.
-"""
+# This script defines a `Colors` class that provides ANSI escape codes
+# for various text colors, bright colors, text styles, and background colors.
+# These codes can be used to format console output, making it more readable and visually appealing.
+
 class Colors:
+    """
+    A utility class providing ANSI escape codes for console text formatting.
+    It includes definitions for regular colors, bright colors, text styles,
+    and background colors to enhance terminal output.
+    """
     # Regular colors
     BLACK: str = '\033[30m'
     RED: str = '\033[91m'
