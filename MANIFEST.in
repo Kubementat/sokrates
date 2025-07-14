@@ -1,3 +1,6 @@
 include README.md
 include LICENSE
 recursive-include src/llm_tools *.py
+
+include src/assets/*
+include src/llm_tools/prompts/*

@@ -111,9 +111,9 @@ class RefinementWorkflow:
     
     def breakdown_task(self, task: str, model: str, context_array: List[str] = None):
       breakdown_instructions_filepath = Path(f"{Path(__file__).parent.resolve()}/prompts/breakdown-v1.md").resolve()
-      refinement_insructions = FileHelper.read_file(breakdown_instructions_filepath)
+      breakdown_instructions = FileHelper.read_file(breakdown_instructions_filepath)
       
-      result = self.refine_prompt(input_prompt=task, refinement_prompt=refinement_insructions, context_array=context_array)
+      result = self.refine_prompt(input_prompt=task, refinement_prompt=breakdown_instructions, context_array=context_array)
       return result
     
     def generate_mantra(self, context_files: List[str] = None, task_file_path: str = None) -> str:

@@ -90,7 +90,6 @@ class PromptRefiner:
         patterns_to_remove = [
             r'<think>.*?</think>',  # Think blocks
             r'<thinking>.*?</thinking>',  # Thinking blocks
-            r'<analysis>.*?</analysis>',  # Analysis blocks
             r'<reasoning>.*?</reasoning>',  # Reasoning blocks
             r'<meta>.*?</meta>',  # Meta blocks
             r'<reflection>.*?</reflection>',  # Reflection blocks
@@ -119,10 +118,10 @@ class PromptRefiner:
         
         cleaned = re.sub(r'\n\s*\n\s*\n', '\n\n', cleaned)
         
-        stray_tag_pattern = r'</?(think|tool_code|execute_result|response)>'
+        stray_tag_pattern = r'</?(think|tool_code|execute_result|response|answer)>'
         cleaned = re.sub(stray_tag_pattern, '', cleaned, flags=re.DOTALL)
         
-        stray_tag_pattern = r'<?(think|tool_code|execute_result|response)>'
+        stray_tag_pattern = r'<?(think|tool_code|execute_result|response|answer)>'
         cleaned = re.sub(stray_tag_pattern, '', cleaned, flags=re.DOTALL)
         
         cleaned = cleaned.strip()
