@@ -40,7 +40,6 @@ from ..prompt_refiner import PromptRefiner
 import re
 from datetime import datetime
 from pathlib import Path
-from ..voice_helper import run_voice_chat # Import the voice chat function
 import asyncio # Import asyncio for running async functions
 
 @click.command()
@@ -130,6 +129,8 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
         while True:
             try:
                 if voice_mode:
+                    # import only when activated
+                    from ..voice_helper import run_voice_chat # Import the voice chat function
                     OutputPrinter.print_info("Starting voice chat. Press CTRL+C to exit.", "")
                     action = await run_voice_chat(llm_api, model, temperature, max_tokens, conversation_history, log_files, hide_reasoning, verbose, refiner)
                     if action == "toggle_voice":
