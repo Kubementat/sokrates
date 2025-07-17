@@ -1,6 +1,9 @@
 ## Changelog
 
+## Changelog
 **Week 2025-07-13**
+- refactoring: - rename meta prompt generator -> idea_generator - refine idea generator - add better documentation
+- remove obsolete kilocode files
 - only load audio libraries when needed
 - bump version, also remove <answer> tags when refining
 - bump version, improve voice chat
