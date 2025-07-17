@@ -1,44 +1,51 @@
-# This script defines the `MetaPromptWorkflow` class, which orchestrates a
+# This script defines the `IdeaGenerationWorkflow` class, which orchestrates a
 # multi-stage process for generating and refining prompts using Large Language Models (LLMs).
 # It supports generating initial topics, creating detailed execution prompts based on templates,
 # refining these prompts for clarity and effectiveness, executing them with an LLM,
 # and managing the output. This workflow is designed to automate and enhance
 # the prompt engineering process.
 
+from pathlib import Path
 from . import LLMApi, PromptRefiner, Colors, FileHelper, Config
 from .output_printer import OutputPrinter
 import os
 import json
 import time
 
-class MetaPromptWorkflow:
+# TODO: fix topic generation to be really random !!!
+
+class IdeaGenerationWorkflow:
     """
     Orchestrates a multi-step workflow for generating, refining, and executing LLM prompts.
     This class manages the flow from initial topic generation to final output,
     leveraging different LLM models for various stages of the process.
     """
-    DEFAULT_MODEL = "qwen3-14b-128k" # Consider making this configurable or deriving from Config
+    DEFAULT_MODEL = "qwen3-8b" # TODO: make this configurable or deriving from Config
+    DEFAULT_TOPIC_GENERATOR_PATH = "prompt_generators/topic-generator.md"
+    DEFAULT_PROMPT_GENERATOR_PATH = "prompt_generators/prompt-generator-v1.md"
+    DEFAULT_REFINEMENT_PATH = "refine-prompt.md"
   
     def __init__(self, api_endpoint: str, api_key: str,
         topic_input_file: str = None,
-        meta_prompt_generator_file : str = None,
+        topic_generator_file : str = None,
         refinement_prompt_file: str = None,
         prompt_generator_file: str = None,
         output_directory: str = None,
         generator_llm_model: str = None,
         refinement_llm_model: str = None,
         execution_llm_model: str = None,
-        meta_llm_model: str = None,
+        topic_generation_llm_model: str = None,
+        idea_count: int = 2,
         max_tokens: int = 20000, temperature: float = 0.7, verbose: bool = False):
         """
-        Initializes the MetaPromptWorkflow.
+        Initializes the IdeaGenerationWorkflow.
 
         Args:
             api_endpoint (str): The API endpoint for the LLM server.
             api_key (str): The API key for the LLM server.
             topic_input_file (str, optional): Path to a file containing the initial topic.
                                               If None, a topic will be generated. Defaults to None.
-            meta_prompt_generator_file (str, optional): Path to the prompt template for generating the initial topic.
+            topic_generator_file (str, optional): Path to the prompt template for generating the initial topic.
                                                         Required if topic_input_file is None. Defaults to None.
             refinement_prompt_file (str, optional): Path to the prompt template for refining generated prompts. Defaults to None.
             prompt_generator_file (str, optional): Path to the prompt template for generating execution prompts. Defaults to None.
@@ -62,18 +69,36 @@ class MetaPromptWorkflow:
                                verbose=verbose)
         self.prompt_refiner = PromptRefiner(verbose=verbose)
         self.topic_input_file = topic_input_file
-        self.meta_prompt_generator_file = meta_prompt_generator_file
+        
+        self.topic_generator_file = topic_generator_file
+        if self.topic_generator_file is None and self.topic_input_file is None:
+            full_mpg_filepath = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/{self.DEFAULT_TOPIC_GENERATOR_PATH}").resolve())
+            OutputPrinter.print_info(f"No topic_generator_file or topic_input_file specified. Using the default meta prompt generator instructions in {full_mpg_filepath}", Colors.BRIGHT_MAGENTA)
+            self.topic_generator_file = full_mpg_filepath
+        
         self.refinement_prompt_file = refinement_prompt_file
+        if self.refinement_prompt_file is None:
+            full_refinement_filepath = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/{self.DEFAULT_REFINEMENT_PATH}").resolve())
+            OutputPrinter.print_info(f"No refinement_prompt_file specified. Using the default refinement prompt instructions in {full_refinement_filepath}", Colors.BRIGHT_MAGENTA)
+            self.refinement_prompt_file = full_refinement_filepath
+        
         self.prompt_generator_file = prompt_generator_file
+        if self.prompt_generator_file is None:
+            full_pg_filepath = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/{self.DEFAULT_PROMPT_GENERATOR_PATH}").resolve())
+            OutputPrinter.print_info(f"No prompt_generator_file specified. Using the default prompt generator instructions in {full_pg_filepath}", Colors.BRIGHT_MAGENTA)
+            self.prompt_generator_file = full_pg_filepath
+        
         self.output_directory = output_directory
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.verbose = verbose
         
+        self.idea_count = idea_count
+        
         self.generator_llm_model = generator_llm_model if generator_llm_model else Config.DEFAULT_MODEL
         self.refinement_llm_model = refinement_llm_model if refinement_llm_model else Config.DEFAULT_MODEL
         self.execution_llm_model = execution_llm_model if execution_llm_model else Config.DEFAULT_MODEL
-        self.meta_llm_model = meta_llm_model if meta_llm_model else Config.DEFAULT_MODEL
+        self.topic_generation_llm_model = topic_generation_llm_model if topic_generation_llm_model else Config.DEFAULT_MODEL
         
     def generate_or_set_topic(self) -> str:
         """
@@ -86,15 +111,16 @@ class MetaPromptWorkflow:
             return FileHelper.read_file(self.topic_input_file, self.verbose)
             
         else:
-            meta_prompt_content = FileHelper.read_file(self.meta_prompt_generator_file, self.verbose)
+            topic_generation_instructions = FileHelper.read_file(self.topic_generator_file, self.verbose)
             response = self.llm_api.send(
-                prompt=meta_prompt_content,
-                model=self.meta_llm_model,
+                prompt=topic_generation_instructions,
+                model=self.topic_generation_llm_model,
                 max_tokens=self.max_tokens,
                 temperature=self.temperature
             )
-            
-            return self.prompt_refiner.clean_response(response)
+            cleaned_response = self.prompt_refiner.clean_response(response)
+            OutputPrinter.print_info(f"Generated Topic: {cleaned_response}", Colors.BRIGHT_MAGENTA)
+            return cleaned_response
     
     def execute_prompt_generation(self) -> list[str]:
         """
@@ -105,8 +131,8 @@ class MetaPromptWorkflow:
             list[str]: A list of generated prompts.
         """
         prompt_generator_template = FileHelper.read_file(self.prompt_generator_file, self.verbose)
-        
-        combined_prompt = f"{prompt_generator_template}\n{self.generated_content}"
+        prompt_count_additional_instruction = f"# Number of prompts to generate\nGenerate a total of {self.idea_count} prompts"
+        combined_prompt = f"{prompt_generator_template}\n{self.topic}\n---\n{prompt_count_additional_instruction}"
         
         json_response = self.llm_api.send(
             prompt=combined_prompt,
@@ -118,8 +144,10 @@ class MetaPromptWorkflow:
         cleaned_json = self.prompt_refiner.clean_response(json_response)
         cleaned_json = self.prompt_refiner.clean_response_from_markdown(cleaned_json)
         
-        json_path = os.path.join(self.output_directory, "generated_prompts.json")
-        FileHelper.write_to_file(json_path, cleaned_json, self.verbose)
+        if self.output_directory:
+            json_path = os.path.join(self.output_directory, "generated_prompts.json")
+            FileHelper.write_to_file(json_path, cleaned_json, self.verbose)
+            OutputPrinter.print_file_created(json_path)
         
         return json.loads(cleaned_json)["prompts"]
     
@@ -153,38 +181,43 @@ class MetaPromptWorkflow:
             max_tokens=self.max_tokens,
             temperature=self.temperature
         )
-        return final_output
+        cleaned_response = self.prompt_refiner.clean_response(final_output)
+        return cleaned_response
     
-    def run(self) -> None:
+    def run(self) -> list[str]:
         """
-        Executes the full meta-prompt workflow. This includes:
+        Executes the full idea generation workflow. This includes:
         1. Generating or setting the initial topic.
         2. Generating a set of execution prompts.
         3. Iterating through each generated prompt, refining it, and executing it with an LLM.
         4. Saving the final outputs to files in a timestamped directory.
         5. Reporting the total execution time.
         """
-        self.output_directory = FileHelper.generate_postfixed_sub_directory_name(self.output_directory)
+        if self.output_directory:
+            self.output_directory = FileHelper.generate_postfixed_sub_directory_name(self.output_directory)
         start_time = time.time()
         
         OutputPrinter.print_header("🚀 Meta Prompt Generator 🚀", Colors.BRIGHT_CYAN, 60)
         
-        self.generated_content = self.generate_or_set_topic()
+        self.topic = self.generate_or_set_topic()
         
         execution_prompts = self.execute_prompt_generation()
         
         created_files = []
+        created_ideas = []
         for idx, prompt in enumerate(execution_prompts):
             try:
                 result = self.refine_and_execute_prompt(prompt, idx+1)
+                created_ideas.append(result)
                 
-                output_filename = os.path.join(
-                    self.output_directory,
-                    f"output_{idx+1}_{self.execution_llm_model}.md"
-                )
-                output_filename = FileHelper.clean_name(output_filename)
-                FileHelper.write_to_file(output_filename, result, self.verbose)
-                created_files.append(output_filename)
+                if self.output_directory:
+                    output_filename = os.path.join(
+                        self.output_directory,
+                        f"output_{idx+1}_{self.execution_llm_model}.md"
+                    )
+                    output_filename = FileHelper.clean_name(output_filename)
+                    FileHelper.write_to_file(output_filename, result, self.verbose)
+                    created_files.append(output_filename)
             except Exception as e:
                 OutputPrinter.print_error(f"Issue processing prompt {idx}: {str(e)}")
         
@@ -193,8 +226,6 @@ class MetaPromptWorkflow:
         OutputPrinter.print_header("🎉 Workflow Completed! 🎉", Colors.BRIGHT_GREEN, 60)
         OutputPrinter.print_info(f"Total execution time: {total_seconds} seconds", Colors.BRIGHT_MAGENTA)
         
-        if created_files:
-            for f in created_files:
-                OutputPrinter.print_file_created(f)
-        else:
-            OutputPrinter.print_warning("No output files generated")
+        for f in created_files:
+            OutputPrinter.print_file_created(f)
+        return created_ideas

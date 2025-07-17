@@ -13,7 +13,6 @@ import requests
 from openai import OpenAI
 from .colors import Colors
 from .config import Config
-from .file_helper import FileHelper
 
 class LLMApi:
     """

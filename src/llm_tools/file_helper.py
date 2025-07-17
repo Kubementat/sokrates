@@ -1,8 +1,15 @@
+# File Helper Script
+
 # This script provides a `FileHelper` class with static methods for common
 # file system operations. It includes functionalities for cleaning filenames,
 # listing, reading, writing, and creating files, as well as combining
 # content from multiple files or directories. This utility centralizes
 # file management operations for the LLM tools.
+
+# Usage Example:
+# from src.llm_tools.file_helper import FileHelper
+# files = FileHelper.list_files_in_directory('/path/to/dir')
+# content = FileHelper.read_file('file.txt')
 
 import os
 from typing import List
@@ -14,6 +21,20 @@ class FileHelper:
     A utility class providing static methods for various file system operations.
     Encapsulates common tasks like file reading, writing, directory listing,
     and filename sanitization.
+
+    This class contains the following static methods:
+    - clean_name()
+    - list_files_in_directory()
+    - read_file()
+    - read_multiple_files()
+    - read_multiple_files_from_directories()
+    - write_to_file()
+    - create_new_file()
+    - generate_postfixed_sub_directory_name()
+    - combine_files()
+    - combine_files_in_directories()
+
+    Note: All methods are static and do not require class instantiation.
     """
     
     @staticmethod

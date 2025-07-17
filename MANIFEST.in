@@ -4,3 +4,4 @@ recursive-include src/llm_tools *.py
 
 include src/assets/*
 include src/llm_tools/prompts/*
+include src/llm_tools/prompts/prompt_generators/*
