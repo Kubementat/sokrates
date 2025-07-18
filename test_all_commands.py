@@ -36,6 +36,7 @@ def test_all_commands():
     # Command arguments can be specified at the top of this file in COMMAND_ARGS dictionary
     # Format: { "command_name": "arg1,arg2,arg3", ... }
     COMMAND_ARGS = {
+        "breakdown-task": "--task 'Get rich in 1 year'",
         "benchmark-model": "--model 'qwen3-1.7b-mlx' --input-directory tests/prompts_minimal --results-directory tmp/benchmark_results --store-results",
         "fetch-to-md": "--url 'https://de.wikipedia.org/wiki/Schwarzes_Loch' --output tmp/blackhole.md",
         "idea-generator": "--output-directory tmp/meta_ideas",
@@ -44,7 +45,7 @@ def test_all_commands():
         "send-prompt": "-m 'qwen3-1.7b-mlx' 'Hi, write a short article about who you are and what you can do' --output-directory tmp/ --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md' --context-text '__You are a Ferengi from Star Trek__'"
     }
 
-    EXCLUDEDED_COMMANDS = ["benchmark-results-merger", "benchmark-results-to-markdown"]
+    EXCLUDEDED_COMMANDS = ["llmchat", "benchmark-results-merger", "benchmark-results-to-markdown"]
 
     # Get command names from pyproject.toml
     COMMANDS = []
