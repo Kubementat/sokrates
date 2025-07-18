@@ -213,9 +213,8 @@ class IdeaGenerationWorkflow:
                 if self.output_directory:
                     output_filename = os.path.join(
                         self.output_directory,
-                        f"output_{idx+1}_{self.execution_llm_model}.md"
+                        FileHelper.clean_name(f"output_{idx+1}_{self.execution_llm_model}.md")
                     )
-                    output_filename = FileHelper.clean_name(output_filename)
                     FileHelper.write_to_file(output_filename, result, self.verbose)
                     created_files.append(output_filename)
             except Exception as e:
