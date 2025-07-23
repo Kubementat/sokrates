@@ -1,12 +1,12 @@
 [project]
 name = "llm_tools"
 version = "0.2.9"
-description = "A collection of tools for LLM interactions and system monitoring"
+description = "A collection of tools for LLM interactions like prompt refinement and idea generation. It also provides a console chat client with speech to text feature."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
-authors = [{ name = "Your Name", email = "your.email@example.com" }]
-keywords = ["llm", "tools", "system-monitoring", "ai"]
+authors = [{ name = "Julian Weber", email = "julianweberdev@gmail.com" }]
+keywords = ["llm", "tools", "system-monitoring", "ai", "prompt refinement", "idea generation"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
