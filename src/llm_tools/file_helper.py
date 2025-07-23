@@ -12,6 +12,7 @@
 # content = FileHelper.read_file('file.txt')
 
 import os
+import json
 from typing import List
 from .colors import Colors
 from datetime import datetime
@@ -69,6 +70,13 @@ class FileHelper:
             if os.path.isfile(file_path.path):
                 file_paths.append(file_path.path)
         return file_paths
+    
+    @staticmethod
+    def read_json_file(file_path: str, verbose: bool = False) -> dict:
+        if verbose:
+            print(f"{Colors.CYAN}Loading json file from {file_path} ...{Colors.RESET}")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
 
     @staticmethod
     def read_file(file_path: str, verbose: bool = False) -> str:

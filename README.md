@@ -1,7 +1,7 @@
 # LLM Tools
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.2.7](https://img.shields.io/badge/Version-0.2.7-brightgreen.svg)](https://github.com/Kubementat/llm_tools)
+[![Version: 0.2.9](https://img.shields.io/badge/Version-0.2.9-brightgreen.svg)](https://github.com/Kubementat/llm_tools)
 
 A collection of tools for LLM interactions and system monitoring, designed to facilitate working with Large Language Models (LLMs) through modular components, well-documented APIs, and production-ready utilities.
 
@@ -44,21 +44,6 @@ uv pip install -e .
 uv sync
 ```
 
-Dependencies:
-- openai
-- psutil
-- requests
-- markdownify
-- tabulate
-- colorama
-- click
-- html2text
-- dotenv
-- pytest
-- pytest-mock
-- openai-whisper
-- pyaudio
-
 ## Usage
 
 ### Basic Command Structure
@@ -66,6 +51,15 @@ Dependencies:
 Most commands follow this structure:
 ```bash
 command --option1 value1 --option2 value2
+```
+
+You can always display the help via:
+```
+command --help
+
+e.g.
+
+uv run list-models --help
 ```
 
 ### Available Commands
@@ -120,6 +114,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## Contact
+
 - [julianweberdev@gmail.com](mailto:julianweberdev@gmail.com)
 - GitHub: [@julweber](https://github.com/julweber)
 - Linked.in : [Julian Weber](https://www.linkedin.com/in/julianweberdev/)

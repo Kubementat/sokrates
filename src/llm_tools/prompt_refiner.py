@@ -69,6 +69,13 @@ class PromptRefiner:
             return content
         
         return md(content)
+    
+    def clean_json_response(self, response: str) -> str:
+        res = self.clean_response(response)
+        
+        # remove all separators
+        res = re.sub(r'\n','', res)
+        return res
 
     def clean_response(self, response: str) -> str:
         """
@@ -116,14 +123,11 @@ class PromptRefiner:
                 if self.verbose:
                     print(f"{Colors.BLUE}Removed prefix pattern: {prefix}{Colors.RESET}")
         
+        # cleanup unneeded tags
         cleaned = re.sub(r'\n\s*\n\s*\n', '\n\n', cleaned)
         
         stray_tag_pattern = r'</?(think|tool_code|execute_result|response|answer)>'
         cleaned = re.sub(stray_tag_pattern, '', cleaned, flags=re.DOTALL)
-        
-        stray_tag_pattern = r'<?(think|tool_code|execute_result|response|answer)>'
-        cleaned = re.sub(stray_tag_pattern, '', cleaned, flags=re.DOTALL)
-        
         cleaned = cleaned.strip()
         
         chars_removed = original_length - len(cleaned)
@@ -152,16 +156,8 @@ class PromptRefiner:
         
         pattern = r'```(?:\n|(?:json|yml|yaml|javascript|html)\n)'
         cleaned = re.sub(pattern, '', content, flags=re.DOTALL)
-        
-        chars_removed = original_length - len(cleaned)
-        if chars_removed > 0:
-            if self.verbose:
-                print(f"{Colors.GREEN}Cleaned response: removed {chars_removed} characters{Colors.RESET}")
-        else:
-            if self.verbose:
-                print(f"{Colors.BLUE}No cleaning needed - response was already clean{Colors.RESET}")
-        
+        cleaned = re.sub('```', '', cleaned)
         if self.verbose:
             print(f"{Colors.BLUE}Final cleaned length: {len(cleaned)} characters{Colors.RESET}")
-            
+        
         return cleaned

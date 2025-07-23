@@ -15,8 +15,7 @@ def parse_arguments() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example usage:
-  idea-generator.py \\
-    --topic-generator-file prompts/prompt_generators/topic-generator.md \\
+  idea-generator \\
     --prompt-generator-file prompts/prompt_generators/prompt-generator-v1.md \\
     --refinement-prompt-file prompts/refine-concept.md \\
     --topic-generation-model unsloth-phi-4 \\
@@ -27,13 +26,11 @@ Example usage:
     --api-key lmstudio \\
     --output-directory tmp/multi_stage_outputs \\
     --verbose
-        """
-    )
     
-    parser.add_argument(
-        '--topic-generator-file', '-tgf',
-        required=False,
-        help='Path to the Topic generator instructions file'
+  idea-generator \\
+    --topic "How will AI affect the course of human civilization in 100 years?" \\
+    --output-directory tmp/multi_stage_outputs
+        """
     )
     
     parser.add_argument(
@@ -111,8 +108,16 @@ Example usage:
     )
 
     parser.add_argument(
+        '--topic', '-to',
+        required=False,
+        default=None,
+        help='Optional: A topic to generate ideas from. If provided, skips topic generation.'
+    )
+
+    parser.add_argument(
         '--topic-input-file', '-tif',
         required=False,
+        default=None,
         help='Optional: Path to a file containing the topic for prompt generation. If provided, skips topic generation.'
     )
     
@@ -152,8 +157,9 @@ def main():
     if args.refinement_llm_model:
         refinement_llm_model = args.refinement_llm_model
 
-    OutputPrinter.print_info("topic-generator-file", args.topic_generator_file)
+    OutputPrinter.print_info("topic", args.topic)
     OutputPrinter.print_info("topic-input-file", args.topic_input_file)
+    
     OutputPrinter.print_info("prompt-generator-file", args.prompt_generator_file)
     OutputPrinter.print_info("refinement-prompt-file", args.refinement_prompt_file)
     
@@ -171,8 +177,8 @@ def main():
         api_endpoint=api_endpoint,
         api_key=api_key,
         verbose=args.verbose,
+        topic=args.topic,
         topic_input_file=args.topic_input_file,
-        topic_generator_file=args.topic_generator_file,
         refinement_prompt_file=args.refinement_prompt_file,
         prompt_generator_file=args.prompt_generator_file,
         output_directory=args.output_directory,

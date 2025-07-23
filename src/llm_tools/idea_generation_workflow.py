@@ -7,13 +7,11 @@
 
 from pathlib import Path
 from . import LLMApi, PromptRefiner, Colors, FileHelper, Config
+from .utils import Utils
 from .output_printer import OutputPrinter
 import os
 import json
 import time
-
-# TODO: fix topic generation to be really random !!!
-
 class IdeaGenerationWorkflow:
     """
     Orchestrates a multi-step workflow for generating, refining, and executing LLM prompts.
@@ -24,10 +22,11 @@ class IdeaGenerationWorkflow:
     DEFAULT_TOPIC_GENERATOR_PATH = "prompt_generators/topic-generator.md"
     DEFAULT_PROMPT_GENERATOR_PATH = "prompt_generators/prompt-generator-v1.md"
     DEFAULT_REFINEMENT_PATH = "refine-prompt.md"
+    MAXIMUM_CATEGORIES_TO_PICK = 5
   
     def __init__(self, api_endpoint: str, api_key: str,
         topic_input_file: str = None,
-        topic_generator_file : str = None,
+        topic: str = None,
         refinement_prompt_file: str = None,
         prompt_generator_file: str = None,
         output_directory: str = None,
@@ -43,10 +42,10 @@ class IdeaGenerationWorkflow:
         Args:
             api_endpoint (str): The API endpoint for the LLM server.
             api_key (str): The API key for the LLM server.
+            topic (str, optional): A Topic provided as string. 
+                                                If None , a topic will be generated. Defaults to None.
             topic_input_file (str, optional): Path to a file containing the initial topic.
-                                              If None, a topic will be generated. Defaults to None.
-            topic_generator_file (str, optional): Path to the prompt template for generating the initial topic.
-                                                        Required if topic_input_file is None. Defaults to None.
+                                                If None, a topic will be generated. Defaults to None.
             refinement_prompt_file (str, optional): Path to the prompt template for refining generated prompts. Defaults to None.
             prompt_generator_file (str, optional): Path to the prompt template for generating execution prompts. Defaults to None.
             output_directory (str, optional): Directory where generated outputs will be saved. Defaults to None.
@@ -62,19 +61,21 @@ class IdeaGenerationWorkflow:
             temperature (float): Temperature for LLM responses. Defaults to 0.7.
             verbose (bool): If True, enables verbose output. Defaults to False.
         """
+        if topic_input_file is not None and topic is not None:
+            raise Exception("A topic input file and a topic was provided. Only provide one of both. Failing workflow.")
+        
         self.api_endpoint = api_endpoint
         self.api_key = api_key
         self.llm_api = LLMApi(api_endpoint=api_endpoint,
                                api_key=api_key,
                                verbose=verbose)
         self.prompt_refiner = PromptRefiner(verbose=verbose)
+        self.topic = topic
         self.topic_input_file = topic_input_file
         
-        self.topic_generator_file = topic_generator_file
-        if self.topic_generator_file is None and self.topic_input_file is None:
-            full_mpg_filepath = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/{self.DEFAULT_TOPIC_GENERATOR_PATH}").resolve())
-            OutputPrinter.print_info(f"No topic_generator_file or topic_input_file specified. Using the default meta prompt generator instructions in {full_mpg_filepath}", Colors.BRIGHT_MAGENTA)
-            self.topic_generator_file = full_mpg_filepath
+        topic_generation_instructions_file = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/{self.DEFAULT_TOPIC_GENERATOR_PATH}").resolve())
+        OutputPrinter.print_info(f"No topic_generator_file, topic_input_file or topic specified. Using the default topic generation instructions in {topic_generation_instructions_file}", Colors.BRIGHT_MAGENTA)
+        self.topic_generator_file = topic_generation_instructions_file
         
         self.refinement_prompt_file = refinement_prompt_file
         if self.refinement_prompt_file is None:
@@ -99,6 +100,37 @@ class IdeaGenerationWorkflow:
         self.refinement_llm_model = refinement_llm_model if refinement_llm_model else Config.DEFAULT_MODEL
         self.execution_llm_model = execution_llm_model if execution_llm_model else Config.DEFAULT_MODEL
         self.topic_generation_llm_model = topic_generation_llm_model if topic_generation_llm_model else Config.DEFAULT_MODEL
+    
+    def pick_topic_categories_from_json(self) -> list:
+        topic_categories_json_path = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/context/topic_categories.json").resolve())
+        categories_object = FileHelper.read_json_file(topic_categories_json_path, self.verbose)
+        all_categories = categories_object["topic_categories"]
+        number_of_categories_to_pick = Utils.generate_random_int(min_value=1, max_value=self.MAXIMUM_CATEGORIES_TO_PICK)
+        categories = []
+        while True:
+            if len(categories) >= number_of_categories_to_pick:
+                break
+            picked_index = Utils.generate_random_int(0,len(all_categories)-1)
+            categories.append(all_categories[picked_index])
+            categories = list(set(categories))
+        return categories
+        
+    def generate_topic_generation_prompt(self, topic_generation_instructions) -> str:
+        ret = topic_generation_instructions
+        
+        categories = self.pick_topic_categories_from_json()
+        if self.verbose:
+            OutputPrinter.print_info("Random categories picked:", categories)    
+        
+        if len(categories) == 1:
+            return f"{topic_generation_instructions}\n\n# Thematic field to use for topic generation\nGenerate a topic from the thematic field of {categories[0]}"
+
+        category_definitions="# Thematic fields to combine for topic generation\n"
+        category_definitions=f"{category_definitions}Combine the following thematic fields for generating a topic:\n"
+        for cat in categories:
+            category_definitions=f"- {cat}\n"
+        
+        return f"{topic_generation_instructions}\n\n{category_definitions}"
         
     def generate_or_set_topic(self) -> str:
         """
@@ -107,19 +139,23 @@ class IdeaGenerationWorkflow:
         Returns:
             str: The generated or read topic content.
         """
+        if self.topic:
+            return self.topic
+        
         if self.topic_input_file:
             return FileHelper.read_file(self.topic_input_file, self.verbose)
             
         else:
             topic_generation_instructions = FileHelper.read_file(self.topic_generator_file, self.verbose)
+            topic_generation_prompt = self.generate_topic_generation_prompt(topic_generation_instructions)
             response = self.llm_api.send(
-                prompt=topic_generation_instructions,
+                prompt=topic_generation_prompt,
                 model=self.topic_generation_llm_model,
                 max_tokens=self.max_tokens,
                 temperature=self.temperature
             )
             cleaned_response = self.prompt_refiner.clean_response(response)
-            OutputPrinter.print_info(f"Generated Topic: {cleaned_response}", Colors.BRIGHT_MAGENTA)
+            OutputPrinter.print_info("Generated Topic", cleaned_response, Colors.BRIGHT_MAGENTA, Colors.GREEN)
             return cleaned_response
     
     def execute_prompt_generation(self) -> list[str]:
@@ -141,7 +177,7 @@ class IdeaGenerationWorkflow:
             temperature=self.temperature
         )
         
-        cleaned_json = self.prompt_refiner.clean_response(json_response)
+        cleaned_json = self.prompt_refiner.clean_json_response(json_response)
         cleaned_json = self.prompt_refiner.clean_response_from_markdown(cleaned_json)
         
         if self.output_directory:
@@ -149,6 +185,7 @@ class IdeaGenerationWorkflow:
             FileHelper.write_to_file(json_path, cleaned_json, self.verbose)
             OutputPrinter.print_file_created(json_path)
         
+        OutputPrinter.print_info("Generated prompts", cleaned_json, Colors.BRIGHT_MAGENTA, Colors.GREEN)
         return json.loads(cleaned_json)["prompts"]
     
     def refine_and_execute_prompt(self, execution_prompt: str, index: int) -> str:
@@ -223,7 +260,7 @@ class IdeaGenerationWorkflow:
         end_time = time.time()
         total_seconds = round(end_time - start_time, 2)
         OutputPrinter.print_header("🎉 Workflow Completed! 🎉", Colors.BRIGHT_GREEN, 60)
-        OutputPrinter.print_info(f"Total execution time: {total_seconds} seconds", Colors.BRIGHT_MAGENTA)
+        OutputPrinter.print_info("Total execution time", f"{total_seconds} seconds", Colors.BRIGHT_MAGENTA, Colors.GREEN)
         
         for f in created_files:
             OutputPrinter.print_file_created(f)
