@@ -2,7 +2,7 @@
 __pycache__/
 build/
 dist/
-llm_tools.egg-info/
+*.egg-info/
 tmp/
 lm_studio_benchmark_*
 .venv/

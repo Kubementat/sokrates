@@ -28,10 +28,10 @@ class Config:
         verbose (bool): If True, prints basic configuration details upon loading.
     """
     self.verbose = verbose
-    # Determine the configuration file path. Prioritize LLM_TOOLS_CONFIG_FILEPATH environment variable.
-    self.config_path: str = f"{str(Path.home())}/.llm_tools/.env"
-    if os.environ.get('LLM_TOOLS_CONFIG_FILEPATH'):
-      self.config_path: str = os.environ.get('LLM_TOOLS_CONFIG_FILEPATH')
+    # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
+    self.config_path: str = f"{str(Path.home())}/.sokrates/.env"
+    if os.environ.get('SOKRATES_CONFIG_FILEPATH'):
+      self.config_path: str = os.environ.get('SOKRATES_CONFIG_FILEPATH')
     self.load_env()
     
   def load_env(self) -> None:

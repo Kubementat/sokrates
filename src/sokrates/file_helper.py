@@ -7,7 +7,7 @@
 # file management operations for the LLM tools.
 
 # Usage Example:
-# from src.llm_tools.file_helper import FileHelper
+# from src.sokrates.file_helper import FileHelper
 # files = FileHelper.list_files_in_directory('/path/to/dir')
 # content = FileHelper.read_file('file.txt')
 

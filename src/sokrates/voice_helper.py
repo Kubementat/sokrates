@@ -19,12 +19,12 @@ import sys
 import traceback
 
 from enum import Enum
-from .colors import Colors # Use existing Colors from llm_tools
-from .output_printer import OutputPrinter # Import OutputPrinter
+from .colors import Colors
+from .output_printer import OutputPrinter
 from pathlib import Path
 
 # Configure logging
-logging.basicConfig(filename='llm_tools_voice.log', level=logging.INFO,
+logging.basicConfig(filename='sokrates_voice.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 class WhisperModel(Enum):

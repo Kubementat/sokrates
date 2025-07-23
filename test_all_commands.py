@@ -13,7 +13,7 @@
 
 from subprocess import run
 import sys
-from src.llm_tools.colors import Colors
+from src.sokrates.colors import Colors
 
 def test_all_commands():
     """

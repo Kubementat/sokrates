@@ -1,5 +1,5 @@
 [project]
-name = "llm_tools"
+name = "sokrates"
 version = "0.2.9"
 description = "A collection of tools for LLM interactions like prompt refinement and idea generation. It also provides a console chat client with speech to text feature."
 readme = "README.md"
@@ -29,8 +29,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Kubementat/llm_tools"
-Repository = "https://github.com/Kubementat/llm_tools"
+Homepage = "https://github.com/Kubementat/sokrates"
+Repository = "https://github.com/Kubementat/sokrates"
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -38,18 +38,31 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["llm_tools*"]
+include = ["sokrates*"]
 
 [project.scripts]
-benchmark-model = "llm_tools.cli.benchmark_model:main"
-benchmark-results-merger = "llm_tools.cli.benchmark_results_merger:main"
-benchmark-results-to-markdown = "llm_tools.cli.benchmark_results_to_markdown:main"
-fetch-to-md = "llm_tools.cli.fetch_to_md:main"
-generate-mantra = "llm_tools.cli.generate_mantra:main"
-list-models = "llm_tools.cli.list_models:main"
-idea-generator = "llm_tools.cli.idea_generator:main"
-refine-and-send-prompt = "llm_tools.cli.refine_and_send_prompt:main"
-refine-prompt = "llm_tools.cli.refine_prompt:main"
-breakdown-task = "llm_tools.cli.breakdown_task:main"
-send-prompt = "llm_tools.cli.send_prompt:main"
-llmchat = "llm_tools.cli.llm_chat:main"
+benchmark-model = "sokrates.cli.benchmark_model:main"
+benchmark-results-merger = "sokrates.cli.benchmark_results_merger:main"
+benchmark-results-to-markdown = "sokrates.cli.benchmark_results_to_markdown:main"
+fetch-to-md = "sokrates.cli.fetch_to_md:main"
+generate-mantra = "sokrates.cli.generate_mantra:main"
+list-models = "sokrates.cli.list_models:main"
+idea-generator = "sokrates.cli.idea_generator:main"
+refine-and-send-prompt = "sokrates.cli.refine_and_send_prompt:main"
+refine-prompt = "sokrates.cli.refine_prompt:main"
+breakdown-task = "sokrates.cli.breakdown_task:main"
+send-prompt = "sokrates.cli.send_prompt:main"
+llmchat = "sokrates.cli.llm_chat:main"
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+publish-url = "https://upload.pypi.org/legacy/"
+explicit = true
+
+# Optional: Define TestPyPI for testing publishes
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true

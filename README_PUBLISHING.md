@@ -4,7 +4,7 @@
 PYPI_API_TOKEN="REPLACEME"
 
 # publish to pypi test instance
-uv publish --token "$PYPI_API_TOKEN" --publish-url https://test.pypi.org/legacy/
+uv publish --index testpypi --token "$PYPI_API_TOKEN"
 
 # publish to prod instance
 uv publish --token "$PYPI_API_TOKEN"

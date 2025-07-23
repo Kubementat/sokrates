@@ -1,5 +1,5 @@
-# This __init__.py file makes the llm_tools directory a Python package.
-# It exposes various modules and their contents directly under the llm_tools namespace
+# This __init__.py file makes the sokrates directory a Python package.
+# It exposes various modules and their contents directly under the sokrates namespace
 # for easier access and import by other parts of the application.
 
 from .colors import *

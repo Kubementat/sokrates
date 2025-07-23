@@ -1,7 +1,7 @@
 # LLM Tools
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.2.9](https://img.shields.io/badge/Version-0.2.9-brightgreen.svg)](https://github.com/Kubementat/llm_tools)
+[![Version: 0.2.9](https://img.shields.io/badge/Version-0.2.9-brightgreen.svg)](https://github.com/Kubementat/sokrates)
 
 A collection of tools for LLM interactions and system monitoring, designed to facilitate working with Large Language Models (LLMs) through modular components, well-documented APIs, and production-ready utilities.
 
@@ -37,10 +37,8 @@ The project includes utilities for:
 Prerequisites: Python 3.9 or higher
 
 ```bash
-git clone https://github.com/Kubementat/llm_tools.git
-cd llm_tools
-uv pip install -e .
-# or
+git clone https://github.com/Kubementat/sokrates.git
+cd sokrates
 uv sync
 ```
 

@@ -1,8 +1,8 @@
 include README.md
 include LICENSE
-recursive-include src/llm_tools *.py
+recursive-include src/sokrates *.py
 
 include src/assets/*
-include src/llm_tools/prompts/*
-include src/llm_tools/prompts/prompt_generators/*
-include src/llm_tools/prompts/context/*
+include src/sokrates/prompts/*
+include src/sokrates/prompts/prompt_generators/*
+include src/sokrates/prompts/context/*

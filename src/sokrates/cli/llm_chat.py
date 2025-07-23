@@ -75,7 +75,7 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
 
     # Setup default log file
     home_dir = Path.home()
-    default_chat_dir = home_dir / ".llm-tools" / "chats"
+    default_chat_dir = home_dir / ".sokrates" / "chats"
     default_chat_dir.mkdir(parents=True, exist_ok=True) # Create directory if it doesn't exist
 
     timestamp = datetime.now().strftime("%Y%m%d_%H-%M-%S")
