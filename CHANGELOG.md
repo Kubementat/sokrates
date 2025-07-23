@@ -1,6 +1,15 @@
 ## Changelog
+**Week 2025-07-20**
+- __rename the library to : sokrates__
+- updates pyproject.toml
+- bump to new version, refactor idea generator to use random category picks via python
 
 **Week 2025-07-13**
+- remove unnecessary files
+- refine changelog and readme
+- fix test all commands smoke tests
+- fix directory naming bug in idea generation workflow
+- update changelog
 - refactoring: - rename meta prompt generator -> idea_generator - refine idea generator - add better documentation
 - remove obsolete kilocode files
 - only load audio libraries when needed

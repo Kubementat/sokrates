@@ -1,4 +1,4 @@
-# LLM Tools
+# sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Version: 0.2.9](https://img.shields.io/badge/Version-0.2.9-brightgreen.svg)](https://github.com/Kubementat/sokrates)
@@ -18,7 +18,7 @@ A collection of tools for LLM interactions and system monitoring, designed to fa
 
 ## Description
 
-LLM Tools is a comprehensive framework for working with Large Language Models (LLMs). It provides:
+`sokrates` is a comprehensive framework for working with Large Language Models (LLMs). It provides:
 
 - Advanced prompt refinement tools
 - System monitoring for resource tracking during LLM operations
@@ -69,10 +69,10 @@ uv run list-models --help
 - `generate-mantra`: Generate mantras or affirmations
 - `list-models`: List available LLM models
 - `idea-generator`: Generate ideas using a multi-stage workflow
-- `refine-and-send-prompt`: Refine and send prompts to an LLM
+- `refine-and-send-prompt`: Refine and send prompts to a LLM
 - `refine-prompt`: Refine prompts for better LLM performance
 - `breakdown-task`: Break down complex tasks into manageable steps
-- `send-prompt`: Send a prompt to an LLM API
+- `send-prompt`: Send a prompt to a LLM API
 - `llmchat`: Chat with LLMs via the command line
 
 ### Example Usage
