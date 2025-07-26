@@ -1,0 +1,16 @@
+{
+  "task": "Write and publish a book about Minzi the cat.",
+  "subtasks": [
+    {
+      "id": 1,
+      "description": "Write a story about a cat named Minzi that lives on the streets of Saarbrücken.",
+      "complexity": 9
+    },
+    {
+      "id": 2,
+      "description": "Make a plan for publishing a book with stories about a cat named Minzi that lives on the streets of Saarbrücken.",
+      "complexity": 6
+    }
+  ],
+  "count": 2
+}

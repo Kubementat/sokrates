@@ -57,7 +57,24 @@ import asyncio # Import asyncio for running async functions
 @click.option("--voice", "-V", is_flag=True, help="Enable voice chat mode.") # Add voice flag
 def main(api_endpoint, api_key, model, temperature, verbose, context_text, context_files, context_directories, output_file, hide_reasoning, max_tokens, voice):
     """
-    Chat with a large language model.
+    Main function to initiate LLM chat session.
+
+    Args:
+        api_endpoint (str): API endpoint for the LLM service
+        api_key (str): API key for authentication
+        model (str): Model identifier to use
+        temperature (float): Sampling temperature (0.0-1.0)
+        verbose (bool): Enable verbose output
+        context_text (str): Additional context text
+        context_files (list): Paths to files containing context
+        context_directories (list): Paths to directories with context files
+        output_file (str): Path to log conversation history
+        hide_reasoning (bool): Hide reasoning in responses
+        max_tokens (float): Maximum response tokens
+        voice (bool): Enable voice chat mode
+
+    Returns:
+        None: This function runs an interactive chat loop and doesn't return a value
     """
     config = Config()
     refiner = PromptRefiner(verbose=verbose)
@@ -118,14 +135,29 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
 
     if context_content:
         full_context = "\n\n".join(context_content)
-        conversation_history.append({"role": "system", "content": full_context})
+        conversation_history.append({"role": "system", "content": f"# This is the context for our conversation \n {full_context}"})
         if verbose:
             OutputPrinter.print_info("Loaded context", f"{full_context[:200]}...") # Show first 200 chars of context
 
     # Define a function for the chat loop to allow switching between modes
     async def chat_loop(voice_mode):
+        """
+        Main chat loop function that handles both text and voice interactions.
+    
+        Args:
+            voice_mode (bool): Flag indicating whether to use voice chat mode
+    
+        Returns:
+            None: This function runs an interactive loop and doesn't return a value
+    
+        Side Effects:
+            - Modifies conversation_history with user and LLM messages
+            - Writes conversation logs to all open log files
+            - Handles mode switching between text and voice chat
+            - Manages context addition during chat sessions
+        """
         nonlocal conversation_history # Allow modification of conversation_history from outer scope
-        
+    
         while True:
             try:
                 if voice_mode:

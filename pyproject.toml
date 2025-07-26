@@ -1,6 +1,6 @@
 [project]
 name = "sokrates"
-version = "0.2.9"
+version = "0.3.0"
 description = "A collection of tools for LLM interactions like prompt refinement and idea generation. It also provides a console chat client with speech to text feature."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -44,6 +44,7 @@ include = ["sokrates*"]
 benchmark-model = "sokrates.cli.benchmark_model:main"
 benchmark-results-merger = "sokrates.cli.benchmark_results_merger:main"
 benchmark-results-to-markdown = "sokrates.cli.benchmark_results_to_markdown:main"
+execute-tasks = "sokrates.cli.execute_tasks:main"
 fetch-to-md = "sokrates.cli.fetch_to_md:main"
 generate-mantra = "sokrates.cli.generate_mantra:main"
 list-models = "sokrates.cli.list_models:main"

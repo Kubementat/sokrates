@@ -38,6 +38,7 @@ def test_all_commands():
     COMMAND_ARGS = {
         "breakdown-task": "--task 'Get rich in 1 year'",
         "benchmark-model": "--model 'qwen3-1.7b-mlx' --input-directory tests/prompts_minimal --results-directory tmp/benchmark_results --store-results",
+        "execute-tasks": "-m 'qwen/qwen3-4b' -tf tests/tasks/cat_minzi.json -o tmp/minzi_task_execution_results_01",
         "fetch-to-md": "--url 'https://de.wikipedia.org/wiki/Schwarzes_Loch' --output tmp/blackhole.md",
         "idea-generator": "--output-directory tmp/meta_ideas",
         "refine-and-send-prompt": "--refinement-model 'qwen3-1.7b-mlx' --output-model 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md'",

@@ -152,8 +152,7 @@ def main():
     """Main execution function"""
     print(f"{Colors.CYAN}{Colors.BOLD}")
     print("╔══════════════════════════════════════════════════════════════╗")
-    print("║                 LLM Prompt Refinement Script                ║")
-    print("║                   Powered by LLMApi and PromptRefiner      ║")
+    print("║                 sokrates - Prompt Refinement Workflow        ║")
     print("╚══════════════════════════════════════════════════════════════╝")
     print(f"{Colors.RESET}")
     

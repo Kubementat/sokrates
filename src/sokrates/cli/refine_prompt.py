@@ -51,7 +51,7 @@ def main():
     """Main function to handle command line arguments and orchestrate the process."""
     
     # Print beautiful header
-    OutputPrinter.print_header("🤖 LLM PROMPT REFINER 🚀", Colors.BRIGHT_CYAN, 60)
+    OutputPrinter.print_header("🤖 sokrates PROMPT REFINER 🚀", Colors.BRIGHT_CYAN, 60)
     
     # Set up argument parser
     parser = argparse.ArgumentParser(

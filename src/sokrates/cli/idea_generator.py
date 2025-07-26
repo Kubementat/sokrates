@@ -132,7 +132,7 @@ Example usage:
 
 def main():
     """Main execution function"""
-    OutputPrinter.print_header("🚀 Meta Prompt Generator 🚀", Colors.BRIGHT_CYAN, 60)
+    OutputPrinter.print_header("🚀 Idea Generator 🚀", Colors.BRIGHT_CYAN, 60)
 
     args = parse_arguments()
 

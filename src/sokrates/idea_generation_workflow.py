@@ -234,7 +234,7 @@ class IdeaGenerationWorkflow:
             self.output_directory = FileHelper.generate_postfixed_sub_directory_name(self.output_directory)
         start_time = time.time()
         
-        OutputPrinter.print_header("🚀 Meta Prompt Generator 🚀", Colors.BRIGHT_CYAN, 60)
+        OutputPrinter.print_header("🚀 Idea Generator 🚀", Colors.BRIGHT_CYAN, 60)
         
         self.topic = self.generate_or_set_topic()
         
