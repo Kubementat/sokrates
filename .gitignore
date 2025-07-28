@@ -8,3 +8,4 @@ tmp/
 lm_studio_benchmark_*
 .venv/
 .pytest_cache/
+task_queue.db*

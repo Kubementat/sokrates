@@ -1,6 +1,6 @@
 [project]
 name = "sokrates"
-version = "0.3.0"
+version = "0.4.0"
 description = "A collection of tools for LLM interactions like prompt refinement and idea generation. It also provides a console chat client with speech to text feature."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -41,19 +41,26 @@ where = ["src"]
 include = ["sokrates*"]
 
 [project.scripts]
-benchmark-model = "sokrates.cli.benchmark_model:main"
-benchmark-results-merger = "sokrates.cli.benchmark_results_merger:main"
-benchmark-results-to-markdown = "sokrates.cli.benchmark_results_to_markdown:main"
-execute-tasks = "sokrates.cli.execute_tasks:main"
-fetch-to-md = "sokrates.cli.fetch_to_md:main"
-generate-mantra = "sokrates.cli.generate_mantra:main"
-list-models = "sokrates.cli.list_models:main"
-idea-generator = "sokrates.cli.idea_generator:main"
-refine-and-send-prompt = "sokrates.cli.refine_and_send_prompt:main"
-refine-prompt = "sokrates.cli.refine_prompt:main"
-breakdown-task = "sokrates.cli.breakdown_task:main"
-send-prompt = "sokrates.cli.send_prompt:main"
-llmchat = "sokrates.cli.llm_chat:main"
+sokrates-benchmark-model = "sokrates.cli.sokrates_benchmark_model:main"
+sokrates-benchmark-results-merger = "sokrates.cli.sokrates_benchmark_results_merger:main"
+sokrates-benchmark-results-to-markdown = "sokrates.cli.sokrates_benchmark_results_to_markdown:main"
+sokrates-breakdown-task = "sokrates.cli.sokrates_breakdown_task:main"
+sokrates-chat = "sokrates.cli.sokrates_chat:main"
+sokrates-execute-tasks = "sokrates.cli.sokrates_execute_tasks:main"
+sokrates-fetch-to-md = "sokrates.cli.sokrates_fetch_to_md:main"
+sokrates-generate-mantra = "sokrates.cli.sokrates_generate_mantra:main"
+sokrates-idea-generator = "sokrates.cli.sokrates_idea_generator:main"
+sokrates-list-models = "sokrates.cli.sokrates_list_models:main"
+sokrates-refine-and-send-prompt = "sokrates.cli.sokrates_refine_and_send_prompt:main"
+sokrates-refine-prompt = "sokrates.cli.sokrates_refine_prompt:main"
+sokrates-send-prompt = "sokrates.cli.sokrates_send_prompt:main"
+
+# Task Queue CLI Commands
+sokrates-task-add = "sokrates.cli.task_queue.sokrates_task_add:main"
+sokrates-task-list = "sokrates.cli.task_queue.sokrates_task_list:main"
+sokrates-task-status = "sokrates.cli.task_queue.sokrates_task_status:main"
+sokrates-task-remove = "sokrates.cli.task_queue.sokrates_task_remove:main"
+sokrates-daemon = "sokrates.cli.task_queue.sokrates_daemon:main"
 
 [[tool.uv.index]]
 name = "pypi"

@@ -1,0 +1,11 @@
+{
+  "task": "Schreiben einer Kinder-Geschichte über schwarze Löcher.",
+  "subtasks": [
+    {
+      "id": 1,
+      "description": "Schreibe eine Kurzgeschichte über ein schwarzes Loch dass das Universum um es herum erlebt. Die Zielgruppe für die Geschichte sind 5-10 jährige Kinder.",
+      "complexity": 6
+    }
+  ],
+  "count": 1
+}

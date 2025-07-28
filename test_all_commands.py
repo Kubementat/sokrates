@@ -16,86 +16,65 @@ import sys
 from src.sokrates.colors import Colors
 
 def test_all_commands():
-    """
-    Main function that tests all CLI commands defined in pyproject.toml.
-
-    Functionality:
-    - Reads command definitions from pyproject.toml under [project.scripts] section
-    - Executes each command with specified arguments (from COMMAND_ARGS)
-    - Reports success/failure for each command execution
-    - Exits with error code 1 if any command fails, otherwise exits with 0
-
-    Arguments:
-    None (uses global variables COMMAND_ARGS and EXCLUDEDED_COMMANDS)
-
-    Return value:
-    None (exits program with appropriate exit code)
-    """
     print(f"{Colors.BRIGHT_GREEN}TESTING COMMANDS{Colors.RESET}")
 
-    # Command arguments can be specified at the top of this file in COMMAND_ARGS dictionary
-    # Format: { "command_name": "arg1,arg2,arg3", ... }
-    COMMAND_ARGS = {
-        "breakdown-task": "--task 'Get rich in 1 year'",
-        "benchmark-model": "--model 'qwen3-1.7b-mlx' --input-directory tests/prompts_minimal --results-directory tmp/benchmark_results --store-results",
-        "execute-tasks": "-m 'qwen/qwen3-4b' -tf tests/tasks/cat_minzi.json -o tmp/minzi_task_execution_results_01",
-        "fetch-to-md": "--url 'https://de.wikipedia.org/wiki/Schwarzes_Loch' --output tmp/blackhole.md",
-        "idea-generator": "--output-directory tmp/meta_ideas",
-        "refine-and-send-prompt": "--refinement-model 'qwen3-1.7b-mlx' --output-model 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md'",
-        "refine-prompt": "-m 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt --context-directories 'tests/contexts/testcase1'",
-        "send-prompt": "-m 'qwen3-1.7b-mlx' 'Hi, write a short article about who you are and what you can do' --output-directory tmp/ --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md' --context-text '__You are a Ferengi from Star Trek__'"
-    }
-
-    EXCLUDEDED_COMMANDS = ["llmchat", "benchmark-results-merger", "benchmark-results-to-markdown"]
-
-    # Get command names from pyproject.toml
-    COMMANDS = []
-    with open('pyproject.toml', 'r') as f:
-        lines = f.readlines()
-        start_section = False
-        for line in lines:
-            if line.strip() == '[project.scripts]':
-                start_section = True
-                continue
-            if start_section and '=' in line:
-                command_name = line.split('=')[0].strip()
-
-                if command_name in EXCLUDEDED_COMMANDS:
-                    continue
-
-                cmd = f'uv run {command_name}'
-                # Get arguments from COMMAND_ARGS if available
-                args = COMMAND_ARGS.get(command_name, "")
-                if args:
-                    cmd += f" {args}"
-
-                COMMANDS.append({
-                    "name": command_name,
-                    "cmd": cmd,
-                    "args": args
-                })
-
-    # Excluded commands
-    print(f"{Colors.BRIGHT_BLUE}\n{'-'*60}{Colors.RESET}")
-    print(f"{Colors.BRIGHT_BLUE}\nEXCLUDED_COMMANDS:{Colors.RESET}\n")
-    for cmd in EXCLUDEDED_COMMANDS:
-        print(f"{Colors.BRIGHT_BLUE}{cmd}{Colors.RESET}")
-    print(f"{Colors.BRIGHT_BLUE}\n{'-'*60}{Colors.RESET}")
+    COMMANDS = [
+        {
+            "cmd": "sokrates-breakdown-task",
+            "args": "--task 'Get rich in 1 year'"
+        },
+        {
+            "cmd": "sokrates-benchmark-model",
+            "args": "--model 'qwen3-1.7b-mlx' --input-directory tests/prompts_minimal --results-directory tmp/benchmark_results --store-results"    
+        },
+        {
+            "cmd": "sokrates-execute-tasks",
+            "args": "-m 'qwen/qwen3-4b' -tf tests/tasks/black_holes.json -o tmp/minzi_task_execution_results_01"    
+        },
+        {
+            "cmd": "sokrates-fetch-to-md",
+            "args": "--url 'https://de.wikipedia.org/wiki/Schwarzes_Loch' --output tmp/blackhole.md"    
+        },
+        {
+            "cmd": "sokrates-idea-generator",
+            "args": "--output-directory tmp/meta_ideas"    
+        },
+        {
+            "cmd": "sokrates-refine-and-send-prompt",
+            "args": "--refinement-model 'qwen3-1.7b-mlx' --output-model 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md'"    
+        },
+        {
+            "cmd": "sokrates-refine-prompt",
+            "args": "-m 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt --context-directories 'tests/contexts/testcase1'"    
+        },
+        {
+            "cmd": "sokrates-send-prompt",
+            "args": "-m 'qwen3-1.7b-mlx' 'Hi, i would like to sell a company to the highest bidder. Please formulate a strategy and encorporate the rules of acquisition for making a good plan.' --output-directory tmp/ --context-files 'src/sokrates/prompts/context/ferengi-rules-of-acquisition.md' --context-text '__You are a Ferengi from Star Trek__'"    
+        },
+        {
+            "cmd": "sokrates-task-add",
+            "args": "-tf tests/tasks/black_holes.json"    
+        },
+        {
+            "cmd": "sokrates-task-list",
+            "args": ""    
+        }
+    ]
 
     # Display all commands to be tested
     print(f"{Colors.BLUE}\n{'-'*60}{Colors.RESET}")
     print(f"{Colors.BLUE}\nCOMMAND LIST:{Colors.RESET}\n")
     for cmd in COMMANDS:
-        print(f"{Colors.BLUE}{cmd['name'] + ':'} {cmd['cmd']}{Colors.RESET}")
+        print(f"{Colors.BLUE}{cmd['cmd']}{Colors.RESET}")
     print(f"{Colors.BLUE}\n{'-'*60}{Colors.RESET}")
 
     # Execute each command
     print(f"{Colors.BRIGHT_GREEN}\nTEST EXECUTION:{Colors.RESET}")
     errors_found = 0
-    for cmd_info in COMMANDS:
+    for cmd in COMMANDS:
         print(f"{Colors.YELLOW}\n{'-'*60}{Colors.RESET}")
-        print(f"{Colors.YELLOW}\nExecuting: {cmd_info['cmd']}{Colors.RESET}")
-        result = run(cmd_info['cmd'], shell=True, text=True)
+        print(f"{Colors.YELLOW}\nExecuting: {cmd['cmd']} {cmd['args']}{Colors.RESET}")
+        result = run(f"{cmd['cmd']} {cmd['args']}", shell=True, text=True)
         if result.returncode == 0:
             print(f"{Colors.BRIGHT_GREEN}\nSuccess.{Colors.RESET}")
         else:

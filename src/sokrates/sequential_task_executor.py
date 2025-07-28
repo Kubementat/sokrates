@@ -14,6 +14,7 @@ from typing import List, Dict
 from .refinement_workflow import RefinementWorkflow
 from .file_helper import FileHelper
 from .config import Config
+from .output_printer import OutputPrinter
 
 class SequentialTaskExecutor:
     """
@@ -62,10 +63,11 @@ class SequentialTaskExecutor:
             - Creates output directory if it doesn't exist
             - Initializes refinement workflow instance
         """
+        self.config = Config(verbose=verbose)
         self.api_endpoint = api_endpoint
         self.api_key = api_key
         self.model = model
-        self.output_dir = output_dir or "./task_results"
+        self.output_dir = Config.create_and_return_task_execution_directory(output_dir)
         self.verbose = verbose
 
         # Create output directory if it doesn't exist
@@ -103,7 +105,7 @@ class SequentialTaskExecutor:
             - Creates output files in the specified directory
         """
         if self.verbose:
-            print(f"Loading tasks from {task_file_path}...")
+            OutputPrinter.print(f"Loading tasks from {task_file_path}...")
 
         # Load tasks from JSON file
         try:
@@ -147,10 +149,10 @@ class SequentialTaskExecutor:
             })
 
         if self.verbose:
-            print(f"Task execution summary:")
-            print(f"- Total tasks: {results['total_tasks']}")
-            print(f"- Successful: {results['successful_tasks']}")
-            print(f"- Failed: {results['failed_tasks']}")
+            OutputPrinter.print(f"Task execution summary:")
+            OutputPrinter.print(f"- Total tasks: {results['total_tasks']}")
+            OutputPrinter.print(f"- Successful: {results['successful_tasks']}")
+            OutputPrinter.print(f"- Failed: {results['failed_tasks']}")
 
         return results
 
@@ -179,14 +181,14 @@ class SequentialTaskExecutor:
             - May produce verbose output if enabled
         """
         if self.verbose:
-            print(f"\nProcessing task {task_id}: {task_desc}")
+            OutputPrinter.print(f"\nProcessing task {task_id}: {task_desc}")
 
         # Step 1: Generate initial prompt from task description
         initial_prompt = f"Task {task_id}: {task_desc}"
 
         # Step 2: Refine the prompt using existing refinement workflow
         if self.verbose:
-            print(f"Refining and executing prompt for task {task_id}...")
+            OutputPrinter.print(f"Refining and executing prompt for task {task_id}...")
 
         # Use a generic refinement prompt for task execution
         refinement_prompt_path = f"{Config.DEFAULT_PROMPTS_DIRECTORY}/refine-prompt.md"
@@ -201,19 +203,13 @@ class SequentialTaskExecutor:
         )
 
         if self.verbose:
-            print(f"Execution result for task {task_id}:\n{execution_result}")
+            OutputPrinter.print(f"Execution result for task {task_id}:\n{execution_result}")
 
         # Step 4: Save the result to output directory
         output_file = f"{self.output_dir}/task_{task_id}_result.md"
         FileHelper.write_to_file(output_file, execution_result, verbose=self.verbose)
 
         if self.verbose:
-            print(f"Result saved to {output_file}")
+            OutputPrinter.print(f"Result saved to {output_file}")
 
         return execution_result
-
-if __name__ == "__main__":
-    # Example usage
-    executor = SequentialTaskExecutor(verbose=True)
-    result = executor.execute_tasks_from_file("tasks.json")
-    print("\nFinal results:", result)

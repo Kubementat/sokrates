@@ -28,6 +28,10 @@ class OutputPrinter:
     print(f"{color}{Colors.BOLD}╚{border}╝{Colors.RESET}\n")
 
   @staticmethod
+  def print(value: str, color = Colors.BRIGHT_YELLOW):
+      print(f"{color}{value}{Colors.RESET}")
+  
+  @staticmethod
   def print_section(title: str, color: str = Colors.BRIGHT_BLUE, char: str = "─") -> None:
       """
       Prints a section separator with a title.
