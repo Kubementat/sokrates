@@ -1,11 +1,16 @@
 ## Changelog
-**Week 2025-07-20**
-- __rename the library to : sokrates__
+
+**Week 2025-07-28**
+- implements the task queuing system , bumps to the next version
+- remove obsolete context llm usage docs
+- adds execute-tasks feature, small fixes and improvements, docs improvements, bumps version to 0.3.0
+- improve readme, add changelog update
+- rename lib to : sokrates
 - updates pyproject.toml
 - bump to new version, refactor idea generator to use random category picks via python
 
-**Week 2025-07-13**
-- remove unnecessary files
+**Week 2025-07-14**
+- remove unnecessary file
 - refine changelog and readme
 - fix test all commands smoke tests
 - fix directory naming bug in idea generation workflow
