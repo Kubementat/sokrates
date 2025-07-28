@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-brightgreen.svg)](https://github.com/Kubementat/sokrates)
+[![Version: 0.4.1](https://img.shields.io/badge/Version-0.4.1-brightgreen.svg)](https://github.com/Kubementat/sokrates)
 
 A collection of tools for LLM interactions and system monitoring, designed to facilitate working with Large Language Models (LLMs) through modular components, well-documented APIs, and production-ready utilities.
 

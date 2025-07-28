@@ -22,11 +22,15 @@ uv publish --token "$PYPI_API_TOKEN"
 
 # Test the published package
 TEMP_DIR="~/tmp/test_sokrates_prd"
+rm -r $TEMP_DIR
 mkdir -p $TEMP_DIR
 
 cd $TEMP_DIR
 uv venv
 source .venv/bin/activate
+# install
 pip install sokrates
 
+# test cli tool
+sokrates-list-models
 ```

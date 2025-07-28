@@ -2,7 +2,8 @@ include README.md
 include LICENSE
 recursive-include src/sokrates *.py
 
-include src/assets/*
-include src/sokrates/prompts/*
-include src/sokrates/prompts/prompt_generators/*
-include src/sokrates/prompts/context/*
+include src/assets/*.wav
+include src/sokrates/prompts/*.md
+include src/sokrates/prompts/prompt_generators/*.md
+include src/sokrates/prompts/context/*.md
+include src/sokrates/prompts/context/*.json
