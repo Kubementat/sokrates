@@ -21,43 +21,43 @@ def test_all_commands():
     COMMANDS = [
         {
             "cmd": "sokrates-breakdown-task",
-            "args": "--task 'Get rich in 1 year'"
+            "args": "-m 'qwen/qwen3-4b' --task 'Get rich in 1 year'"
         },
         {
             "cmd": "sokrates-benchmark-model",
-            "args": "--model 'qwen3-1.7b-mlx' --input-directory tests/prompts_minimal --results-directory tmp/benchmark_results --store-results"    
+            "args": "--model 'qwen3-1.7b-mlx' --input-directory tests/prompts_minimal --results-directory tmp/benchmark_results --store-results"
         },
         {
             "cmd": "sokrates-execute-tasks",
-            "args": "-m 'qwen/qwen3-4b' -tf tests/tasks/black_holes.json -o tmp/minzi_task_execution_results_01"    
+            "args": "-m 'qwen/qwen3-4b' -tf tests/tasks/black_holes.json -o tmp/black_hole_task_execution_results_01"
         },
         {
             "cmd": "sokrates-fetch-to-md",
-            "args": "--url 'https://de.wikipedia.org/wiki/Schwarzes_Loch' --output tmp/blackhole.md"    
+            "args": "--url 'https://de.wikipedia.org/wiki/Schwarzes_Loch' --output tmp/blackhole.md"
         },
         {
             "cmd": "sokrates-idea-generator",
-            "args": "--output-directory tmp/meta_ideas"    
+            "args": "--topic-generation-model 'qwen/qwen3-4b' --generator-llm-model 'qwen/qwen3-4b' --execution-llm-model 'qwen/qwen3-4b' --refinement-llm-model 'qwen/qwen3-4b' --output-directory tmp/meta_ideas"
         },
         {
             "cmd": "sokrates-refine-and-send-prompt",
-            "args": "--refinement-model 'qwen3-1.7b-mlx' --output-model 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md'"    
+            "args": "--refinement-model 'qwen3-1.7b-mlx' --output-model 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md'"
         },
         {
             "cmd": "sokrates-refine-prompt",
-            "args": "-m 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt --context-directories 'tests/contexts/testcase1'"    
+            "args": "-m 'qwen3-1.7b-mlx' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt --context-directories 'tests/contexts/testcase1'"
         },
         {
             "cmd": "sokrates-send-prompt",
-            "args": "-m 'qwen3-1.7b-mlx' 'Hi, i would like to sell a company to the highest bidder. Please formulate a strategy and encorporate the rules of acquisition for making a good plan.' --output-directory tmp/ --context-files 'src/sokrates/prompts/context/ferengi-rules-of-acquisition.md' --context-text '__You are a Ferengi from Star Trek__'"    
+            "args": "-m 'qwen3-1.7b-mlx' 'Hi, i would like to sell a company to the highest bidder. Please formulate a strategy and encorporate the rules of acquisition for making a good plan.' --output-directory tmp/ --context-files 'src/sokrates/prompts/context/ferengi-rules-of-acquisition.md' --context-text '__You are a Ferengi from Star Trek__'"
         },
         {
             "cmd": "sokrates-task-add",
-            "args": "-tf tests/tasks/black_holes.json"    
+            "args": "-tf tests/tasks/black_holes.json"
         },
         {
             "cmd": "sokrates-task-list",
-            "args": ""    
+            "args": ""
         }
     ]
 

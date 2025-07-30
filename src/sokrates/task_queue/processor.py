@@ -15,6 +15,7 @@ from .manager import TaskQueueManager
 from .status_tracker import StatusTracker
 from .error_handler import ErrorHandler
 from ..sequential_task_executor import SequentialTaskExecutor
+from sokrates.config import Config
 
 class TaskProcessor:
     """
@@ -67,7 +68,7 @@ class TaskProcessor:
                 return
 
             for task in pending_tasks:
-                self._process_single_task(task)
+                self._process_single_task_file(task)
                 time.sleep(1)  # Small delay between tasks
 
         except Exception as e:
@@ -75,7 +76,7 @@ class TaskProcessor:
         finally:
             self.manager.close()
 
-    def _process_single_task(self, task):
+    def _process_single_task_file(self, task):
         """
         Process a single task through execution and status updates.
 
@@ -84,13 +85,20 @@ class TaskProcessor:
         """
         task_id = task['task_id']
         file_path = task['file_path']
+        
+        executor = SequentialTaskExecutor(
+                api_endpoint=Config().api_endpoint,
+                api_key=Config().api_key,
+                model=Config().default_model,
+                temperature=Config().default_model_temperature,
+                verbose=True
+                )
 
         try:
             # Update status to in_progress
             self.status_tracker.update_status(task_id, "in_progress")
 
             # Execute task using SequentialTaskExecutor
-            executor = SequentialTaskExecutor(verbose=True)
             result = executor.execute_tasks_from_file(file_path)
 
             # Update status to completed with result
@@ -120,7 +128,6 @@ class TaskProcessor:
 
                     try:
                         # Retry the execution
-                        executor = SequentialTaskExecutor(verbose=True)
                         result = executor.execute_tasks_from_file(file_path)
 
                         self.status_tracker.update_status(

@@ -17,6 +17,7 @@ from typing import List
 from .colors import Colors
 from datetime import datetime
 import shutil
+from pathlib import Path
 
 class FileHelper:
     """
@@ -182,7 +183,7 @@ class FileHelper:
     @staticmethod
     def copy_file(source_filepath, target_filepath, verbose:bool = False):
         try:
-            shutil.copy2(source_filepath, target_filepath)
+            shutil.copy2(source_filepath, target_filepath, follow_symlinks=True)
             if verbose:
                 print(f"{Colors.GREEN}File copied successfully from {source_filepath} to {target_filepath}{Colors.RESET}")
         
@@ -232,6 +233,23 @@ class FileHelper:
         current_datetime = datetime.now()
         formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M")
         return f"{base_directory}/{formatted_datetime}"
+    
+    @staticmethod
+    def generate_postfixed_file_path(file_path: str) -> str:
+        """
+        Generates timestamped file path from a given file path.
+
+        Args:
+            file_path (str): Base file path
+        Returns:
+            str: file path with YYYY-MM-DD_HH-MM.EXTENSION postfix
+        """
+        current_datetime = datetime.now()
+        formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M")
+        path = Path(file_path)
+        full_path_without_extension = path.with_suffix("")
+        file_extension = path.suffix
+        return str(Path(f"{full_path_without_extension}_{formatted_datetime}.{file_extension}"))
     
     @staticmethod
     def combine_files(file_paths: List[str], verbose: bool = False) -> str:

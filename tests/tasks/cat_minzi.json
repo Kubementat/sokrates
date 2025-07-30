@@ -1,14 +1,14 @@
 {
-  "task": "Write and publish a book about Minzi the cat.",
+  "task": "Write and publish a book about Minzi the tomcat. Minzi lives in Saarbrücken with the family Weber. The Weber family consists of the mother Stephanie, the father Julian, the daughter Frida (5 years old) and the son Fabian (2 years old).",
   "subtasks": [
     {
       "id": 1,
-      "description": "Write a story about a cat named Minzi that lives on the streets of Saarbrücken.",
+      "description": "Write a short story about Minzi.",
       "complexity": 9
     },
     {
       "id": 2,
-      "description": "Make a plan for publishing a book with stories about a cat named Minzi that lives on the streets of Saarbrücken.",
+      "description": "Make a plan for publishing a book with stories about Minzi.",
       "complexity": 6
     }
   ],

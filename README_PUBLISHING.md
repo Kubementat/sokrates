@@ -33,4 +33,5 @@ pip install sokrates
 
 # test cli tool
 sokrates-list-models
+sokrates-chat
 ```

@@ -60,11 +60,11 @@ class LLMApi:
     def send(self, prompt, api_endpoint="http://localhost:1234/v1", api_key="local-server",
             model="local-model", max_tokens=2000, temperature=0.7):
         """
-        Send a prompt to local LLM server and return the response.
+        Send a prompt to LLM server and return the response.
 
         Args:
             prompt (str): The prompt to send
-            api_endpoint (str): Local LLM server API endpoint
+            api_endpoint (str): LLM server API endpoint
             api_key (str): API token for authentication (can be empty for local servers)
             model (str): Model name to use (often not critical for local servers)
             max_tokens (int): Maximum tokens in response
@@ -144,5 +144,5 @@ class LLMApi:
             
             return response_content
         except Exception as e:
-            raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling local LLM API at {api_endpoint}: {e}{Colors.RESET}")
+            raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling LLM API at {api_endpoint}: {e}{Colors.RESET}")
 ```

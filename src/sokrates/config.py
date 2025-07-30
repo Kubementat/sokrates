@@ -29,6 +29,7 @@ class Config:
   DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
   DEFAULT_API_KEY = "notrequired"
   DEFAULT_MODEL = "qwen/qwen3-8b"
+  DEFAULT_MODEL_TEMPERATURE = 0.7
   DEFAULT_PROMPTS_DIRECTORY = Path(f"{Path(__file__).parent.resolve()}/prompts").resolve()
   DEFAULT_TASK_QUEUE_DAEMON_PROCESSING_INTERVAL = 15
   
@@ -39,6 +40,7 @@ class Config:
     Args:
         verbose (bool): If True, prints basic configuration details upon loading.
     """
+    # TODO: refactor this logic, it's messy right now
     self.verbose = verbose
     # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
     self.home_path: str = f"{str(Path.home())}/.sokrates"
@@ -61,6 +63,7 @@ class Config:
       print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_HOME_PATH: {self.home_path}{Colors.RESET}")
       print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_API_ENDPOINT: {self.api_endpoint}{Colors.RESET}")
       print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DEFAULT_MODEL: {self.default_model}{Colors.RESET}")
+      print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DEFAULT_MODEL_TEMPERATURE: {self.default_model_temperature}{Colors.RESET}")
       print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_CONFIG_FILEPATH: {self.config_path}{Colors.RESET}")
       print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DATABASE_PATH: {self.database_path}{Colors.RESET}")
       print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DAEMON_LOGFILE_PATH: {self.daemon_logfile_path}{Colors.RESET}")
@@ -71,17 +74,11 @@ class Config:
       Sets API endpoint, API key, and default model, applying defaults if not found.
       """
       load_dotenv(self.config_path)
-      self.api_endpoint: str | None = os.environ.get('API_ENDPOINT')
-      self.api_key: str | None = os.environ.get('API_KEY')
-      self.default_model: str | None = os.environ.get('DEFAULT_MODEL')
+      self.api_endpoint: str | None = os.environ.get('SOKRATES_API_ENDPOINT', self.DEFAULT_API_ENDPOINT)
+      self.api_key: str | None = os.environ.get('SOKRATES_API_KEY', self.DEFAULT_API_KEY)
+      self.default_model: str | None = os.environ.get('SOKRATES_DEFAULT_MODEL', self.DEFAULT_MODEL)
+      self.default_model_temperature: float | None = float(os.environ.get('SOKRATES_DEFAULT_MODEL_TEMPERATURE', self.DEFAULT_MODEL_TEMPERATURE))
       
-      if not self.api_endpoint:
-        self.api_endpoint = self.DEFAULT_API_ENDPOINT
-      if not self.api_key:
-        self.api_key = self.DEFAULT_API_KEY
-      if not self.default_model:
-        self.default_model = self.DEFAULT_MODEL
-  
   def initialize_directories(self):
     print(f"Creating sokrates home path: {self.home_path}")
     Path(self.home_path).mkdir(parents=True, exist_ok=True)
@@ -96,6 +93,8 @@ class Config:
       return Config._instance.api_endpoint 
     if key == 'default_model':
       return Config._instance.default_model
+    if key == 'default_model_temperature':
+      return Config._instance.default_model_temperature
     if key == 'database_path':
       return Config._instance.database_path
     if key == 'task_queue_daemon_logfile_path':
@@ -125,9 +124,8 @@ class Config:
         FileExistsError: If the specified output directory already exists
     """
     if output_directory:
-        Path(output_directory).mkdir(parents=True, exist_ok=False)
+        Path(output_directory).mkdir(parents=True, exist_ok=True)
         return output_directory
-
     
     # use default if not specified
     now = datetime.now()
@@ -138,6 +136,6 @@ class Config:
     
     default_task_result_parent_dir = home_dir / ".sokrates" / "tasks" / "results"
     target_dir = Path(default_task_result_parent_dir) / directory_name
-    Path(target_dir).mkdir(parents=True, exist_ok=False)
+    Path(target_dir).mkdir(parents=True, exist_ok=True)
     
     return target_dir

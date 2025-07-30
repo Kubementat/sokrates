@@ -2,11 +2,18 @@
 """
 Sequential Task Executor Module
 
-This module provides functionality to execute tasks defined in a JSON file sequentially.
-It leverages existing refinement workflows and LLM interaction capabilities.
+Main Purpose: Execute tasks from JSON files using LLM APIs with prompt refinement workflow
+Parameters:
+  - api_endpoint (str): LLM API endpoint URL. Default: Config.DEFAULT_API_ENDPOINT
+  - api_key (str): Authentication key for API access. Default: Config.DEFAULT_API_KEY
+  - model (str): Model identifier to use. Default: Config.DEFAULT_MODEL
+  - temperature (float): Controls randomness in prompt refinement. Default: Config.DEFAULT_MODEL_TEMPERATURE
+  - output_dir (str, optional): Directory path for saving results. Default: "./task_results"
+  - verbose (bool, optional): Enables detailed logging if True. Default: False
 
-Classes:
-    SequentialTaskExecutor: Main class for executing sequential tasks from JSON files.
+Usage Example:
+  executor = SequentialTaskExecutor(output_dir="./results", verbose=True)
+  result_summary = executor.execute_tasks_from_file("tasks.json")
 """
 
 import os
@@ -40,12 +47,13 @@ class SequentialTaskExecutor:
 
     Methods:
         execute_tasks_from_file(): Execute all tasks from a JSON file
-        _process_single_task(): Process individual task with refinement and execution
+        _process_single_task_file(): Process individual task file with refinement and execution
     """
 
     def __init__(self, api_endpoint: str = Config.DEFAULT_API_ENDPOINT,
                  api_key: str = Config.DEFAULT_API_KEY,
                  model: str = Config.DEFAULT_MODEL,
+                 temperature: float = Config.DEFAULT_MODEL_TEMPERATURE,
                  output_dir: str = None,
                  verbose: bool = False):
         """
@@ -67,6 +75,7 @@ class SequentialTaskExecutor:
         self.api_endpoint = api_endpoint
         self.api_key = api_key
         self.model = model
+        self.temperature = temperature
         self.output_dir = Config.create_and_return_task_execution_directory(output_dir)
         self.verbose = verbose
 
@@ -78,7 +87,8 @@ class SequentialTaskExecutor:
             api_endpoint=self.api_endpoint,
             api_key=self.api_key,
             model=self.model,
-            verbose=self.verbose
+            verbose=self.verbose,
+            temperature=self.temperature
         )
 
     def execute_tasks_from_file(self, task_file_path: str) -> Dict[str, any]:
@@ -113,6 +123,8 @@ class SequentialTaskExecutor:
         except Exception as e:
             raise ValueError(f"Failed to load task file: {e}")
 
+        main_task = tasks.get("task", None)
+        
         results = {
             "total_tasks": len(tasks.get("subtasks", [])),
             "successful_tasks": 0,
@@ -133,7 +145,8 @@ class SequentialTaskExecutor:
                 continue
 
             try:
-                result = self._process_single_task(task_desc, task_id)
+                result = self._process_single_task_file(task_desc=task_desc, 
+                                                        task_id=task_id, main_task=main_task)
                 results["successful_tasks"] += 1
                 status = "completed"
                 message = "Task executed successfully"
@@ -156,9 +169,9 @@ class SequentialTaskExecutor:
 
         return results
 
-    def _process_single_task(self, task_desc: str, task_id: int) -> str:
+    def _process_single_task_file(self, task_desc: str, task_id: int, main_task: str = None) -> str:
         """
-        Processes a single task through the complete workflow:
+        Processes a single task file through the complete workflow:
         1. Generate initial prompt from task description
         2. Refine prompt using existing refinement workflow
         3. Execute refined prompt using LLM API
@@ -183,12 +196,25 @@ class SequentialTaskExecutor:
         if self.verbose:
             OutputPrinter.print(f"\nProcessing task {task_id}: {task_desc}")
 
-        # Step 1: Generate initial prompt from task description
-        initial_prompt = f"Task {task_id}: {task_desc}"
+        # Step 1: Generate initial prompt from main task and sub-task description
+        sub_task_prompt = f"Sub-Task {task_id}: {task_desc}" 
+        main_task_context = ""
+        
+        if main_task:
+            main_task_context = f"""
+# Context description
+The task that should be executed is a sub-task of a bigger project or main objective.
+Handle the sub-task in the context of the main object.
 
+# Main objective / Project description
+{main_task}
+
+"""
+        task_prompt = f"{main_task_context} {sub_task_prompt}"
+        
         # Step 2: Refine the prompt using existing refinement workflow
         if self.verbose:
-            OutputPrinter.print(f"Refining and executing prompt for task {task_id}...")
+            OutputPrinter.print(f"Refining and executing prompt for task {task_id} ...")
 
         # Use a generic refinement prompt for task execution
         refinement_prompt_path = f"{Config.DEFAULT_PROMPTS_DIRECTORY}/refine-prompt.md"
@@ -196,10 +222,11 @@ class SequentialTaskExecutor:
 
         # Step 3: Execute the refined prompt using LLM API
         execution_result = self.workflow.refine_and_send_prompt(
-            input_prompt=initial_prompt,
+            input_prompt=task_prompt,
             refinement_prompt=refinement_prompt,  # No further refinement needed for execution
             refinement_model=self.model,
-            execution_model=self.model
+            execution_model=self.model,
+            refinement_temperature=self.temperature
         )
 
         if self.verbose:
@@ -207,6 +234,12 @@ class SequentialTaskExecutor:
 
         # Step 4: Save the result to output directory
         output_file = f"{self.output_dir}/task_{task_id}_result.md"
+        
+        # if file exists -> create postfixed output filepath
+        if os.path.exists(output_file):
+            output_file_before = output_file
+            output_file = FileHelper.generate_postfixed_file_path(output_file)
+            OutputPrinter.print(f"File: {output_file_before} already exists. Generated postfixed file name for output file: {output_file}")
         FileHelper.write_to_file(output_file, execution_result, verbose=self.verbose)
 
         if self.verbose:

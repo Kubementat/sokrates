@@ -38,20 +38,20 @@ def main():
     parser.add_argument(
         '--api-endpoint',
         required=False,
-        default=None,
-        help=f"Local LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        default=Config().api_endpoint,
+        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
     
     parser.add_argument(
         '--api-key',
-        default=None,
+        default=Config().api_key,
         help='API key for authentication (many local servers don\'t require this)'
     )
     
     parser.add_argument(
         '--model', '-m',
-        default='qwen3-4b',
-        help='A model name to use for the generation (default: qwen3-4b).'
+        default=Config().default_model,
+        help=f"A model name to use for the generation (default: {Config.DEFAULT_MODEL})."
     )
     
     parser.add_argument(
@@ -64,7 +64,7 @@ def main():
     parser.add_argument(
         '--temperature', '-t',
         type=float,
-        default=0.7,
+        default=Config().default_model_temperature,
         help='Temperature for response generation (default: 0.7)'
     )
     

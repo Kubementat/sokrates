@@ -6,6 +6,7 @@ from ..refinement_workflow import RefinementWorkflow
 from ..colors import Colors
 from ..file_helper import FileHelper
 from ..output_printer import OutputPrinter
+from ..config import Config
 
 DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
 DEFAULT_MAX_TOKENS = 20000
@@ -19,14 +20,14 @@ def main():
 
     parser.add_argument(
         '--api-endpoint',
-        default=DEFAULT_API_ENDPOINT,
-        help=f"Local LLM server API endpoint. Default is {DEFAULT_API_ENDPOINT}"
+        default=Config().api_endpoint,
+        help=f"LLM server API endpoint. Default is {DEFAULT_API_ENDPOINT}"
     )
 
     parser.add_argument(
         '--api-key',
         required=False,
-        default=None,
+        default=Config().api_key,
         help='API key for authentication (many local servers don\'t require this)'
     )
 
@@ -46,8 +47,14 @@ def main():
     
     parser.add_argument(
         '--model', '-m',
-        default='qwen/qwen3-8b',
-        help='The model to use for the task breakdown (default: qwen(qwen3-8b))'
+        default=Config().default_model,
+        help=f"The model to use for the task breakdown (default: {Config.DEFAULT_MODEL})"
+    )
+    
+    parser.add_argument(
+        '--temperature',
+        default=Config().default_model_temperature,
+        help=f"The temperature to use for the task breakdown (default: {Config.DEFAULT_MODEL_TEMPERATURE})"
     )
 
     parser.add_argument(
@@ -114,7 +121,9 @@ def main():
     
         
     workflow = RefinementWorkflow(api_endpoint=args.api_endpoint, 
-        api_key=api_key, model=args.model, max_tokens=DEFAULT_MAX_TOKENS, 
+        api_key=args.api_key, model=args.model, 
+        max_tokens=DEFAULT_MAX_TOKENS, 
+        temperature=args.temperature,
         verbose=args.verbose
     )
     result = workflow.breakdown_task(task=task, model=args.model, context_array=context_array)

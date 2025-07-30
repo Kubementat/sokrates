@@ -94,11 +94,11 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
 
 @click.command()
 @click.argument('prompt', required=False)
-@click.option('--api-endpoint', '-ae', default=Config.DEFAULT_API_ENDPOINT, help='Local LLM server API endpoint')
-@click.option('--api-key', '-ak', default="pw", help='API key for authentication (can be empty for local servers)')
-@click.option('--models', '-m', default=None, help='Comma separated model names to use (can be multiple)')
+@click.option('--api-endpoint', '-ae', default=Config().api_endpoint, help='LLM server API endpoint')
+@click.option('--api-key', '-ak', default=Config().api_key, help='API key for authentication (can be empty for local servers)')
+@click.option('--models', '-m', default=Config().default_model, help='Comma separated model names to use (can be multiple)')
 @click.option('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')
-@click.option('--temperature', '-t', default=0.7, type=float, help='Temperature for response generation')
+@click.option('--temperature', '-t', default=Config().default_model_temperature, type=float, help='Temperature for response generation')
 @click.option('--verbose','-v', is_flag=True, help='Enable verbose output')
 @click.option('--output-directory', '-o', default=None, help='Directory to write model outputs to as markdown files')
 @click.option('--input-file','-i', default=None, help='File containing the prompt to send')
@@ -108,7 +108,7 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
 @click.option('--context-files', '-ctf', default=None, required=False, help="Optional comma separated additional context text file paths with content that should be prepended before the prompt")
 @click.option('--context-directories', '-ctd', default=None, required=False, help="Optional comma separated additional directory paths with files with content that should be prepended before the prompt")
 def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose, output_directory, input_file, input_directory, post_process_results, context_text, context_directories, context_files):
-    """Main function to send a prompt to one or more local LLM servers and handle responses.
+    """Main function to send a prompt to one or more LLM servers and handle responses.
 
     Args:
         prompt: The input text to send to the LLMs
@@ -128,14 +128,6 @@ def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose
     Returns:
         None
     """
-    config = Config()
-    if not api_endpoint:
-        api_endpoint = config.api_endpoint
-    if not api_key:
-        api_key = config.api_key
-    if not models:
-        models = config.default_model
-
     llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=verbose)
     
     if prompt is None and input_file is None and input_directory is None:

@@ -43,10 +43,10 @@ from pathlib import Path
 import asyncio # Import asyncio for running async functions
 
 @click.command()
-@click.option("--api-endpoint", "-ae", default=None, help="The API endpoint for the LLM.")
-@click.option("--api-key", "-ak", default=None, help="The API key for the LLM.")
-@click.option("--model", "-m", default=None, help="The model to use for the LLM.")
-@click.option("--temperature", "-t", default=0.7, type=float, help="The temperature for the LLM.")
+@click.option("--api-endpoint", "-ae", default=Config().api_endpoint, help="The API endpoint for the LLM.")
+@click.option("--api-key", "-ak", default=Config().api_key, help="The API key for the LLM.")
+@click.option("--model", "-m", default=Config().default_model, help="The model to use for the LLM.")
+@click.option("--temperature", "-t", default=Config().default_model_temperature, type=float, help="The temperature for the LLM.")
 @click.option("--max-tokens", "-mt", default=6000, type=float, help="The maximum amount of tokens to generate for one answer.")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output.")
 @click.option("--context-text", "-ct", default=None, help="Additional context text for the LLM.")

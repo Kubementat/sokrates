@@ -9,7 +9,7 @@ Usage:
     python execute_tasks.py --task-file <file_path> [options]
 
 Options:
-    --api-endpoint ENDPOINT   Local LLM server API endpoint
+    --api-endpoint ENDPOINT   LLM server API endpoint
     --api-key KEY             API key for authentication (optional)
     --model MODEL             The model to use for task execution
     --output-directory DIR              Output directory for saving results
@@ -56,21 +56,27 @@ def main():
 
     parser.add_argument(
         '--api-endpoint',
-        default=Config.DEFAULT_API_ENDPOINT,
-        help=f"Local LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        default=Config().api_endpoint,
+        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
 
     parser.add_argument(
         '--api-key',
         required=False,
-        default=None,
+        default=Config().api_key,
         help='API key for authentication (many local servers don\'t require this)'
     )
 
     parser.add_argument(
         '--model', '-m',
-        default=Config.DEFAULT_MODEL,
+        default=Config().default_model,
         help=f'The model to use for task execution (default: {Config.DEFAULT_MODEL})'
+    )
+    
+    parser.add_argument(
+        '--temperature', '-t',
+        default=Config().default_model_temperature,
+        help=f'The temperature to use for task execution (default: {Config.DEFAULT_MODEL_TEMPERATURE})'
     )
 
     parser.add_argument(
@@ -108,6 +114,7 @@ def main():
         api_endpoint=args.api_endpoint,
         api_key=args.api_key or Config.DEFAULT_API_KEY,
         model=args.model,
+        temperature=args.temperature,
         output_dir=target_directory,
         verbose=args.verbose
     )

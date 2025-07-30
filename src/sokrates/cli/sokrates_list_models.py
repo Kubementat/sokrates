@@ -32,14 +32,14 @@ Examples:
     parser.add_argument(
         '--api-endpoint',
         required=False,
-        default=None,
-        help=f"Local LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        default=Config().api_endpoint,
+        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
     
     parser.add_argument(
         '--api-key',
         required=False,
-        default=None,
+        default=Config().api_key,
         help='API key for authentication (many local servers don\'t require this)'
     )
     

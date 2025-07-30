@@ -1,255 +1,387 @@
-# Project Summary: sokrates
+# LLM Context Documentation for sokrates
 
-## 1. Key Technical Concepts
-- **LLM Interaction Framework**: Comprehensive tools for working with Large Language Models (LLMs) through modular components and well-documented APIs.
-- **Prompt Refinement**: Advanced techniques for optimizing LLM input/output using refinement workflows.
-- **System Monitoring**: Real-time tracking of resource usage during LLM operations (CPU, memory, GPU).
-- **CLI Interface**: Extensive command-line tools for rapid experimentation with LLMs.
-- **Modular Architecture**: Easily extendable components designed for customization and integration.
+This document provides comprehensive context about the sokrates project to help Large Language Models better understand the codebase, its architecture, and usage patterns.
 
-## 2. Relevant Files and Code
+## Project Overview
 
-### Core Components
+**sokrates** is a comprehensive Python framework for Large Language Model (LLM) interactions, designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
-#### `Config` Class (`src/sokrates/config.py`)
-- Manages application-wide configuration settings
-- Loads environment variables from `.env` file
-- Provides default values for API endpoint, API key, and default model
-```python
-class Config:
-    DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
-    DEFAULT_API_KEY = "notrequired"
-    DEFAULT_MODEL = "qwen/qwen3-8b"
+### Key Information
+- **Version**: 0.4.2
+- **License**: MIT
+- **Python Version**: 3.9+
+- **Main Dependencies**: openai, psutil, requests, click, tabulate, colorama, markdownify, dotenv, openai-whisper, pyaudio
+- **Repository**: https://github.com/Kubementat/sokrates
 
-    def __init__(self, verbose=False):
-        self.verbose = verbose
-        self.config_path = f"{str(Path.home())}/.sokrates/.env"
-        self.load_env()
+## Architecture Overview
+
+### Core Modules
+
+#### 1. **LLM API Interface** (`src/sokrates/llm_api.py`)
+- **Purpose**: Primary interface for OpenAI-compatible LLM interactions
+- **Key Features**:
+  - Model listing and discovery
+  - Streaming responses with performance metrics
+  - Context-aware prompt generation
+  - Chat completion support
+  - Error handling and retry logic
+- **Main Class**: `LLMApi`
+- **Key Methods**:
+  - `list_models()`: Returns available model IDs
+  - `send()`: Sends prompts to LLM with context support
+  - `chat_completion()`: Handles conversation history
+  - `combine_context()`: Merges multiple context sources
+
+#### 2. **Configuration Management** (`src/sokrates/config.py`)
+- **Purpose**: Centralized configuration management
+- **Key Features**:
+  - Environment variable loading
+  - Default value management
+  - Directory structure creation
+  - Singleton pattern implementation
+- **Main Class**: `Config`
+- **Key Attributes**:
+  - `DEFAULT_API_ENDPOINT`: "http://localhost:1234/v1"
+  - `DEFAULT_API_KEY`: "notrequired"
+  - `DEFAULT_MODEL`: "qwen/qwen3-8b"
+  - `DEFAULT_MODEL_TEMPERATURE`: 0.7
+
+#### 3. **Prompt Refinement** (`src/sokrates/prompt_refiner.py`)
+- **Purpose**: Advanced text processing and LLM output cleaning
+- **Key Features**:
+  - Meta-element removal (thinking blocks, reasoning blocks)
+  - Markdown formatting and conversion
+  - Response cleaning and sanitization
+  - JSON response processing
+- **Main Class**: `PromptRefiner`
+- **Key Methods**:
+  - `clean_response()`: Removes unwanted elements from LLM output
+  - `format_as_markdown()`: Ensures proper Markdown formatting
+  - `clean_json_response()`: Processes JSON-formatted responses
+
+#### 4. **Task Queue System** (`src/sokrates/task_queue/`)
+- **Purpose**: Background task processing with persistence
+- **Key Components**:
+  - `database.py`: SQLite database operations
+  - `manager.py`: High-level task management interface
+  - `processor.py`: Task execution logic
+  - `daemon.py`: Background process management
+  - `status_tracker.py`: Task status monitoring
+  - `error_handler.py`: Error recovery and logging
+- **Main Class**: `TaskQueueManager`
+- **Features**:
+  - Task persistence and recovery
+  - Priority-based processing
+  - Error handling and retries
+  - Status tracking and logging
+
+#### 5. **Sequential Task Executor** (`src/sokrates/sequential_task_executor.py`)
+- **Purpose**: Execute complex multi-step workflows
+- **Key Features**:
+  - JSON-based task definition
+  - Sequential task execution
+  - Result aggregation and storage
+  - Progress tracking
+- **Main Class**: `SequentialTaskExecutor`
+- **Workflow**:
+  1. Load tasks from JSON file
+  2. Process each task through refinement workflow
+  3. Execute refined prompts
+  4. Save results to output directory
+
+#### 6. **Idea Generation Workflow** (`src/sokrates/idea_generation_workflow.py`)
+- **Purpose**: Multi-stage idea generation and refinement
+- **Key Features**:
+  - Topic generation with categorization
+  - Prompt generation from templates
+  - Multi-stage refinement process
+  - Random category selection
+- **Main Class**: `IdeaGenerationWorkflow`
+- **Process Flow**:
+  1. Generate or load topic
+  2. Create execution prompts
+  3. Refine each prompt
+  4. Execute refined prompts
+  5. Save results
+
+#### 7. **CLI Interface** (`src/sokrates/cli/`)
+- **Purpose**: Command-line interface for all functionality
+- **Structure**:
+  - Root CLI commands in `src/sokrates/cli/`
+  - Task queue commands in `src/sokrates/cli/task_queue/`
+- **Key Commands**:
+  - `sokrates-chat`: Interactive chat interface
+  - `sokrates-list-models`: Model discovery
+  - `sokrates-breakdown-task`: Task decomposition
+  - `sokrates-execute-tasks`: Sequential execution
+  - `sokrates-daemon`: Task queue management
+
+#### 8. **System Monitoring** (`src/sokrates/system_monitor.py`)
+- **Purpose**: Real-time resource usage tracking
+- **Key Features**:
+  - CPU and memory monitoring
+  - Performance metrics collection
+  - Resource usage reporting
+- **Main Class**: `SystemMonitor`
+
+#### 9. **Voice Helper** (`src/sokrates/voice_helper.py`)
+- **Purpose**: Speech-to-text and text-to-speech capabilities
+- **Key Features**:
+  - Whisper integration for speech recognition
+  - Audio input/output handling
+  - Voice chat mode support
+
+#### 10. **File Utilities** (`src/sokrates/file_helper.py`)
+- **Purpose**: Comprehensive file handling operations
+- **Key Features**:
+  - File reading and writing
+  - JSON processing
+  - Directory management
+  - File name cleaning and validation
+
+#### 11. **Output Management** (`src/sokrates/output_printer.py`)
+- **Purpose**: Formatted console output
+- **Key Features**:
+  - Colorized output
+  - Progress indicators
+  - Structured logging
+  - Error formatting
+
+## Configuration System
+
+### Environment Variables
+The project uses environment variables for configuration:
+
+```bash
+# API Configuration
+SOKRATES_API_ENDPOINT=http://localhost:1234/v1
+SOKRATES_API_KEY=notrequired
+SOKRATES_DEFAULT_MODEL=qwen/qwen3-8b
+SOKRATES_DEFAULT_MODEL_TEMPERATURE=0.7
+
+# File Paths
+SOKRATES_CONFIG_FILEPATH=$HOME/.sokrates/.env
+SOKRATES_DATABASE_PATH=$HOME/.sokrates/sokrates_database.sqlite
+SOKRATES_TASK_QUEUE_DAEMON_LOGFILE_PATH=$HOME/.sokrates/logs/daemon.log
 ```
 
-#### `LLMApi` Class (`src/sokrates/llm_api.py`)
-- Handles interactions with OpenAI-compatible LLM APIs
-- Provides methods for model listing, text generation, and chat completions
-```python
-class LLMApi:
-    def __init__(self, verbose=False, api_endpoint=Config.DEFAULT_API_ENDPOINT, api_key=Config.DEFAULT_API_KEY):
-        self.verbose = verbose
-        self.api_endpoint = api_endpoint
-        self.api_key = api_key
-
-    def send(self, prompt: str, model: str = Config.DEFAULT_MODEL, max_tokens: int = 2000, temperature: float = 0.7) -> str:
-        # Implementation for sending prompts to LLM and receiving responses
+### Directory Structure
+```
+$HOME/.sokrates/
+├── .env                    # Configuration file
+├── sokrates_database.sqlite # Task queue database
+├── logs/                   # Log files
+│   └── daemon.log
+├── tasks/                  # Task execution results
+│   └── results/
+└── chats/                  # Chat logs
 ```
 
-#### `PromptRefiner` Class (`src/sokrates/prompt_refiner.py`)
-- Provides utility functions for processing and cleaning LLM-generated text
-- Includes methods for combining prompts and removing unwanted meta-elements
-```python
-class PromptRefiner:
-    def combine_refinement_prompt(self, input_prompt: str, refinement_prompt: str) -> str:
-        return f"{refinement_prompt}\n\n{input_prompt}"
+## CLI Command Reference
 
-    def clean_response(self, response: str) -> str:
-        # Implementation for cleaning LLM responses
+### Core LLM Commands
+```bash
+sokrates-list-models --api-endpoint ENDPOINT
+sokrates-send-prompt --model MODEL --prompt "PROMPT"
+sokrates-chat --model MODEL --voice --context-files FILE.md
+sokrates-refine-prompt --prompt "PROMPT" --model MODEL
 ```
 
-#### `IdeaGenerationWorkflow` Class (`src/sokrates/idea_generation_workflow.py`)
-- Orchestrates multi-step workflows for generating and refining prompts using LLMs
-```python
-class IdeaGenerationWorkflow:
-    def __init__(self, api_endpoint: str, api_key: str, idea_count: int = 2,
-                 max_tokens: int = 20000, temperature: float = 0.7, verbose: bool = False):
-        self.api_endpoint = api_endpoint
-        self.api_key = api_key
-        self.max_tokens = max_tokens
-        self.temperature = temperature
-        self.verbose = verbose
-        self.idea_count = idea_count
-
-    def run(self) -> list[str]:
-        # Implementation for executing the full idea generation workflow
+### Task Management Commands
+```bash
+sokrates-breakdown-task --task "DESCRIPTION" --output tasks.json
+sokrates-execute-tasks --task-file tasks.json --output-dir ./results
+sokrates-task-add tasks/feature.json --priority high
+sokrates-daemon start|stop|restart|status
 ```
 
-#### `RefinementWorkflow` Class (`src/sokrates/refinement_workflow.py`)
-- Orchestrates prompt refinement and execution processes
-```python
-class RefinementWorkflow:
-    def __init__(self, api_endpoint: str = Config.DEFAULT_API_ENDPOINT,
-                 api_key: str = Config.DEFAULT_API_KEY,
-                 model: str = Config.DEFAULT_MODEL,
-                 max_tokens: int = 20000,
-                 temperature: float = 0.7,
-                 verbose: bool = False):
-        self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=verbose)
-        self.refiner = PromptRefiner(verbose=verbose)
-        self.model = model
-        self.max_tokens = max_tokens
-        self.temperature = temperature
-        self.verbose = verbose
-
-    def refine_prompt(self, input_prompt: str, refinement_prompt: str, context_array: List[str]=None) -> str:
-        # Implementation for refining prompts
+### Content Generation Commands
+```bash
+sokrates-idea-generator --topic "TOPIC" --output-dir ./ideas --idea-count 5
+sokrates-generate-mantra --count 3 --theme "productivity"
+sokrates-fetch-to-md --url "URL" --output article.md
 ```
 
-#### `SequentialTaskExecutor` Class (`src/sokrates/sequential_task_executor.py`)
-- Executes tasks defined in JSON files sequentially using LLM workflows
-```python
-class SequentialTaskExecutor:
-    def __init__(self, api_endpoint: str = Config.DEFAULT_API_ENDPOINT,
-                 api_key: str = Config.DEFAULT_API_KEY,
-                 model: str = Config.DEFAULT_MODEL,
-                 output_dir: str = None,
-                 verbose: bool = False):
-        self.api_endpoint = api_endpoint
-        self.api_key = api_key
-        self.model = model
-        self.output_dir = output_dir or "./task_results"
-        self.verbose = verbose
-
-    def execute_tasks_from_file(self, task_file_path: str) -> Dict[str, any]:
-        # Implementation for executing tasks from JSON file
+### Benchmarking Commands
+```bash
+sokrates-benchmark-model --model MODEL --iterations 10
+sokrates-benchmark-results-to-markdown --input results.json --output report.md
 ```
 
-### Utility Components
+## Data Structures
 
-#### `FileHelper` Class (`src/sokrates/file_helper.py`)
-- Provides static methods for common file system operations
-```python
-class FileHelper:
-    @staticmethod
-    def read_file(file_path: str, verbose: bool = False) -> str:
-        # Implementation for reading files
-
-    @staticmethod
-    def write_to_file(file_path: str, content: str, verbose: bool = False) -> None:
-        # Implementation for writing files
+### Task Queue Format
+```json
+{
+  "task_id": "uuid",
+  "description": "Task description",
+  "file_path": "/path/to/task.json",
+  "priority": "high|normal|low",
+  "status": "pending|running|completed|failed",
+  "created_at": "timestamp",
+  "updated_at": "timestamp",
+  "result": "execution result",
+  "error": "error message"
+}
 ```
 
-#### `SystemMonitor` Class (`src/sokrates/system_monitor.py`)
-- Monitors system resources (CPU, memory, GPU) in real-time
-```python
-class SystemMonitor:
-    def __init__(self, interval: float = 0.5):
-        self.interval = interval
-        self.system_stats = []
-        self.monitoring = False
-
-    def start(self):
-        # Implementation for starting system monitoring
-
-    def stop(self):
-        # Implementation for stopping system monitoring
+### Task Breakdown Format
+```json
+{
+  "task": "Main task description",
+  "subtasks": [
+    {
+      "id": 1,
+      "description": "Sub-task description",
+      "complexity": "low|medium|high"
+    }
+  ]
+}
 ```
 
-#### `Colors` Class (`src/sokrates/colors.py`)
-- Provides ANSI escape codes for console text formatting
-```python
-class Colors:
-    BLACK: str = '\033[30m'
-    RED: str = '\033[91m'
-    GREEN: str = '\033[92m'
-    # ... other color definitions
+### Idea Generation Format
+```json
+{
+  "prompts": [
+    {
+      "title": "Prompt title",
+      "description": "Prompt description",
+      "category": "Topic category"
+    }
+  ]
+}
 ```
 
-#### `Utils` Class (`src/sokrates/utils.py`)
-- Provides utility functions for common operations
-```python
-class Utils:
-    @staticmethod
-    def current_date() -> str:
-        return datetime.now().strftime("%Y-%m-%d")
+## Error Handling Patterns
 
-    @staticmethod
-    def generate_random_int(min_value, max_value):
-        if min_value > max_value:
-            raise Exception("minimum must be below maximum")
-        return random.randint(min_value, max_value)
+### API Error Handling
+```python
+try:
+    result = llm_api.send(prompt, model=model)
+except Exception as e:
+    OutputPrinter.print_error(f"API Error: {e}")
+    # Handle error appropriately
 ```
 
-## 3. Simple Usage Examples
-
-### Config Initialization
+### File Operation Error Handling
 ```python
-from src.sokrates.config import Config
-config = Config(verbose=True)
-print(f"API Endpoint: {config.api_endpoint}")
-print(f"Default Model: {config.default_model}")
+try:
+    content = FileHelper.read_file(filepath, verbose=True)
+except FileNotFoundError:
+    OutputPrinter.print_error(f"File not found: {filepath}")
+except Exception as e:
+    OutputPrinter.print_error(f"File error: {e}")
 ```
 
-### LLM API Interaction
+### Task Queue Error Handling
 ```python
-from src.sokrates.llm_api import LLMApi
-
-api = LLMApi(api_endpoint="http://localhost:1234/v1", verbose=True)
-models = api.list_models()
-print("Available models:", models)
-
-response = api.send(
-    prompt="Explain quantum computing in simple terms",
-    model="qwen/qwen3-8b"
-)
-print("Response:", response)
+try:
+    task_manager.add_task_from_file(task_file)
+except ValueError as e:
+    OutputPrinter.print_error(f"Task validation error: {e}")
+except Exception as e:
+    OutputPrinter.print_error(f"Task queue error: {e}")
 ```
 
-### Prompt Refinement
+## Performance Considerations
+
+### LLM API Optimization
+- Use streaming responses for better user experience
+- Implement context caching for repeated operations
+- Monitor token usage and response times
+- Handle rate limiting gracefully
+
+### System Resource Management
+- Monitor CPU and memory usage during LLM operations
+- Implement proper cleanup of resources
+- Use connection pooling for API calls
+- Cache frequently accessed data
+
+### File I/O Optimization
+- Use buffered reading for large files
+- Implement proper file handle management
+- Use asynchronous operations where appropriate
+- Implement proper error handling for file operations
+
+## Testing Strategy
+
+### Unit Tests
+- Located in `tests/` directory
+- Use pytest framework
+- Cover core functionality and edge cases
+- Mock external dependencies (API calls, file operations)
+
+### Integration Tests
+- Test CLI command functionality
+- Verify task queue operations
+- Test file handling and data processing
+- Validate error handling scenarios
+
+### Performance Tests
+- Benchmark LLM API performance
+- Test task queue scalability
+- Monitor resource usage under load
+- Validate response time requirements
+
+## Development Guidelines
+
+### Code Style
+- Follow PEP 8 style guidelines
+- Use type hints for all function signatures
+- Implement comprehensive docstrings
+- Use meaningful variable and function names
+
+### Documentation
+- Include inline comments for complex logic
+- Update documentation when changing APIs
+- Provide usage examples for new features
+- Maintain CHANGELOG.md for version updates
+
+### Version Control
+- Use semantic versioning (MAJOR.MINOR.PATCH)
+- Follow conventional commit messages
+- Maintain clear branch naming conventions
+- Ensure all changes have appropriate tests
+
+## Common Use Cases
+
+### 1. Simple LLM Interaction
 ```python
-from src.sokrates.prompt_refiner import PromptRefiner
+from sokrates import LLMApi, Config
 
-refiner = PromptRefiner(verbose=True)
-input_prompt = "Create a marketing plan for a new product"
-refinement_prompt = "Refine the following prompt to be more specific..."
-
-combined_prompt = refiner.combine_refinement_prompt(input_prompt, refinement_prompt)
-print("Combined prompt:", combined_prompt)
-
-cleaned_response = refiner.clean_response(response_content)
-print("Cleaned response:", cleaned_response)
+api = LLMApi(api_endpoint=Config().api_endpoint, api_key=Config().api_key)
+response = api.send("Explain quantum computing", model="qwen/qwen3-8b")
 ```
 
-### Idea Generation Workflow
+### 2. Task Breakdown and Execution
 ```python
-from src.sokrates.idea_generation_workflow import IdeaGenerationWorkflow
+from sokrates import SequentialTaskExecutor
+
+executor = SequentialTaskExecutor()
+results = executor.execute_tasks_from_file("project_tasks.json")
+```
+
+### 3. Idea Generation Workflow
+```python
+from sokrates import IdeaGenerationWorkflow
 
 workflow = IdeaGenerationWorkflow(
-    api_endpoint="http://localhost:1234/v1",
-    api_key="your_api_key",
-    idea_count=3,
-    verbose=True
+    api_endpoint=Config().api_endpoint,
+    api_key=Config().api_key,
+    topic="AI in healthcare",
+    output_directory="./ideas"
 )
-
 ideas = workflow.run()
-for i, idea in enumerate(ideas):
-    print(f"Idea {i+1}:\n{idea}\n")
 ```
 
-### Sequential Task Execution
+### 4. Task Queue Management
 ```python
-from src.sokrates.sequential_task_executor import SequentialTaskExecutor
+from sokrates.task_queue import TaskQueueManager
 
-executor = SequentialTaskExecutor(
-    api_endpoint="http://localhost:1234/v1",
-    model="qwen/qwen3-8b",
-    output_dir="./task_results",
-    verbose=True
-)
-
-results = executor.execute_tasks_from_file("tasks.json")
-print("Execution results:", results)
+with TaskQueueManager() as manager:
+    task_id = manager.add_task_from_file("task.json", priority="high")
+    tasks = manager.get_pending_tasks()
+    manager.update_task_status(task_id, "completed", result="Task completed")
 ```
 
-### System Monitoring
-```python
-from src.sokrates.system_monitor import SystemMonitor
-
-monitor = SystemMonitor(interval=0.5)
-monitor.start()
-
-# Do some work...
-time.sleep(10)
-
-stats = monitor.stop()
-for stat in stats:
-    print(f"Timestamp: {stat['timestamp']}, CPU: {stat['cpu_percent']}%, Memory: {stat['memory_used_gb']}GB")
-```
-
-This summary provides a comprehensive overview of the sokrates project's technical details, core components, and usage examples to facilitate further development and integration with large language models.
+This documentation provides comprehensive context about the sokrates project, its architecture, and usage patterns to help LLMs better understand and work with the codebase effectively.

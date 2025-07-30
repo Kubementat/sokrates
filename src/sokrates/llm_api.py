@@ -170,7 +170,7 @@ class LLMApi:
             
             return response_content
         except Exception as e:
-            raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling local LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
+            raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
 
     def chat_completion(self, messages: List[dict], model: str = Config.DEFAULT_MODEL, max_tokens: int = 2000, temperature: float = 0.7) -> str:
         """
@@ -252,7 +252,7 @@ class LLMApi:
                 
             return response_content
         except Exception as e:
-            raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling local LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
+            raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
 
     def combine_context(self, context: List[str]) -> str:
         """

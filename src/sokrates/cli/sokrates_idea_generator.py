@@ -91,8 +91,8 @@ Example usage:
     parser.add_argument(
         '--temperature', '-t',
         type=float,
-        default=0.7,
-        help='Temperature for response generation for all LLM calls (Default: 0.7)'
+        default=Config().default_model_temperature,
+        help=f"Temperature for response generation for all LLM calls (Default: {Config.DEFAULT_MODEL_TEMPERATURE})"
     )
     
     parser.add_argument(

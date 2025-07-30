@@ -46,29 +46,29 @@ Example usage:
     parser.add_argument(
         '--refinement-model', '-rm',
         required=False,
-        default="qwen/qwen3-14b",
-        help='Name of the model to use for prompt refinement. Default: qwen/qwen3-14b'
+        default=Config().default_model,
+        help=f"Name of the model to use for prompt refinement. Default: {Config.DEFAULT_MODEL}"
     )
     
     parser.add_argument(
         '--output-model', '-om',
         required=False,
-        default="qwen/qwen3-14b",
-        help='Name of the model to receive the refined prompt and to generate the final output. Default: qwen/qwen3-14b'
+        default=Config().default_model,
+        help=f"Name of the model to receive the refined prompt and to generate the final output. Default: {Config.DEFAULT_MODEL}"
     )
     
     parser.add_argument(
         '--refinement-temperature', '-rt',
         type=float,
-        default=0.7,
-        help='Temperature for the refinement model (default: 0.7)'
+        default=Config().default_model_temperature,
+        help=f"Temperature for the refinement model (default: {Config.DEFAULT_MODEL_TEMPERATURE})"
     )
     
     parser.add_argument(
         '--output-temperature', '-ot',
         type=float,
         default=0.2,
-        help='Temperature for the output model (default: 0.2)'
+        help="Temperature for the output model (default: 0.2)"
     )
     
     parser.add_argument(
@@ -91,14 +91,14 @@ Example usage:
     
     parser.add_argument(
         '--api-endpoint',
-        default=None,
+        default=Config().api_endpoint,
         required=False,
         help='OpenAI-compatible API endpoint URL'
     )
     
     parser.add_argument(
         '--api-key',
-        default=None,
+        default=Config().api_key,
         required=False,
         help='API key for authentication'
     )

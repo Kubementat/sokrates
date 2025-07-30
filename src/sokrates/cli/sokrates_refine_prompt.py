@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Python Script to Utilize Local LLM via REST Endpoint (OpenAI Compatible API)
+Python Script to Utilize LLM via REST Endpoint (OpenAI Compatible API)
 
 This script sends text prompts to a locally running LLM server (e.g., LM Studio) 
 that provides an OpenAI-compatible REST API. It processes the response as markdown.
@@ -55,7 +55,7 @@ def main():
     
     # Set up argument parser
     parser = argparse.ArgumentParser(
-        description='Send prompts to local LLM server with OpenAI-compatible API and get markdown output',
+        description='Send prompts to LLM server with OpenAI-compatible API and get markdown output',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -110,20 +110,20 @@ Examples:
     parser.add_argument(
         '--api-endpoint',
         required=False,
-        default=None,
-        help=f"Local LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        default=Config().api_endpoint,
+        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
     
     parser.add_argument(
         '--api-key',
-        default=None,
+        default=Config().api_key,
         help='API key for authentication (many local servers don\'t require this)'
     )
     
     parser.add_argument(
         '--models', '-m',
-        default=None,
-        help='Comma separated list of models to use (default: qwen3-4b). For multiple models e.g: qwen/qwen3-14b,phi4'
+        default=Config().default_model,
+        help=f"Comma separated list of models to use (default: {Config.DEFAULT_MODEL}). For multiple models e.g: qwen/qwen3-14b,phi4"
     )
     
     parser.add_argument(
@@ -136,8 +136,8 @@ Examples:
     parser.add_argument(
         '--temperature', '-t',
         type=float,
-        default=0.7,
-        help='Temperature for response generation (default: 0.7)'
+        default=Config().default_model_temperature,
+        help=f"Temperature for response generation (default: {Config.DEFAULT_MODEL_TEMPERATURE})"
     )
     
     parser.add_argument(
@@ -277,7 +277,7 @@ Examples:
         
         # Send to LLM
         if args.verbose:
-            OutputPrinter.print_progress(f"Sending request to local LLM server at {Colors.CYAN}{api_endpoint}{Colors.RESET}")
+            OutputPrinter.print_progress(f"Sending request to LLM server at {Colors.CYAN}{api_endpoint}{Colors.RESET}")
         
         # send to llm
         created_files = []

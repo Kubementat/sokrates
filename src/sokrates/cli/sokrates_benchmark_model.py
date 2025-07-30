@@ -49,7 +49,7 @@ def main():
         '--api-endpoint',
         required=False,
         default=DEFAULT_ENDPOINT,
-        help=f"Local LLM server API endpoint. Default is {DEFAULT_ENDPOINT}"
+        help=f"LLM server API endpoint. Default is {DEFAULT_ENDPOINT}"
     )
     
     parser.add_argument(
