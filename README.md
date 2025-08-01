@@ -53,7 +53,11 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 pip install sokrates
 
 # or using uv (recommended)
+## basic version: 
 uv pip install sokrates
+
+## voice enabled version
+uv pip install sokrates[voice]
 
 # Test the installation
 sokrates-list-models --api-endpoint http://localhost:1234/v1
@@ -64,7 +68,8 @@ sokrates-list-models --api-endpoint http://localhost:1234/v1
 ```bash
 git clone https://github.com/Kubementat/sokrates.git
 cd sokrates
-uv sync
+uv sync # for basic version
+uv sync --all-extras # for voice support enabled version
 ```
 
 ### Optional Dependencies for Voice Features

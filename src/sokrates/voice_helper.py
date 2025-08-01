@@ -3,20 +3,17 @@
 # the Whisper model. It integrates with LLM API for voice-based chat
 # and uses `pyaudio` for audio input/output.
 
-import whisper
-import pyaudio
-import wave
-import threading
-import tempfile
 import os
 import time
 import re
 import asyncio
 import logging
 import sys
+import tempfile
+import traceback
 
 # debug
-import traceback
+import threading
 
 from enum import Enum
 from .colors import Colors
@@ -26,6 +23,17 @@ from pathlib import Path
 # Configure logging
 logging.basicConfig(filename='sokrates_voice.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
+
+DEFAULT_WHISPER_LANGUAGE = 'en'
+
+# Try to import voice libs, but don't fail if they are not available
+try:
+    import whisper
+    import pyaudio
+    import wave
+    VOICE_MODE_AVAILABLE = True
+except ImportError:
+    VOICE_MODE_AVAILABLE = False
 
 class WhisperModel(Enum):
     """
@@ -48,7 +56,7 @@ class AudioRecorder:
             model (str): The Whisper model to use for speech-to-text. Defaults to "base".
         """
         self.chunk = 1024
-        self.sample_format = pyaudio.paInt16
+        self.sample_format = pyaudio.paInt16 if VOICE_MODE_AVAILABLE else None
         self.channels = 1
         self.fs = 44100
         self.recording = False
@@ -60,12 +68,16 @@ class AudioRecorder:
         """
         Records audio from the microphone until `self.recording` is set to False.
         """
+        if not VOICE_MODE_AVAILABLE:
+            OutputPrinter.print_error("Voice mode is not available. Audio recording is not possible.")
+            return
+
         p = pyaudio.PyAudio()
         stream = p.open(format=self.sample_format,
-                       channels=self.channels,
-                       rate=self.fs,
-                       frames_per_buffer=self.chunk,
-                       input=True)
+                      channels=self.channels,
+                      rate=self.fs,
+                      frames_per_buffer=self.chunk,
+                      input=True)
         
         self.frames = []
         while self.recording:
@@ -83,6 +95,10 @@ class AudioRecorder:
         Args:
             filename (str): The path to the output WAV file.
         """
+        if not VOICE_MODE_AVAILABLE:
+            OutputPrinter.print_error("Voice mode is not available. Audio recording is not possible.")
+            return
+
         p = pyaudio.PyAudio()
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self.channels)
@@ -99,13 +115,17 @@ def play_audio_file(filename: str):
     Args:
         filename (str): The path to the audio file to play.
     """
+    if not VOICE_MODE_AVAILABLE:
+        OutputPrinter.print_error("Voice mode is not available. Audio playback is not possible.")
+        return
+
     chunk = 1024
     wf = wave.open(filename, 'rb')
     p = pyaudio.PyAudio()
     stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                    channels=wf.getnchannels(),
-                    rate=wf.getframerate(),
-                    output=True)
+                channels=wf.getnchannels(),
+                rate=wf.getframerate(),
+                output=True)
     data = wf.readframes(chunk)
     while data:
         stream.write(data)
@@ -114,7 +134,7 @@ def play_audio_file(filename: str):
     stream.close()
     p.terminate()
 
-async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: int, conversation_history: list, log_files: list, hide_reasoning: bool, verbose: bool, refiner):
+async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: int, conversation_history: list, log_files: list, hide_reasoning: bool, verbose: bool, refiner, whisper_model_language: str = DEFAULT_WHISPER_LANGUAGE):
     """
     Runs a voice-based chat interaction with an LLM.
 
@@ -128,7 +148,13 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
         hide_reasoning (bool): If True, hides LLM's internal reasoning (e.g., <think> tags).
         verbose (bool): If True, enables verbose output.
         refiner: An instance of PromptRefiner for cleaning LLM responses.
+        whisper_model_language: The language to use for voice input and according transcription (e.g. en, de, ...)
     """
+    # Check if pyaudio is available
+    if not VOICE_MODE_AVAILABLE:
+        OutputPrinter.print_error("Voice mode is not available. Voice functionality is not available.")
+        return "voice_disabled"
+
     recorder = AudioRecorder()
     OutputPrinter.print_info("Loading Whisper model...", "")
     try:
@@ -171,7 +197,7 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
             
             OutputPrinter.print_info(f"{Colors.BRIGHT_GREEN}{Colors.BOLD}⟳ Transcribing...{Colors.RESET}", "")
             try:
-                result = whisper_model.transcribe(temp_filename)
+                result = whisper_model.transcribe(temp_filename, language=whisper_model_language)
             except Exception as e:
                 OutputPrinter.print_error(f"Error during transcription: {e}")
                 logging.error(f"Error during transcription: {traceback.format_exc()}")

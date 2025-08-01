@@ -55,7 +55,8 @@ import asyncio # Import asyncio for running async functions
 @click.option("--output-file", "-o", type=str, help="Path to a file to log the conversation.")
 @click.option("--hide-reasoning", "-hr", is_flag=True, help="Hide <think> blocks from console output.")
 @click.option("--voice", "-V", is_flag=True, help="Enable voice chat mode.") # Add voice flag
-def main(api_endpoint, api_key, model, temperature, verbose, context_text, context_files, context_directories, output_file, hide_reasoning, max_tokens, voice):
+@click.option("--whisper-model-language", "-wl", default="en", help="The language to use for whisper transcriptions (e.g. en, de) (Default: en).")
+def main(api_endpoint, api_key, model, temperature, verbose, context_text, context_files, context_directories, output_file, hide_reasoning, max_tokens, voice, whisper_model_language):
     """
     Main function to initiate LLM chat session.
 
@@ -72,6 +73,7 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
         hide_reasoning (bool): Hide reasoning in responses
         max_tokens (float): Maximum response tokens
         voice (bool): Enable voice chat mode
+        whisper_model_language (str): The language to use for whisper transcriptions (e.g. en, de) (Default: en).
 
     Returns:
         None: This function runs an interactive chat loop and doesn't return a value
@@ -140,7 +142,7 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
             OutputPrinter.print_info("Loaded context", f"{full_context[:200]}...") # Show first 200 chars of context
 
     # Define a function for the chat loop to allow switching between modes
-    async def chat_loop(voice_mode):
+    async def chat_loop(voice_mode, whisper_model_language):
         """
         Main chat loop function that handles both text and voice interactions.
     
@@ -164,7 +166,7 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
                     # import only when activated
                     from ..voice_helper import run_voice_chat # Import the voice chat function
                     OutputPrinter.print_info("Starting voice chat. Press CTRL+C to exit.", "")
-                    action = await run_voice_chat(llm_api, model, temperature, max_tokens, conversation_history, log_files, hide_reasoning, verbose, refiner)
+                    action = await run_voice_chat(llm_api, model, temperature, max_tokens, conversation_history, log_files, hide_reasoning, verbose, refiner, whisper_model_language=whisper_model_language)
                     if action == "toggle_voice":
                         voice_mode = not voice_mode
                         OutputPrinter.print_info(f"Switched to {'voice' if voice_mode else 'text'} mode.", "")
@@ -180,6 +182,10 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
                         continue
                     elif action == "exit":
                         break
+                    elif action == "voice_disabled":
+                        voice_mode = False
+                        OutputPrinter.print_info(f"Switched to 'text' mode.", "")
+                        continue
                 else:
                     OutputPrinter.print_info("Starting text chat. Press CTRL+D or type 'exit' to quit.", "")
                     OutputPrinter.print_info("Commands: /add <Filepath> or /voice", "")
@@ -258,7 +264,7 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
         for lf in log_files:
             lf.close()
 
-    asyncio.run(chat_loop(voice))
+    asyncio.run(chat_loop(voice, whisper_model_language=whisper_model_language))
 
 if __name__ == "__main__":
     main()

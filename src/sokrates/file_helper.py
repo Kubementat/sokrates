@@ -6,6 +6,17 @@
 # content from multiple files or directories. This utility centralizes
 # file management operations for the LLM tools.
 
+# Main Purpose:
+# - Provides a centralized utility for common file system operations
+# - Includes file management functions for reading, writing, listing, and creating files
+# - Supports combining content from multiple files or directories
+# - Includes filename sanitization and timestamped directory/file naming
+
+# Parameters:
+# - All methods are static and don't require class instantiation
+# - Methods accept file paths as strings and optional verbose flags
+# - Some methods accept lists of file paths for batch operations
+
 # Usage Example:
 # from src.sokrates.file_helper import FileHelper
 # files = FileHelper.list_files_in_directory('/path/to/dir')
@@ -23,24 +34,26 @@ class FileHelper:
     """
     A utility class providing static methods for various file system operations.
 
-    This class contains the following static methods:
-    - clean_name(): Sanitize filenames by removing problematic characters
-    - list_files_in_directory(): List files in a directory (non-recursive)
-    - read_file(): Read content from a single file
-    - read_multiple_files(): Read content from multiple files
-    - read_multiple_files_from_directories(): Read all files from directories
-    - write_to_file(): Write content to a file with directory creation
-    - create_new_file(): Create empty files with directory creation
-    - generate_postfixed_sub_directory_name(): Generate timestamped directory names
-    - combine_files(): Combine multiple files into single string
-    - combine_files_in_directories(): Combine all files from directories
+    Main Purpose:
+        - Centralizes common file system operations for LLM tools
+        - Provides file management functions for reading, writing, listing, and creating files
+        - Supports combining content from multiple files or directories
+        - Includes filename sanitization and timestamped directory/file naming
 
-    Main Responsibilities:
-        - File path sanitization and manipulation
-        - Reading/writing file content with error handling
-        - Directory operations and file combination utilities
+    Initialization Parameters:
+        - None (all methods are static and don't require class instantiation)
 
-    Note: All methods are static and do not require class instantiation.
+    Functions:
+        - clean_name(): Sanitize filenames by removing problematic characters
+        - list_files_in_directory(): List files in a directory (non-recursive)
+        - read_file(): Read content from a single file
+        - read_multiple_files(): Read content from multiple files
+        - read_multiple_files_from_directories(): Read all files from directories
+        - write_to_file(): Write content to a file with directory creation
+        - create_new_file(): Create empty files with directory creation
+        - generate_postfixed_sub_directory_name(): Generate timestamped directory names
+        - combine_files(): Combine multiple files into single string
+        - combine_files_in_directories(): Combine all files from directories
     """
     
     @staticmethod
@@ -48,18 +61,18 @@ class FileHelper:
         """
         Sanitizes a string for use as a filename or path component.
 
-        Replaces problematic characters:
-        - '/' → '_'
-        - ':' → '-'
-        - '*' → '-'
-        - '?' → '' (removed)
-        - '"' → '' (removed)
+        Main Functionality:
+            - Replaces problematic characters with safe alternatives
+            - Removes question marks and quotes
 
         Args:
             name (str): Input string to clean
 
         Returns:
-            str: Safe filename string
+            str: Safe filename string with problematic characters replaced
+
+        Side Effects:
+            - None (pure function)
         """
         return name.replace('/', '_').replace(':', '-').replace('*', '-').replace('?', '').replace('"', '')
 
@@ -68,12 +81,19 @@ class FileHelper:
         """
         Lists all files directly within a specified directory (non-recursive).
 
+        Main Functionality:
+            - Scans a directory and returns all files (not subdirectories)
+            - Uses os.scandir for efficient file system access
+
         Args:
             directory_path (str): Directory path to scan
-            verbose (bool, optional): Verbose output flag
+            verbose (bool, optional): If True, enables verbose output
 
         Returns:
-            List[str]: List of full file paths found
+            List[str]: List of full file paths found in the directory
+
+        Side Effects:
+            - None (pure function)
         """
         file_paths = []
         for file_path in os.scandir(directory_path):
@@ -83,6 +103,23 @@ class FileHelper:
     
     @staticmethod
     def read_json_file(file_path: str, verbose: bool = False) -> dict:
+        """
+        Reads and parses a JSON file.
+
+        Main Functionality:
+            - Opens and reads a JSON file
+            - Parses the JSON content into a Python dictionary
+
+        Args:
+            file_path (str): Path to the JSON file to read
+            verbose (bool, optional): If True, prints loading messages
+
+        Returns:
+            dict: Parsed JSON content
+
+        Side Effects:
+            - None (pure function)
+        """
         if verbose:
             print(f"{Colors.CYAN}Loading json file from {file_path} ...{Colors.RESET}")
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -93,6 +130,11 @@ class FileHelper:
         """
         Reads and returns the entire content of a specified file.
 
+        Main Functionality:
+            - Opens a file and reads its entire content
+            - Strips whitespace from the beginning and end of the content
+            - Handles file reading errors with appropriate exceptions
+
         Args:
             file_path (str): Path to the file to read
             verbose (bool, optional): If True, prints loading messages
@@ -100,9 +142,8 @@ class FileHelper:
         Returns:
             str: Stripped file content
 
-        Raises:
-            FileNotFoundError: If file doesn't exist
-            IOError: For other file reading errors
+        Side Effects:
+            - None (pure function)
         """
         try:
             if verbose:
@@ -119,16 +160,20 @@ class FileHelper:
         """
         Reads content from multiple files.
 
+        Main Functionality:
+            - Reads multiple files specified by their paths
+            - Returns a list of stripped content from each file
+            - Handles file reading errors with appropriate exceptions
+
         Args:
             file_paths (List[str]): List of file paths to read
-            verbose (bool, optional): Enable verbose output
+            verbose (bool, optional): If True, enables verbose output
 
         Returns:
             List[str]: List of stripped file contents
 
-        Raises:
-            FileNotFoundError: If any file doesn't exist
-            IOError: For reading errors
+        Side Effects:
+            - None (pure function)
         """
         contents = []
         for file_path in file_paths:
@@ -140,12 +185,20 @@ class FileHelper:
         """
         Reads all files from multiple directories.
 
+        Main Functionality:
+            - Scans multiple directories and reads all files within them
+            - Combines content from all files into a single list
+            - Uses the list_files_in_directory and read_multiple_files methods
+
         Args:
             directory_paths (List[str]): List of directory paths to scan
-            verbose (bool, optional): Enable verbose output
+            verbose (bool, optional): If True, enables verbose output
 
         Returns:
             List[str]: Combined content of all found files
+
+        Side Effects:
+            - None (pure function)
         """
         contents=[]
         for directory_path in directory_paths:
@@ -160,13 +213,22 @@ class FileHelper:
         """
         Writes content to a file, creating parent directories as needed.
 
+        Main Functionality:
+            - Creates parent directories if they don't exist
+            - Writes content to the specified file
+            - Handles directory creation and file writing errors
+
         Args:
             file_path (str): Destination file path
             content (str): Content to write
             verbose (bool, optional): If True, prints success message
 
-        Raises:
-            IOError: For directory creation or writing errors
+        Returns:
+            None
+
+        Side Effects:
+            - Creates parent directories if they don't exist
+            - Writes content to the specified file
         """
         try:
             dirname = os.path.dirname(file_path)
