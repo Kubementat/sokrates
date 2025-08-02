@@ -188,13 +188,18 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
                         continue
                 else:
                     OutputPrinter.print_info("Starting text chat. Press CTRL+D or type 'exit' to quit.", "")
-                    OutputPrinter.print_info("Commands: /add <Filepath> or /voice", "")
+                    OutputPrinter.print_info("Commands: /add <Filepath>, /voice, or /talk", "")
                     user_input = input(f"{Colors.BLUE}You:{Colors.RESET} ")
                     if user_input.lower() == "exit":
                         break
                     elif user_input.lower() == "/voice":
                         voice_mode = not voice_mode
                         OutputPrinter.print_info(f"Switched to {'voice' if voice_mode else 'text'} mode.", "")
+                        continue
+                    elif user_input.lower() == "/talk":
+                        # Import the handle_talk_command function
+                        from ..voice_helper import handle_talk_command
+                        handle_talk_command(conversation_history, refiner)
                         continue
                     elif user_input.lower().startswith("/add "):
                         filepath = user_input[5:].strip()

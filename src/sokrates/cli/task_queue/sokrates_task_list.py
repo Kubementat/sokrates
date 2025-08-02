@@ -108,7 +108,6 @@ def main():
         OutputPrinter.print(f"Total tasks: {len(filtered_tasks)}")
 
     except Exception as e:
-        breakpoint()
         OutputPrinter.print_error(f"Error listing tasks: {str(e)}")
         sys.exit(1)
 

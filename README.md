@@ -11,6 +11,7 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 - [Usage](#usage)
   - [Available Commands](#available-commands)
   - [Task Queuing System](#task-queuing-system)
+  - [sokrates-chat Commands](#sokrates-chat-commands)
 - [Features](#features)
 - [Contributing](#contributing)
 - [License](#license)
@@ -111,13 +112,6 @@ cp .env.example $HOME/.sokrates/.env
 vim $HOME/.sokrates/.env
 ```
 
-## Whisper dependencies
-
-```bash
-brew install ffmpeg
-brew install whisper-cpp
-```
-
 ## Usage
 
 ### Basic Command Structure
@@ -158,6 +152,7 @@ uv run list-models --help
 - `sokrates-idea-generator`: Generate ideas using multi-stage workflows with topic categorization
 - `sokrates-generate-mantra`: Generate mantras or affirmations
 - `sokrates-fetch-to-md`: Fetch web content and convert to markdown
+- `sokrates-merge-ideas`: Merge multiple documents or ideas into a coherent output
 
 #### Benchmarking & Analysis
 - `sokrates-benchmark-model`: Benchmark LLM models with performance metrics
@@ -210,6 +205,44 @@ sokrates-chat --model qwen/qwen3-8b --context-files ./docs/context.md
 sokrates-refine-prompt --prompt "Write a story about a robot" --model qwen/qwen3-8b
 ```
 
+### sokrates-chat Commands
+
+The sokrates-chat interface provides several special commands that enhance the chat experience:
+
+#### `/voice`
+Toggles between voice mode and text mode during the chat session.
+
+- **Usage**: Type `/voice` in the chat interface
+- **Description**: When enabled, voice mode allows you to speak your inputs instead of typing them. The system will use speech-to-text capabilities to transcribe your voice input. This requires the voice dependencies to be installed (FFmpeg and Whisper-cpp).
+- **Example**:
+  ```
+  You: /voice
+  [System message: Switched to voice mode.]
+  ```
+
+#### `/talk`
+Enables text-to-speech functionality for the AI's responses.
+
+- **Usage**: Type `/talk` in the chat interface
+- **Description**: When activated, the AI will speak its responses aloud using text-to-speech capabilities. This is useful for hands-free interaction or when you prefer to listen rather than read the responses.
+- **Example**:
+  ```
+  You: /talk
+  [System message: Text-to-speech enabled for AI responses.]
+  ```
+
+#### `/add <Filepath>`
+Adds additional context to the conversation from a file.
+
+- **Usage**: Type `/add <path/to/file>` in the chat interface
+- **Description**: Loads content from the specified file and adds it to the conversation history as a system message. This allows you to provide additional context or reference material during the conversation without restarting the chat.
+- **Example**:
+  ```
+  You: /add ./docs/project-context.md
+  [System message: Added context from ./docs/project-context.md]
+  ```
+- **Note**: The file path can be absolute or relative to the current working directory.
+
 #### Task Management
 
 ```bash
@@ -243,6 +276,22 @@ sokrates-generate-mantra --count 3 --theme "productivity"
 
 # Convert web content to markdown
 sokrates-fetch-to-md --url "https://example.com/article" --output article.md
+```
+
+#### Idea Generation & Content Creation
+
+```bash
+# Generate creative ideas with topic categorization
+sokrates-idea-generator --topic "AI in healthcare" --output-dir ./healthcare-ideas --idea-count 5
+
+# Generate mantras for motivation
+sokrates-generate-mantra -o my_mantra.md
+
+# Convert web content to markdown
+sokrates-fetch-to-md --url "https://example.com/article" --output article.md
+
+# Merge multiple documents or ideas
+sokrates-merge-ideas --source-documents 'docs/idea1.md,docs/idea2.md' --output-file merged-ideas.md
 ```
 
 #### Benchmarking & Analysis

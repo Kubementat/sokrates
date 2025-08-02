@@ -6,7 +6,11 @@
 # the prompt engineering process.
 
 from pathlib import Path
-from . import LLMApi, PromptRefiner, Colors, FileHelper, Config
+from .llm_api import LLMApi
+from .prompt_refiner import PromptRefiner
+from .colors import Colors
+from .file_helper import FileHelper
+from .config import Config
 from .utils import Utils
 from .output_printer import OutputPrinter
 import os
