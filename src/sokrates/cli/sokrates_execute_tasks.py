@@ -12,7 +12,8 @@ Options:
     --api-endpoint ENDPOINT   LLM server API endpoint
     --api-key KEY             API key for authentication (optional)
     --model MODEL             The model to use for task execution
-    --output-directory DIR              Output directory for saving results
+    --output-directory DIR    Output directory for saving results
+    --no-refinement           Per default the task prompts are refined before execution. This disables this feature and executes them directly without refinement.
     --verbose                 Enable verbose output with debug information
 
 Example:
@@ -91,10 +92,19 @@ def main():
         action='store_true',
         help='Enable verbose output with debug information'
     )
+    
+    parser.add_argument(
+        '--no-refinement', '-nr',
+        action='store_true',
+        default=False,
+        help='Disable refinement before task execution'
+    )
 
     # Parse arguments
     args = parser.parse_args()
     config = Config(verbose=args.verbose)
+
+    refinement_enabled = not args.no_refinement
     
     if not args.task_file:
         OutputPrinter.print_error("You must provide a task file using --task-file or -tf")
@@ -116,7 +126,8 @@ def main():
         model=args.model,
         temperature=args.temperature,
         output_dir=target_directory,
-        verbose=args.verbose
+        verbose=args.verbose,
+        refinement_enabled=refinement_enabled
     )
 
     try:

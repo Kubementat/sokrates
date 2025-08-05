@@ -1,0 +1,61 @@
+{
+  "task": "Test the capabilities of large language models",
+  "subtasks": [
+    {
+      "id": 1,
+      "description": "Write a 300 word short story about a detective who can only solve cases by speaking in rhyming couplets. The case involves a missing artifact from a museum.",
+      "complexity": 7
+    },
+    {
+      "id": 2,
+      "description": "Solve this step-by-step: A train travels 300 miles in 5 hours. If it maintains constant speed, how long will it take to travel 450 miles? Show all calculations and explain your reasoning.",
+      "complexity": 7
+    },
+    {
+      "id": 3,
+      "description": "Explain how quantum computing differs from classical computing, using analogies to everyday objects like a car versus a bicycle, and discuss implications for cybersecurity.",
+      "complexity": 7
+    },
+    {
+      "id": 4,
+      "description": "A doctor has two patients in critical condition who both need the same rare organ. One patient is a child with no family support, the other is an elderly parent who supported their family for decades. How should medical ethics guide this decision?",
+      "complexity": 7
+    },
+    {
+      "id": 5,
+      "description": "Write a Python function that sorts an array of dictionaries by multiple keys in descending order, with the ability to handle missing keys gracefully.",
+      "complexity": 7
+    },
+    {
+      "id": 6,
+      "description": "Translate this sentence from English to French , from French to German and from German back to English: The weather today is perfect for a picnic in the park. Evaluate if the meaning was preserved.",
+      "complexity": 7
+    },
+    {
+      "id": 7,
+      "description": "Write a short article about the relation between security and freedom.",
+      "complexity": 7
+    },
+    {
+      "id": 8,
+      "description": "Create comprehensive documentation for a REST API endpoint that handles user authentication, including request/response examples and error handling.",
+      "complexity": 7
+    },
+    {
+      "id": 9,
+      "description": "Analyze the pros and cons of remote work from both employee and employer perspectives, considering factors like productivity, work-life balance, and company culture.",
+      "complexity": 7
+    },
+    {
+      "id": 10,
+      "description": "You've been given a time machine but can only travel to one historical moment in the past. What would you choose and why? Provide a detailed justification of your decision.",
+      "complexity": 7
+    },
+    {
+      "id": 11,
+      "description": "Explain in simple terms how photosynthesis works and why it is important for life on Earth.",
+      "complexity": 7
+    }
+  ],
+  "count": 11
+}

@@ -22,6 +22,7 @@ from .refinement_workflow import RefinementWorkflow
 from .file_helper import FileHelper
 from .config import Config
 from .output_printer import OutputPrinter
+from .llm_api import LLMApi
 
 class SequentialTaskExecutor:
     """
@@ -44,6 +45,7 @@ class SequentialTaskExecutor:
         output_dir (str): Directory path for saving results
         verbose (bool): Verbose output flag
         workflow (RefinementWorkflow): Workflow instance for prompt refinement
+        refinement_enabled (bool): Should prompts be refined before execution first
 
     Methods:
         execute_tasks_from_file(): Execute all tasks from a JSON file
@@ -55,7 +57,8 @@ class SequentialTaskExecutor:
                  model: str = Config.DEFAULT_MODEL,
                  temperature: float = Config.DEFAULT_MODEL_TEMPERATURE,
                  output_dir: str = None,
-                 verbose: bool = False):
+                 verbose: bool = False,
+                 refinement_enabled: bool = True):
         """
         Initializes the SequentialTaskExecutor with configuration and workflow setup.
 
@@ -78,6 +81,7 @@ class SequentialTaskExecutor:
         self.temperature = temperature
         self.output_dir = Config.create_and_return_task_execution_directory(output_dir)
         self.verbose = verbose
+        self.refinement_enabled = refinement_enabled
 
         # Create output directory if it doesn't exist
         os.makedirs(self.output_dir, exist_ok=True)
@@ -204,7 +208,7 @@ class SequentialTaskExecutor:
             main_task_context = f"""
 # Context description
 The task that should be executed is a sub-task of a bigger project or main objective.
-Handle the sub-task in the context of the main object.
+Handle the sub-task in the context of the main objective.
 
 # Main objective / Project description
 {main_task}
@@ -220,14 +224,27 @@ Handle the sub-task in the context of the main object.
         refinement_prompt_path = f"{Config.DEFAULT_PROMPTS_DIRECTORY}/refine-prompt.md"
         refinement_prompt = FileHelper.read_file(refinement_prompt_path, verbose=self.verbose)
 
-        # Step 3: Execute the refined prompt using LLM API
-        execution_result = self.workflow.refine_and_send_prompt(
-            input_prompt=task_prompt,
-            refinement_prompt=refinement_prompt,  # No further refinement needed for execution
-            refinement_model=self.model,
-            execution_model=self.model,
-            refinement_temperature=self.temperature
-        )
+        execution_result = ""
+        
+        if self.refinement_enabled:
+            OutputPrinter.print(f"Refinement is enabled. Refining and then executing the prompt ...")
+            # Refine and execute prompt using LLM API
+            execution_result = self.workflow.refine_and_send_prompt(
+                input_prompt=task_prompt,
+                refinement_prompt=refinement_prompt,  # No further refinement needed for execution
+                refinement_model=self.model,
+                execution_model=self.model,
+                refinement_temperature=self.temperature
+            )
+        else:
+            OutputPrinter.print(f"Refinement is disabled. Executing the prompt directly ...")
+            llmapi = LLMApi(verbose=self.verbose, 
+                            api_endpoint=self.api_endpoint, 
+                            api_key=self.api_key)
+            execution_result = llmapi.send(task_prompt, 
+                            model = self.model, 
+                            max_tokens=20000, 
+                            temperature=self.temperature)
 
         if self.verbose:
             OutputPrinter.print(f"Execution result for task {task_id}:\n{execution_result}")

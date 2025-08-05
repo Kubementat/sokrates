@@ -1,0 +1,66 @@
+{
+  "task": "Test the coding capabilities of large language models",
+  "subtasks": [
+    {
+      "id": 1,
+      "description": "Create a Python function that takes a list of dictionaries representing employees (with keys 'name', 'department', and 'salary') and returns a dictionary grouping employees by department, with each department containing a list of employee names sorted alphabetically. Also provide a pytest test case for testing the created functionality.",
+      "complexity": 7
+    },
+    {
+      "id": 2,
+      "description": "Write a Python decorator that logs function calls with their arguments and return values to a file. The decorator should work with any function and preserve the original function's metadata. Also provide a pytest test case for testing the created functionality.",
+      "complexity": 7
+    },
+    {
+      "id": 3,
+      "description": "Create a Python function that processes a JSON file containing user data and generates a report showing statistics about users by age groups. Include proper error handling for missing fields. Also provide a pytest test case for testing the created functionality.",
+      "complexity": 7
+    },
+    {
+      "id": 4,
+      "description": "Write a Ruby class `Library` with methods to add books (with title, author, and ISBN), remove books by ISBN, and search for books by title, author or a sub-string of a ISBN. Also provide an rspec testsuite for the created functionality.",
+      "complexity": 7
+    },
+    {
+      "id": 5,
+      "description": "Create a snake clone in HTML, CSS and Javascript in one file.",
+      "complexity": 7
+    },
+    {
+      "id": 6,
+      "description": "Write JavaScript code to create a simple Todo list application with HTML structure and CSS styling. Include functionality to add, mark complete, and delete todos. All should be contained in one html file.",
+      "complexity": 7
+    },
+    {
+      "id": 7,
+      "description": "Create a JavaScript class called `Calculator` that supports basic arithmetic operations (add, subtract, multiply, divide) and handles edge cases like division by zero with proper error messages. Also provide a way to test this by implementing a simple html page with embedded javascript to test the created functionality.",
+      "complexity": 7
+    },
+    {
+      "id": 8,
+      "description": "Create an HTML page with a responsive navigation bar that collapses to a hamburger menu on mobile devices. Include CSS styling for hover effects and active states.",
+      "complexity": 7
+    },
+    {
+      "id": 9,
+      "description": "Create a complete HTML page for a portfolio website for a Software developer; who is a cat; with semantic HTML structure, CSS Flexbox layout, and responsive design that works on mobile, tablet, and desktop screens.",
+      "complexity": 7
+    },
+    {
+      "id": 10,
+      "description": "Build a complete login form with HTML5 validation, CSS styling including responsive behavior, and JavaScript for real-time feedback. All code should be included in one html file.",
+      "complexity": 7
+    },
+    {
+      "id": 11,
+      "description": "Create a Python script that downloads a webpage to a local markdown file. The parameters are --url (source url) and --output (target markdown formatted file's path). Also provide guidance on how to test this script.",
+      "complexity": 7
+    },
+    {
+      "id": 12,
+      "description": "Write a python script that takes a string with a mathematical function and plots the function graphically. Here is an example function definition specifying the input format for mathematical functions: f(x)=x**3+2*x**2+4*x+3",
+      "complexity": 7
+    }
+  ],
+  "count": 12
+}
