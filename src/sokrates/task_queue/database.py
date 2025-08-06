@@ -55,12 +55,29 @@ class TaskQueueDatabase:
         self._initialize_tables()
 
     def connection(self):
+        """
+        Get a database connection, establishing one if needed.
+
+        Returns:
+            sqlite3.Connection: A database connection object.
+        """
         if not self.conn:
             self._connect()
         return self.conn
     
     def _connect(self):
-        """Establish database connection with retry logic"""
+        """
+        Establishes a connection to the SQLite database with retry logic.
+
+        This method attempts to connect to the SQLite database up to 3 times,
+        with increasing delays between retries in case of connection failures.
+
+        Returns:
+            None
+
+        Raises:
+            Exception: If all retry attempts fail to establish a database connection.
+        """
         max_retries = 3
         for attempt in range(max_retries):
             try:
@@ -75,7 +92,16 @@ class TaskQueueDatabase:
                 time.sleep(0.1 * (attempt + 1))
 
     def _initialize_tables(self):
-        """Create necessary tables if they don't exist"""
+        """
+        Initializes the database tables if they don't already exist.
+
+        This method creates two tables in the SQLite database:
+        1. 'tasks' table for storing task information
+        2. 'task_history' table for logging status changes
+
+        Returns:
+            None
+        """
         with self.connection():
             # Create tasks table
             self.conn.execute("""
@@ -122,6 +148,17 @@ class TaskQueueDatabase:
             raise ValueError(f"Task already exists: {e}")
 
     def _execute_select_query(self, query, params: list=None, limit: Optional[int] = None):
+        """
+        Executes a SELECT query and returns the results as a list of dictionaries.
+
+        Args:
+            query (str): The SQL SELECT query to execute.
+            params (list, optional): Parameters for the SQL query. Defaults to None.
+            limit (int, optional): Maximum number of results to return. Defaults to None.
+
+        Returns:
+            list[Dict]: A list of dictionaries representing the query results.
+        """
         if params is None:
             params = []
 

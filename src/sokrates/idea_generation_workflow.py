@@ -106,6 +106,16 @@ class IdeaGenerationWorkflow:
         self.topic_generation_llm_model = topic_generation_llm_model if topic_generation_llm_model else Config.DEFAULT_MODEL
     
     def pick_topic_categories_from_json(self) -> list:
+        """
+        Selects a random number of thematic categories from a JSON file.
+
+        This method reads topic categories from a predefined JSON file and randomly
+        selects between 1 and MAXIMUM_CATEGORIES_TO_PICK categories to use for 
+        topic generation.
+
+        Returns:
+            list: A list of randomly selected topic categories.
+        """
         topic_categories_json_path = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/context/topic_categories.json").resolve())
         categories_object = FileHelper.read_json_file(topic_categories_json_path, self.verbose)
         all_categories = categories_object["topic_categories"]
@@ -120,6 +130,18 @@ class IdeaGenerationWorkflow:
         return categories
         
     def generate_topic_generation_prompt(self, topic_generation_instructions) -> str:
+        """
+        Generates a prompt for topic generation by incorporating thematic categories.
+
+        This method takes the base topic generation instructions and appends 
+        information about thematic categories to guide topic creation.
+
+        Args:
+            topic_generation_instructions (str): The base instructions for generating a topic.
+
+        Returns:
+            str: A complete prompt combining the original instructions with category information.
+        """
         ret = topic_generation_instructions
         
         categories = self.pick_topic_categories_from_json()

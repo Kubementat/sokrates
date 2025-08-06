@@ -29,6 +29,13 @@ class OutputPrinter:
 
   @staticmethod
   def print(value: str, color = Colors.BRIGHT_YELLOW):
+      """
+      Prints a value with the specified color.
+
+      Args:
+          value (str): The text to print.
+          color (str): The ANSI color code for the output. Defaults to Colors.BRIGHT_YELLOW.
+      """
       print(f"{color}{value}{Colors.RESET}")
   
   @staticmethod

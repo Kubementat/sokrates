@@ -38,6 +38,14 @@ except ImportError:
 class WhisperModel(Enum):
     """
     Enum for available Whisper models.
+    
+    Attributes:
+        BASE (str): The base model size
+        TINY (str): The tiny model size  
+        MEDIUM (str): The medium model size
+        LARGE (str): The large model size
+    
+    This enum defines the available models that can be used for speech-to-text transcription.
     """
     BASE = "base"
     TINY = "tiny"
@@ -152,7 +160,12 @@ def play_audio_file_interruptible(filename: str):
     stop_queue = queue.Queue()
     
     def wait_for_enter():
-        """Wait for Enter key press and signal to stop playback."""
+        """
+        Waits for the Enter key to be pressed and signals to stop audio playback.
+        
+        This function is used in interruptible audio playback operations to allow
+        the user to stop playback manually.
+        """
         input()
         stop_queue.put(True)
         OutputPrinter.print(f"{Colors.YELLOW}Audio playback stopped by user.{Colors.RESET}")

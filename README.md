@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.4.2](https://img.shields.io/badge/Version-0.4.2-brightgreen.svg)](https://github.com/Kubementat/sokrates)
+[![Version: 0.6.1](https://img/img.shields.io/badge/Version-0.6.1-brightgreen.svg)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -99,6 +99,7 @@ The project includes the following key dependencies:
 - **pyaudio**: Audio input/output for voice features
 - **dotenv**: Environment variable management
 - **pytest**: Testing framework
+- **pytest-mock**: Mocking for testing
 
 ## Configuration
 
@@ -263,19 +264,6 @@ sokrates-task-status --task-id abc123 --verbose
 
 # List all pending tasks
 sokrates-task-list --status pending --priority high
-```
-
-#### Idea Generation & Content Creation
-
-```bash
-# Generate creative ideas with topic categorization
-sokrates-idea-generator --topic "AI in healthcare" --output-dir ./healthcare-ideas --idea-count 5
-
-# Generate mantras for motivation
-sokrates-generate-mantra --count 3 --theme "productivity"
-
-# Convert web content to markdown
-sokrates-fetch-to-md --url "https://example.com/article" --output article.md
 ```
 
 #### Idea Generation & Content Creation

@@ -153,7 +153,15 @@ class TaskQueueManager:
             raise Exception(f"Failed to remove task {task_id}: {e}")
 
     def close(self):
-        """Close the database connection"""
+        """
+        Closes the underlying database connection.
+
+        This method ensures that all database resources are properly closed
+        and released. It should be called when the TaskQueueManager is no longer needed.
+        
+        Returns:
+            None
+        """
         self.db.close()
 
     def __enter__(self):

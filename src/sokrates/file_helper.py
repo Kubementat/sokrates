@@ -244,6 +244,34 @@ class FileHelper:
 
     @staticmethod
     def copy_file(source_filepath, target_filepath, verbose:bool = False):
+        """
+        Copies a file from source to target path.
+
+        Main Functionality:
+            - Uses shutil.copy2 to copy a file with metadata preservation
+            - Creates parent directories as needed for the target path
+            - Handles various error conditions with appropriate messages
+
+        Args:
+            source_filepath (str): Path to the source file to copy
+            target_filepath (str): Destination path for the copied file
+            verbose (bool, optional): If True, prints success/failure messages
+
+        Returns:
+            None
+
+        Side Effects:
+            - Creates parent directories for target path if needed
+            - Copies file content and metadata from source to destination
+
+        Raises:
+            FileNotFoundError: If the source file doesn't exist
+            PermissionError: If there's no permission to read or write files
+            Exception: For other unexpected errors during copying process
+
+        Example:
+            FileHelper.copy_file('/path/to/source.txt', '/path/to/target.txt')
+        """
         try:
             shutil.copy2(source_filepath, target_filepath, follow_symlinks=True)
             if verbose:

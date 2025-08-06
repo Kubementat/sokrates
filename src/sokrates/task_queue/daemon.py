@@ -25,7 +25,16 @@ class TaskQueueDaemon:
     """
 
     def __init__(self, db_path=None):
-        """Initialize the daemon with configuration."""
+        """
+        Initialize the TaskQueueDaemon with configuration and set up components.
+
+        This constructor configures the daemon's processing interval, initializes
+        logging, and sets up the TaskProcessor for task execution.
+
+        Args:
+            db_path (str, optional): Path to the SQLite database file.
+                If None, uses the default from Config.
+        """
         self.interval = Config().task_queue_daemon_processing_interval
         self.running = False
 
@@ -103,6 +112,14 @@ class TaskQueueDaemon:
             self.logger.info("Daemon shut down complete")
             
     def restart(self):
+        """Restart the Task Queue Daemon process.
+
+        This method shuts down the current daemon instance and starts a new one.
+        It's useful for applying configuration changes or recovering from errors.
+
+        Returns:
+            None
+        """
         self.logger.info("Restarting Task Queue Daemon...")
         self.shutdown()
         self.run()

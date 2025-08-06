@@ -79,7 +79,7 @@ def test_all_commands(api_endpoint, api_key, model):
 
     # Execute each command
     print(f"{Colors.BRIGHT_GREEN}\nTEST EXECUTION:{Colors.RESET}")
-    errors_found = 0
+    errored_commands = []
     for cmd in COMMANDS:
         print(f"{Colors.YELLOW}\n{'-'*60}{Colors.RESET}")
         print(f"{Colors.YELLOW}\nExecuting: {cmd['cmd']} {cmd['args']}{Colors.RESET}")
@@ -88,12 +88,13 @@ def test_all_commands(api_endpoint, api_key, model):
             print(f"{Colors.BRIGHT_GREEN}\nSuccess.{Colors.RESET}")
         else:
             print(f"{Colors.BRIGHT_GREEN}Error: {result.stderr}{Colors.RESET}")
-            errors_found+=1
+            errored_commands.append(cmd)
         print(f"{Colors.YELLOW}\n{'-'*60}{Colors.RESET}")
 
-    if errors_found > 0:
+    if len(errored_commands) > 0:
         print(f"{Colors.RED}#####{Colors.RESET}")
-        print(f"{Colors.RED}TEST FAILED: {errors_found} errors found.{Colors.RESET}")
+        print(f"{Colors.RED}TEST FAILED: {len(errored_commands)} errors found.{Colors.RESET}")
+        print(f"{Colors.RED}FAILING COMMANDS: {errored_commands}{Colors.RESET}")
         print(f"{Colors.RED}#####{Colors.RESET}")
         sys.exit(1)
     else:

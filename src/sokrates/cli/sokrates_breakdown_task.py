@@ -12,6 +12,14 @@ DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
 DEFAULT_MAX_TOKENS = 20000
 
 def main():
+    """Main function for the task breakdown CLI tool.
+    
+    This function handles command-line arguments, processes the input task,
+    and executes the breakdown workflow using the RefinementWorkflow.
+    
+    Returns:
+        None
+    """
     # Set up argument parser
     parser = argparse.ArgumentParser(
             description='Breaks down a given task into sub-tasks with complexity rating. Returns a json representation of the calculated tasks.',

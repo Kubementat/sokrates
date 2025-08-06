@@ -20,6 +20,12 @@ class Config:
   _instance = None  # Class variable to hold the single instance
 
   def __new__(cls, *args, **kwargs):
+        """
+        Singleton pattern implementation to ensure only one instance of Config exists.
+        
+        Returns:
+            Config: The single instance of the Config class.
+        """
         if not cls._instance:
             cls._instance = super(Config, cls).__new__(cls)
             # Initialize your config here, for example:
@@ -59,6 +65,21 @@ class Config:
     self.print_configuration()
     
   def print_configuration(self):
+      """
+      Prints the current configuration settings to the console in a formatted way.
+      
+      This method displays various configuration parameters such as:
+      - SOKRATES_HOME_PATH
+      - SOKRATES_API_ENDPOINT  
+      - SOKRATES_DEFAULT_MODEL
+      - SOKRATES_DEFAULT_MODEL_TEMPERATURE
+      - SOKRATES_CONFIG_FILEPATH
+      - SOKRATES_DATABASE_PATH
+      - SOKRATES_DAEMON_LOGFILE_PATH
+      
+      Returns:
+          None
+      """
       print(f"{Colors.GREEN}{Colors.BOLD}### Basic Configuration ###{Colors.RESET}")
       print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_HOME_PATH: {self.home_path}{Colors.RESET}")
       print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_API_ENDPOINT: {self.api_endpoint}{Colors.RESET}")
@@ -80,6 +101,16 @@ class Config:
       self.default_model_temperature: float | None = float(os.environ.get('SOKRATES_DEFAULT_MODEL_TEMPERATURE', self.DEFAULT_MODEL_TEMPERATURE))
       
   def initialize_directories(self):
+    """
+    Creates the necessary directory structure for the application.
+    
+    This method ensures that the following directories exist:
+    - The main sokrates home directory (~/.sokrates)
+    - The logs subdirectory (~/.sokrates/logs)
+    
+    Returns:
+        None
+    """
     print(f"Creating sokrates home path: {self.home_path}")
     Path(self.home_path).mkdir(parents=True, exist_ok=True)
     print(f"Creating sokrates logs path: {self.logs_path}")
@@ -87,6 +118,21 @@ class Config:
   
   @staticmethod
   def _get_local_member_value(key):
+    """
+    Retrieves the value of a local member variable by key.
+
+    This static method is used internally to fetch configuration values
+    from the singleton instance of Config. It checks for specific keys and returns
+    their corresponding values or None if not found.
+
+    Args:
+        key (str): The configuration parameter name to retrieve.
+            Valid keys include: 'api_endpoint', 'api_key', 'default_model',
+            'default_model_temperature', 'database_path', and 'task_queue_daemon_logfile_path'.
+
+    Returns:
+        The value of the requested configuration parameter, or None if not found.
+    """
     if key == 'api_endpoint':
       return Config._instance.api_endpoint 
     if key == 'api_key':
@@ -103,6 +149,20 @@ class Config:
   
   @staticmethod
   def get(key, default_value=None):
+    """
+    Retrieves a configuration value by key.
+
+    This method first checks if the requested key exists in the local Config instance,
+    and returns its value if found. If not found locally, it falls back to checking
+    the environment variables for a matching key.
+
+    Args:
+        key (str): The configuration parameter name to retrieve.
+        default_value (any, optional): A default value to return if the key is not found.
+
+    Returns:
+        The configuration value for the specified key, or the default_value if not found.
+    """
     lval = Config._get_local_member_value(key)
     if lval:
       return lval

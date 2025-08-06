@@ -38,6 +38,21 @@ COLOR_BOLD = "\033[1m"
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def write_output_file(content, model, source_prompt_file, output_directory, verbose=False):
+    """
+    Writes the content to a markdown file with appropriate naming.
+
+    Args:
+        content (str): The content to write to the output file.
+        model (str): Name of the LLM model that generated the content.
+        source_prompt_file (str, optional): Path to the original prompt file. 
+            Used for naming if provided.
+        output_directory (str, optional): Directory where the markdown file should be written.
+            If None, no file is written.
+        verbose (bool): If True, prints additional information about the operation.
+
+    Returns:
+        None
+    """
     if output_directory is not None:    
         clean_model_name = FileHelper.clean_name(model)
         output_file = os.path.join(output_directory, f"output_{clean_model_name}.md")
@@ -52,6 +67,28 @@ def write_output_file(content, model, source_prompt_file, output_directory, verb
 def prompt_model(llm_api, prompt, model, max_tokens, temperature, 
     output_directory, source_prompt_file=None, verbose=False, post_process_results=False,
     context_text=None, context_directories=None, context_files=None):
+    """Process a prompt with a specific LLM model and handle the response.
+
+    This function sends a prompt to an LLM server using the provided configuration,
+    handles the response, and optionally saves it as a markdown file.
+
+    Args:
+        llm_api (LLMApi): The LLM API client instance to use for sending prompts.
+        prompt (str): The text prompt to send to the LLM.
+        model (str): Name of the LLM model to use for generation.
+        max_tokens (int): Maximum number of tokens in the response.
+        temperature (float): Controls randomness in response generation.
+        output_directory (str, optional): Directory where markdown files should be written.
+        source_prompt_file (str, optional): Path to the original prompt file for naming.
+        verbose (bool): If True, prints additional information about operations.
+        post_process_results (bool): Enable response post-processing (e.g. strip out  blocks).
+        context_text (str, optional): Additional text to prepend to the prompt.
+        context_directories (list, optional): List of directories containing files with context.
+        context_files (list, optional): List of file paths containing additional context.
+
+    Returns:
+        None
+    """
     try:
         logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nQuerying {model} ... \n{COLOR_RESET}")

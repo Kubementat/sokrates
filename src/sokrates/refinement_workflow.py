@@ -110,6 +110,17 @@ class RefinementWorkflow:
       return markdown_output
     
     def breakdown_task(self, task: str, model: str, context_array: List[str] = None):
+      """
+      Breaks down a task into sub-tasks using LLM refinement.
+
+      Args:
+          task (str): The main task to be broken down.
+          model (str): The LLM model to use for breakdown.
+          context_array (List[str], optional): Additional context to include in the breakdown process.
+
+      Returns:
+          str: The breakdown of the task as a Markdown string.
+      """
       breakdown_instructions_filepath = Path(f"{Path(__file__).parent.resolve()}/prompts/breakdown-v1.md").resolve()
       breakdown_instructions = FileHelper.read_file(breakdown_instructions_filepath)
       

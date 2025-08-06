@@ -48,6 +48,12 @@ class TaskProcessor:
         self.logger = logger
         
     def log_message(self, message):
+        """
+        Logs a message using the configured logger if available.
+
+        Args:
+            message (str): The message to log.
+        """
         if self.logger:
             self.logger.info(message)
 

@@ -71,6 +71,18 @@ class PromptRefiner:
         return md(content)
     
     def clean_json_response(self, response: str) -> str:
+        """
+        Cleans an LLM-generated JSON response by removing extraneous formatting.
+
+        This method takes a raw JSON string from an LLM and removes any
+        extraneous formatting or whitespace that might interfere with parsing.
+
+        Args:
+            response (str): The raw JSON string response from an LLM.
+
+        Returns:
+            str: The cleaned JSON string with unnecessary whitespace removed.
+        """
         res = self.clean_response(response)
         
         # remove all separators
