@@ -16,7 +16,7 @@ Call example:
 ./send-prompt.py --models "qwen2.5-coder-7b-instruct-mlx,josiefied-qwen3-30b-a3b-abliterated-v2" --input-directory tmp/input_prompts --max-tokens 10000 -o tmp/outputs --verbose
 """
 
-import click
+import argparse
 import sys
 import logging
 import os
@@ -129,99 +129,100 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
         logging.error(f"{COLOR_RED}{COLOR_BOLD}An error occurred: {e}{COLOR_RESET}")
         raise(e)
 
-@click.command()
-@click.argument('prompt', required=False)
-@click.option('--api-endpoint', '-ae', default=Config().api_endpoint, help='LLM server API endpoint')
-@click.option('--api-key', '-ak', default=Config().api_key, help='API key for authentication (can be empty for local servers)')
-@click.option('--models', '-m', default=Config().default_model, help='Comma separated model names to use (can be multiple)')
-@click.option('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')
-@click.option('--temperature', '-t', default=Config().default_model_temperature, type=float, help='Temperature for response generation')
-@click.option('--verbose','-v', is_flag=True, help='Enable verbose output')
-@click.option('--output-directory', '-o', default=None, help='Directory to write model outputs to as markdown files')
-@click.option('--input-file','-i', default=None, help='File containing the prompt to send')
-@click.option('--input-directory','-d', default=None, help='Directory containing text files which should be sent as a series of separate prompts')
-@click.option('--post-process-results', '-pp', is_flag=True, help="Enable response post-processing (e.g. strip out <think> blocks)")
-@click.option('--context-text', '-ct', default=None, required=False, help="Optional additional context text to prepend before the prompt")
-@click.option('--context-files', '-ctf', default=None, required=False, help="Optional comma separated additional context text file paths with content that should be prepended before the prompt")
-@click.option('--context-directories', '-ctd', default=None, required=False, help="Optional comma separated additional directory paths with files with content that should be prepended before the prompt")
-def main(prompt, api_endpoint, api_key, models, max_tokens, temperature, verbose, output_directory, input_file, input_directory, post_process_results, context_text, context_directories, context_files):
-    """Main function to send a prompt to one or more LLM servers and handle responses.
-
-    Args:
-        prompt: The input text to send to the LLMs
-        api_endpoint: URL of the LLM server API
-        api_key: Authentication key for the API
-        models: Comma-separated list of model names to query
-        max_tokens: Maximum number of tokens in the response
-        temperature: Controls randomness in response generation (lower = more deterministic)
-        verbose: Flag to enable detailed output
-        output_directory: Directory where markdown outputs should be saved (optional)
-        input_file: Path to file containing prompt text (reads from command line if None)
-        input_directory: Directory path with prompt text files (optional)
-        post_process_results: Flag to enable response post-processing (e.g. strip out <think> blocks)
-        context_text: Text to include in the prompt (optional)
-        context_directories: List of directories containing prompt text files (optional)
-        context_files: List of files containing prompt text (optional)
-    Returns:
-        None
-    """
-    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=verbose)
+def main():
+    """Main function to send a prompt to one or more LLM servers and handle responses."""
     
-    if prompt is None and input_file is None and input_directory is None:
+    parser = argparse.ArgumentParser(
+        description="Send prompts to local LLM servers and save responses as markdown files",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Call example:
+./send-prompt.py --models "qwen2.5-coder-7b-instruct-mlx,josiefied-qwen3-30b-a3b-abliterated-v2" --input-directory tmp/input_prompts --max-tokens 10000 -o tmp/outputs --verbose
+        """
+    )
+    
+    # Positional arguments (prompt)
+    parser.add_argument('prompt', nargs='?', help='Text prompt to send to LLMs (optional)')
+    
+    # Required flags
+    parser.add_argument('--api-endpoint', '-ae', default=Config().api_endpoint, help='LLM server API endpoint')
+    parser.add_argument('--api-key', '-ak', default=Config().api_key, help='API key for authentication (can be empty for local servers)')
+    parser.add_argument('--models', '-m', default=Config().default_model, help='Comma separated model names to use (can be multiple)')
+    parser.add_argument('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')
+    parser.add_argument('--temperature', '-t', default=Config().default_model_temperature, type=float, help='Temperature for response generation')
+    parser.add_argument('--verbose','-v', action='store_true', help='Enable verbose output')
+    parser.add_argument('--output-directory', '-o', default=None, help='Directory to write model outputs to as markdown files')
+    parser.add_argument('--input-file','-i', default=None, help='File containing the prompt to send')
+    parser.add_argument('--input-directory','-d', default=None, help='Directory containing text files which should be sent as a series of separate prompts')
+    parser.add_argument('--post-process-results', '-pp', action='store_true', help="Enable response post-processing (e.g. strip out  blocks)")
+    parser.add_argument('--context-text', '-ct', default=None, help="Optional additional context text to prepend before the prompt")
+    parser.add_argument('--context-files', '-ctf', default=None, help="Optional comma separated additional context text file paths with content that should be prepended before the prompt")
+    parser.add_argument('--context-directories', '-ctd', default=None, help="Optional comma separated additional directory paths with files with content that should be prepended before the prompt")
+    
+    # Parse arguments
+    args = parser.parse_args()
+    
+    # Validate input requirements
+    if (args.prompt is None and args.input_file is None and args.input_directory is None):
         logging.error(f"{COLOR_RED}{COLOR_BOLD}Either a text prompt or an --input-file or an --input-directory needs to be provided. Exiting.{COLOR_RESET}")
         sys.exit(1)
     
-    if input_file and input_directory:
+    if (args.input_file and args.input_directory):
         logging.error(f"{COLOR_RED}{COLOR_BOLD}Both --input-file and --input-directory are provided. Choose one or the other. Exiting.{COLOR_RESET}")
         sys.exit(1)
     
-    # Convert models string to list if needed
-    if isinstance(models, str):
-        models = models.split(',')
+    # Initialize LLM API client
+    llm_api = LLMApi(api_endpoint=args.api_endpoint, api_key=args.api_key, verbose=args.verbose)
     
-    # read multiple file paths if provided    
+    # Convert models string to list if needed
+    if isinstance(args.models, str):
+        models = args.models.split(',')
+    
+    # Handle input directory
     prompt_files = []
-    if input_directory:
-        prompt_files = FileHelper.list_files_in_directory(input_directory,verbose)
-        logging.info(f"{COLOR_MAGENTA}Input Directory: {input_directory}{COLOR_RESET}")
+    if args.input_directory:
+        prompt_files = FileHelper.list_files_in_directory(args.input_directory, args.verbose)
+        logging.info(f"{COLOR_MAGENTA}Input Directory: {args.input_directory}{COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}Prompt Files: {COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}{prompt_files}{COLOR_RESET}")
     
-    # Read prompt from file if specified
-    if input_file:
-        prompt_files = [input_file]
-        
-    if verbose:
-        logging.info(f"{COLOR_MAGENTA}context-text: {context_text}{COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}context-directories: {context_directories}{COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}context-files: {context_files}{COLOR_RESET}")
-        
-    # only prompt is given , no file or directory -> execute for this file
-    if prompt is not None:
+    # Handle input file
+    if args.input_file:
+        prompt_files = [args.input_file]
+    
+    # Show context information
+    if args.verbose:
+        logging.info(f"{COLOR_MAGENTA}context-text: {args.context_text}{COLOR_RESET}")
+        logging.info(f"{COLOR_MAGENTA}context-directories: {args.context_directories}{COLOR_RESET}")
+        logging.info(f"{COLOR_MAGENTA}context-files: {args.context_files}{COLOR_RESET}")
+    
+    # Process single prompt (no directory or file specified)
+    if args.prompt is not None:
         for model in models:
-            prompt_model(llm_api, prompt=prompt, model=model, max_tokens=max_tokens, 
-                temperature=temperature, output_directory=output_directory, source_prompt_file=None, 
-                verbose=verbose, post_process_results=post_process_results,
-                context_text=context_text, context_directories=context_directories, 
-                context_files=context_files)
+            prompt_model(llm_api, prompt=args.prompt, model=model, max_tokens=args.max_tokens, 
+                temperature=args.temperature, output_directory=args.output_directory, source_prompt_file=None, 
+                verbose=args.verbose, post_process_results=args.post_process_results,
+                context_text=args.context_text, context_directories=args.context_directories, 
+                context_files=args.context_files)
             sys.exit(0)
 
+    # Process multiple prompt files from directory
     for model in models:
         for filepath in prompt_files:  
             try:
-                prompt = FileHelper.read_file(filepath,verbose)
+                prompt = FileHelper.read_file(filepath, args.verbose)
             except Exception as e:
                 logging.error(f"{COLOR_RED}{COLOR_BOLD}Error reading input file: {e}{COLOR_RESET}")
                 logging.info(f"{COLOR_MAGENTA}Skipping {filepath}{COLOR_RESET}")
-                next
+                continue
 
             for model in models:
-                prompt_model(llm_api, prompt=prompt, model=model, max_tokens=max_tokens, 
-                    temperature=temperature, output_directory=output_directory, source_prompt_file=filepath, 
-                    verbose=verbose, post_process_results=post_process_results,
-                    context_text=context_text, context_directories=context_directories, 
-                    context_files=context_files)
+                prompt_model(llm_api, prompt=prompt, model=model, max_tokens=args.max_tokens, 
+                    temperature=args.temperature, output_directory=args.output_directory, 
+                    source_prompt_file=filepath, verbose=args.verbose, 
+                    post_process_results=args.post_process_results,
+                    context_text=args.context_text, context_directories=args.context_directories, 
+                    context_files=args.context_files)
 
-        
 if __name__ == '__main__':
     main()

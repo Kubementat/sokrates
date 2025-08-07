@@ -1,6 +1,6 @@
 import unittest
 import re
-from ..src.sokrates import PromptRefiner
+from sokrates import PromptRefiner
 
 class TestPromptRefiner(unittest.TestCase):
     def setUp(self):

@@ -65,7 +65,6 @@ def test_sequential_task_executor():
         assert "details" in result
 
         print("✓ SequentialTaskExecutor test passed")
-        return True
 
     except Exception as e:
         print(f"✗ Test failed: {str(e)}")

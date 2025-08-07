@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from ..src.sokrates import FileHelper
+from sokrates import FileHelper
 
 import shutil
 

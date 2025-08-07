@@ -3,7 +3,6 @@ Text-to-Speech implementation using Coqui TTS library.
 """
 
 import re
-import numpy as np
 
 from pathlib import Path
 from typing import Optional, Union
@@ -14,6 +13,7 @@ from .colors import Colors
 # Try to import voice libs, but don't fail if they are not available
 try:
     import torch
+    import numpy as np
     TTS_ENABLED = True
 except ImportError:
     TTS_ENABLED = False

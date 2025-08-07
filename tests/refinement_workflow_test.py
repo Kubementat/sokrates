@@ -1,7 +1,7 @@
 import unittest
 import re
-from ..src.sokrates import RefinementWorkflow
-from ..src.sokrates import FileHelper
+from sokrates import RefinementWorkflow
+from sokrates import FileHelper
 
 class TestRefinementWorkflow(unittest.TestCase):
     def setUp(self):

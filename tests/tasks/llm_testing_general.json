@@ -55,7 +55,12 @@
       "id": 11,
       "description": "Explain in simple terms how photosynthesis works and why it is important for life on Earth.",
       "complexity": 7
+    },
+    {
+      "id": 12,
+      "description": "Write a jazz Chord progression in 'D minor' of 16 Bars length. It should have interesting passing chords. I would like to play it on the piano, so please also print out interesting and jazzy sounding voicings for the piano for each chord used in the generated progression.",
+      "complexity": 7
     }
   ],
-  "count": 11
+  "count": 12
 }

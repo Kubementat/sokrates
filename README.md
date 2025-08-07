@@ -91,7 +91,6 @@ The project includes the following key dependencies:
 - **openai**: OpenAI API client for LLM interactions
 - **psutil**: System monitoring and resource tracking
 - **requests**: HTTP client for API calls
-- **click**: Command-line interface framework
 - **tabulate**: Table formatting for CLI output
 - **colorama**: Terminal color support
 - **markdownify**: HTML to Markdown conversion
@@ -347,8 +346,10 @@ We welcome contributions! Please follow these steps:
 ```bash
 git clone https://github.com/Kubementat/sokrates.git
 cd sokrates
-uv sync
-uv run pytest  # Run tests
+uv sync --all-extras
+uv pip install -e .
+source .venv/bin/activate
+uv run python -m pytest tests
 ```
 
 ### Guidelines

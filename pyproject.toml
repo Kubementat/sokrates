@@ -19,7 +19,6 @@ dependencies = [
     "markdownify",
     "tabulate",
     "colorama",
-    "click",
     "html2text",
     "dotenv",
     "pytest",

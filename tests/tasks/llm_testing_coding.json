@@ -60,6 +60,11 @@
       "id": 12,
       "description": "Write a python script that takes a string with a mathematical function and plots the function graphically. Here is an example function definition specifying the input format for mathematical functions: f(x)=x**3+2*x**2+4*x+3",
       "complexity": 7
+    },
+    {
+      "id": 13,
+      "description": "Make a presentation about how large language models are trained. It should be suitable for an 8 year old. It should be created using reveal.js in one file.",
+      "complexity": 7
     }
   ],
   "count": 12

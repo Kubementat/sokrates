@@ -29,7 +29,7 @@ Usage Example:
 
 import sys
 import os
-import click
+import argparse
 
 from ..llm_api import LLMApi
 from ..config import Config
@@ -42,53 +42,71 @@ from datetime import datetime
 from pathlib import Path
 import asyncio # Import asyncio for running async functions
 
-@click.command()
-@click.option("--api-endpoint", "-ae", default=Config().api_endpoint, help="The API endpoint for the LLM.")
-@click.option("--api-key", "-ak", default=Config().api_key, help="The API key for the LLM.")
-@click.option("--model", "-m", default=Config().default_model, help="The model to use for the LLM.")
-@click.option("--temperature", "-t", default=Config().default_model_temperature, type=float, help="The temperature for the LLM.")
-@click.option("--max-tokens", "-mt", default=6000, type=float, help="The maximum amount of tokens to generate for one answer.")
-@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output.")
-@click.option("--context-text", "-ct", default=None, help="Additional context text for the LLM.")
-@click.option("--context-files", "-cf", multiple=True, help="Paths to files containing additional context.")
-@click.option("--context-directories", "-cd", multiple=True, help="Paths to directories containing additional context files.")
-@click.option("--output-file", "-o", type=str, help="Path to a file to log the conversation.")
-@click.option("--hide-reasoning", "-hr", is_flag=True, help="Hide <think> blocks from console output.")
-@click.option("--voice", "-V", is_flag=True, help="Enable voice chat mode.") # Add voice flag
-@click.option("--whisper-model-language", "-wl", default="en", help="The language to use for whisper transcriptions (e.g. en, de) (Default: en).")
-def main(api_endpoint, api_key, model, temperature, verbose, context_text, context_files, context_directories, output_file, hide_reasoning, max_tokens, voice, whisper_model_language):
-    """
-    Main function to initiate LLM chat session.
-
-    Args:
-        api_endpoint (str): API endpoint for the LLM service
-        api_key (str): API key for authentication
-        model (str): Model identifier to use
-        temperature (float): Sampling temperature (0.0-1.0)
-        verbose (bool): Enable verbose output
-        context_text (str): Additional context text
-        context_files (list): Paths to files containing context
-        context_directories (list): Paths to directories with context files
-        output_file (str): Path to log conversation history
-        hide_reasoning (bool): Hide reasoning in responses
-        max_tokens (float): Maximum response tokens
-        voice (bool): Enable voice chat mode
-        whisper_model_language (str): The language to use for whisper transcriptions (e.g. en, de) (Default: en).
-
-    Returns:
-        None: This function runs an interactive chat loop and doesn't return a value
-    """
+def main():
+    """Main function to handle command line arguments and initiate LLM chat session."""
+    
+    # Set up argument parser
+    parser = argparse.ArgumentParser(
+        description='LLM Chat CLI - Interact with large language models through a command-line interface',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    
+    parser.add_argument("--api-endpoint", "-ae", 
+                        default=Config().api_endpoint, 
+                        help="The API endpoint for the LLM.")
+    parser.add_argument("--api-key", "-ak", 
+                        default=Config().api_key, 
+                        help="The API key for the LLM.")
+    parser.add_argument("--model", "-m", 
+                        default=Config().default_model, 
+                        help="The model to use for the LLM.")
+    parser.add_argument("--temperature", "-t", 
+                        default=Config().default_model_temperature, 
+                        type=float, 
+                        help="The temperature for the LLM.")
+    parser.add_argument("--max-tokens", "-mt", 
+                        default=6000, 
+                        type=float, 
+                        help="The maximum amount of tokens to generate for one answer.")
+    parser.add_argument("--verbose", "-v", 
+                        action='store_true', 
+                        help="Enable verbose output.")
+    parser.add_argument("--context-text", "-ct", 
+                        default=None, 
+                        help="Additional context text for the LLM.")
+    parser.add_argument("--context-files", "-cf", 
+                        nargs='*', 
+                        help="Paths to files containing additional context.")
+    parser.add_argument("--context-directories", "-cd", 
+                        nargs='*', 
+                        help="Paths to directories containing additional context files.")
+    parser.add_argument("--output-file", "-o", 
+                        type=str, 
+                        help="Path to a file to log the conversation.")
+    parser.add_argument("--hide-reasoning", "-hr", 
+                        action='store_true', 
+                        help="Hide <tool_call> blocks from console output.")
+    parser.add_argument("--voice", "-V", 
+                        action='store_true', 
+                        help="Enable voice chat mode.") # Add voice flag
+    parser.add_argument("--whisper-model-language", "-wl", 
+                        default="en", 
+                        help="The language to use for whisper transcriptions (e.g. en, de) (Default: en).")
+    
+    # Parse arguments
+    args = parser.parse_args()
+    
     config = Config()
-    refiner = PromptRefiner(verbose=verbose)
-    api_endpoint = api_endpoint or config.api_endpoint
-    api_key = api_key or config.api_key
-    model = model or config.default_model
+    refiner = PromptRefiner(verbose=args.verbose)
+    api_endpoint = args.api_endpoint or config.api_endpoint
+    api_key = args.api_key or config.api_key
+    model = args.model or config.default_model
 
     if not api_endpoint or not api_key or not model:
         OutputPrinter.print_error("API endpoint, API key, and model must be configured or provided.")
         sys.exit(1)
     
-    llm_api = LLMApi(verbose=verbose, api_endpoint=api_endpoint, api_key=api_key)
+    llm_api = LLMApi(verbose=args.verbose, api_endpoint=api_endpoint, api_key=api_key)
     conversation_history = []
     log_files = [] # Initialize as a list to hold all log file handles
 
@@ -109,28 +127,28 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
         sys.exit(1)
 
     # If --output-file is specified, open it as well
-    if output_file:
+    if args.output_file:
         try:
-            extra_log_file = open(output_file, "a")
+            extra_log_file = open(args.output_file, "a")
             log_files.append(extra_log_file)
-            OutputPrinter.print_info("Conversation will also be logged to:", output_file)
+            OutputPrinter.print_info("Conversation will also be logged to:", args.output_file)
         except IOError as e:
-            OutputPrinter.print_error(f"Could not open output file {output_file}: {e}")
+            OutputPrinter.print_error(f"Could not open output file {args.output_file}: {e}")
             sys.exit(1)
 
     # Load context
     context_content = []
-    if context_text:
-        context_content.append(context_text)
-    if context_files:
+    if args.context_text:
+        context_content.append(args.context_text)
+    if args.context_files:
         try:
-            context_content.extend(FileHelper.read_multiple_files(list(context_files), verbose=verbose))
+            context_content.extend(FileHelper.read_multiple_files(list(args.context_files), verbose=args.verbose))
         except Exception as e:
             OutputPrinter.print_error(f"Error reading context files: {e}")
             sys.exit(1)
-    if context_directories:
+    if args.context_directories:
         try:
-            context_content.extend(FileHelper.read_multiple_files_from_directories(list(context_directories), verbose=verbose))
+            context_content.extend(FileHelper.read_multiple_files_from_directories(list(args.context_directories), verbose=args.verbose))
         except Exception as e:
             OutputPrinter.print_error(f"Error reading context directories: {e}")
             sys.exit(1)
@@ -138,7 +156,7 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
     if context_content:
         full_context = "\n\n".join(context_content)
         conversation_history.append({"role": "system", "content": f"# This is the context for our conversation \n {full_context}"})
-        if verbose:
+        if args.verbose:
             OutputPrinter.print_info("Loaded context", f"{full_context[:200]}...") # Show first 200 chars of context
 
     # Define a function for the chat loop to allow switching between modes
@@ -166,7 +184,7 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
                     # import only when activated
                     from ..voice_helper import run_voice_chat # Import the voice chat function
                     OutputPrinter.print_info("Starting voice chat. Press CTRL+C to exit.", "")
-                    action = await run_voice_chat(llm_api, model, temperature, max_tokens, conversation_history, log_files, hide_reasoning, verbose, refiner, whisper_model_language=whisper_model_language)
+                    action = await run_voice_chat(llm_api, model, args.temperature, args.max_tokens, conversation_history, log_files, args.hide_reasoning, args.verbose, refiner, whisper_model_language=whisper_model_language)
                     if action == "toggle_voice":
                         voice_mode = not voice_mode
                         OutputPrinter.print_info(f"Switched to {'voice' if voice_mode else 'text'} mode.", "")
@@ -215,14 +233,14 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
 
                     conversation_history.append({"role": "user", "content": user_input})
 
-                    if verbose:
+                    if args.verbose:
                         OutputPrinter.print_info("Sending request to LLM...", "")
 
                     response_content_full = llm_api.chat_completion(
                         messages=conversation_history,
                         model=model,
-                        temperature=temperature,
-                        max_tokens=max_tokens
+                        temperature=args.temperature,
+                        max_tokens=args.max_tokens
                     )
                     
                     if response_content_full:
@@ -234,14 +252,14 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
 
                         display_content = response_content_full
                         
-                        # Extract and colorize <think> block for display if not hidden
-                        think_match = re.search(r'<think>(.*?)</think>', display_content, re.DOTALL)
+                        # Extract and colorize <tool_call> block for display if not hidden
+                        think_match = re.search(r'<tool_call>(.*?)<tool_call>', display_content, re.DOTALL)
                         if think_match:
                             think_content = think_match.group(1)
-                            colored_think_content = f"{Colors.DIM}<think>{think_content}</think>{Colors.RESET}"
+                            colored_think_content = f"{Colors.DIM}<tool_call>{think_content}</tool_call>{Colors.RESET}"
                             display_content = display_content.replace(think_match.group(0), colored_think_content)
 
-                        if hide_reasoning:
+                        if args.hide_reasoning:
                             display_content = refiner.clean_response(display_content)
                             
                         OutputPrinter.print_info(f"{Colors.GREEN}LLM", f"{display_content}{Colors.RESET}")
@@ -269,7 +287,7 @@ def main(api_endpoint, api_key, model, temperature, verbose, context_text, conte
         for lf in log_files:
             lf.close()
 
-    asyncio.run(chat_loop(voice, whisper_model_language=whisper_model_language))
+    asyncio.run(chat_loop(args.voice, whisper_model_language=args.whisper_model_language))
 
 if __name__ == "__main__":
     main()
