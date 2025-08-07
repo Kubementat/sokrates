@@ -1,15 +1,28 @@
 ## Changelog
 
-**Week 2025-07-28**
+**Week 2025-08-03**
+- fix testsuite imports, add conftest.py, remove click from dependencies and use argparse consistently for all cli commands, adjust readme
+- bump to new version 0.6.2
+- adds missing docstrings, refines test all commands to output failed commands at the end of the execution
+- adds option to disable refinement for sequential task executor executions, adds the --no-refinement option for sokrates-execute-tasks, adds test tasks for llm testing in tests/tasks
+
+**Week 2025-07-27**
+- adds idea merging tools, bumps to the next version
+- allow installing basic or voice version (pip install sokrates[voice]) , bump to 0.5.0
+- bump to 0.4.2 - usage of default values from .env file if present + improvement of sequential task processing
 - implements the task queuing system , bumps to the next version
+- fix manifest inclusion for packaging, bump to 0.4.1
+- changelog update
+
+**Week 2025-07-20**
 - remove obsolete context llm usage docs
 - adds execute-tasks feature, small fixes and improvements, docs improvements, bumps version to 0.3.0
-- improve readme, add changelog update
-- rename lib to : sokrates
 - updates pyproject.toml
+- rename lib to : sokrates
+- improve readme, add changelog update
 - bump to new version, refactor idea generator to use random category picks via python
 
-**Week 2025-07-14**
+**Week 2025-07-13**
 - remove unnecessary file
 - refine changelog and readme
 - fix test all commands smoke tests
