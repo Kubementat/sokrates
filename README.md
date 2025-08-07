@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.6.1](https://img/img.shields.io/badge/Version-0.6.1-brightgreen.svg)](https://github.com/Kubementat/sokrates)
+[![Version: 0.6.2](https://img/img.shields.io/badge/Version-0.6.2-brightgreen.svg)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
