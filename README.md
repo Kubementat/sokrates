@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.6.2](https://img/img.shields.io/badge/Version-0.6.2-brightgreen.svg)](https://github.com/Kubementat/sokrates)
+[![Version: 0.7.0](https://img/img.shields.io/badge/Version-0.7.0-brightgreen.svg)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -25,11 +25,12 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 ### Core Capabilities:
 
 - **Advanced Prompt Engineering**: Sophisticated prompt refinement tools that optimize LLM input/output for better performance
-- **Real-time System Monitoring**: Track CPU, memory, and resource usage during LLM operations with detailed performance metrics
 - **Voice-Enabled Chat**: Interactive command-line chat interface with optional voice input/output using OpenAI Whisper
 - **Task Queue System**: Robust background task processing with persistence, error handling, and retry mechanisms
 - **Multi-stage Workflows**: Complex task breakdown, idea generation, and sequential task execution
+- **Python coding tools**: A set of useful tools for python coding
 - **Extensive CLI Interface**: 15+ specialized commands for rapid experimentation and automation
+
 
 ### Key Features:
 
@@ -64,15 +65,6 @@ uv pip install sokrates[voice]
 sokrates-list-models --api-endpoint http://localhost:1234/v1
 ```
 
-### Install for Development
-
-```bash
-git clone https://github.com/Kubementat/sokrates.git
-cd sokrates
-uv sync # for basic version
-uv sync --all-extras # for voice support enabled version
-```
-
 ### Optional Dependencies for Voice Features
 
 ```bash
@@ -83,6 +75,15 @@ brew install whisper-cpp
 # On Ubuntu/Debian
 sudo apt-get install ffmpeg
 sudo apt-get install whisper-cpp
+```
+
+### Install for Development
+
+```bash
+git clone https://github.com/Kubementat/sokrates.git
+cd sokrates
+uv sync # for basic version
+uv sync --all-extras # for voice support enabled version
 ```
 
 ### Dependencies
@@ -158,6 +159,9 @@ uv run list-models --help
 - `sokrates-benchmark-model`: Benchmark LLM models with performance metrics
 - `sokrates-benchmark-results-merger`: Merge multiple benchmark results
 - `sokrates-benchmark-results-to-markdown`: Convert benchmark results to formatted markdown
+
+#### Python coding tools
+- `sokrates-python-summarize`: Parse a directory with python sources and generate a summary including all present classes and functions with signatures and documentation
 
 ### Task Queuing System
 
@@ -289,6 +293,12 @@ sokrates-benchmark-model --model qwen/qwen3-8b --iterations 10 --temperature 0.7
 
 # Convert benchmark results to markdown
 sokrates-benchmark-results-to-markdown --input benchmark_results.json --output benchmark_report.md
+```
+
+#### Python coding tools
+```bash
+# Summarize python source dode classes and functions in the `src` directory and write the result to `docs/code_summary.md`
+sokrates-python-summarize --source-directory src/ --output docs/code_summary.md
 ```
 
 ## Features

@@ -60,7 +60,12 @@
       "id": 12,
       "description": "Write a jazz Chord progression in 'D minor' of 16 Bars length. It should have interesting passing chords. I would like to play it on the piano, so please also print out interesting and jazzy sounding voicings for the piano for each chord used in the generated progression.",
       "complexity": 7
+    },
+    {
+      "id": 13,
+      "description": "Write a story that takes place in a world where Pizzas are the dominant species on planet earth and are ordering humans at human delivery service for dinner.",
+      "complexity": 7
     }
   ],
-  "count": 12
+  "count": 13
 }

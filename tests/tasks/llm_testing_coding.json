@@ -23,7 +23,7 @@
     },
     {
       "id": 5,
-      "description": "Create a snake clone in HTML, CSS and Javascript in one file.",
+      "description": "Create a snake clone in HTML, CSS and Javascript in one file. Make the game look very stylish and modern. Use particle effects when food is eaten. Allow different grid sizes for the game. Make the movement of the snake look interesting to watch and colorful.",
       "complexity": 7
     },
     {
@@ -65,7 +65,22 @@
       "id": 13,
       "description": "Make a presentation about how large language models are trained. It should be suitable for an 8 year old. It should be created using reveal.js in one file.",
       "complexity": 7
+    },
+    {
+      "id": 14,
+      "description": "Create a Wu-Tang symbol SVG Image.",
+      "complexity": 7
+    },
+    {
+      "id": 15,
+      "description": "Create a version of conway's game of life in html, css and javascript in one file.",
+      "complexity": 7
+    },
+    {
+      "id": 16,
+      "description": "Create a fully working Tetris clone in html, css and javascript. The game should have a modern look and feel and use intersting animations for all important game actions. It should also provide a preview section that displays the next brick. The game should be visually impressive and have great looking effects.",
+      "complexity": 7
     }
   ],
-  "count": 12
+  "count": 16
 }

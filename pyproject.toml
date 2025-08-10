@@ -1,6 +1,6 @@
 [project]
 name = "sokrates"
-version = "0.6.2"
+version = "0.7.0"
 description = "A collection of tools for LLM interactions like prompt refinement and idea generation. It also provides a console chat client with speech to text feature."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -67,6 +67,9 @@ sokrates-task-list = "sokrates.cli.task_queue.sokrates_task_list:main"
 sokrates-task-status = "sokrates.cli.task_queue.sokrates_task_status:main"
 sokrates-task-remove = "sokrates.cli.task_queue.sokrates_task_remove:main"
 sokrates-daemon = "sokrates.cli.task_queue.sokrates_daemon:main"
+
+# Python tools
+sokrates-python-summarize = "sokrates.cli.coding.sokrates_python_summarize:main"
 
 [[tool.uv.index]]
 name = "pypi"

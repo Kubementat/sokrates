@@ -16,7 +16,7 @@ import sys
 import argparse
 from src.sokrates.colors import Colors
 
-DEFAULT_MODEL = "qwen/qwen3-4b"
+DEFAULT_MODEL = "qwen3-4b-instruct-2507-mlx"
 DEFAULT_BASE_URL = "http://localhost:1234/v1"
 DEFAULT_API_KEY = "not-required"
 
@@ -67,6 +67,10 @@ def test_all_commands(api_endpoint, api_key, model):
         {
             "cmd": "sokrates-task-list",
             "args": ""
+        },
+        {
+            "cmd": "sokrates-python-summarize",
+            "args": "--source-directory src/ --output tmp/python_summary.md"
         }
     ]
 

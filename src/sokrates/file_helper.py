@@ -29,6 +29,7 @@ from .colors import Colors
 from datetime import datetime
 import shutil
 from pathlib import Path
+import re
 
 class FileHelper:
     """
@@ -386,3 +387,84 @@ class FileHelper:
         for directory_path in directory_paths:
             file_list += FileHelper.list_files_in_directory(directory_path, verbose=verbose)
         return FileHelper.combine_files(file_list, verbose=verbose)
+
+    @staticmethod
+    def directory_tree(directory, exclude_patterns=None, sort=False):
+        """
+        Generate a tree structure of all files in the given directory.
+        
+        Args:
+            directory (str): Path to the directory to scan
+            exclude_patterns (list): List of compiled regex patterns to exclude
+            sort (bool): Whether to sort the output
+        
+        Returns:
+            list: List of full file paths
+        """
+        if exclude_patterns is None:
+            exclude_patterns = [
+                re.compile(r'\.venv'),
+                re.compile(r'__pycache__'),
+                re.compile(r'\.pytest_cache'),
+                re.compile(r'.*\.egg-info.*')
+            ]
+        
+        file_paths = []
+        
+        try:
+            # Walk through directory tree
+            for root, dirs, files in os.walk(directory):
+                # Get full paths of directories to exclude (before modification)
+                dirs_to_exclude = []
+                
+                for i, dir_name in enumerate(dirs):
+                    for pattern in exclude_patterns:
+                        if pattern.search(dir_name) or pattern.match(dir_name):
+                            dirs_to_exclude.append(i)
+                
+                # Filter out excluded directories
+                filtered_dirs = [d for i, d in enumerate(dirs) if i not in dirs_to_exclude]
+                
+                # Update dirs to filtered list (this affects the actual walk)
+                dirs[:] = [d for i, d in enumerate(dirs) if i not in dirs_to_exclude]
+                
+                # Process files within current directory
+                for file in files:
+                    full_file_path = os.path.join(root, file)
+                    abs_path = os.path.abspath(full_file_path)
+                    
+                    # Check if this file should be excluded
+                    is_excluded = False
+                    
+                    for pattern in exclude_patterns:
+                        try:
+                            # Check if this pattern matches any part of the path
+                            file_path_str = str(full_file_path)
+                            
+                            # Check if pattern matches the filename or full path components
+                            if pattern.search(file_path_str):
+                                is_excluded = True
+                                break
+                            
+                            # Also check if pattern matches the file basename directly
+                            filename = os.path.basename(full_file_path)
+                            if pattern.match(filename):
+                                is_excluded = True
+                                break
+                            
+                        except Exception:
+                            continue
+                    
+                    if not is_excluded:
+                        file_paths.append(abs_path)
+                
+        except PermissionError as e:
+            print(f"Permission denied accessing some directories: {e}")
+        except Exception as e:
+            print(f"Error processing directory {directory}: {e}")
+        
+        # Sort if requested
+        if sort:
+            file_paths.sort()
+        
+        return file_paths
