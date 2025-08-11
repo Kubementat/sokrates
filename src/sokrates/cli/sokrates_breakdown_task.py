@@ -8,7 +8,6 @@ from ..file_helper import FileHelper
 from ..output_printer import OutputPrinter
 from ..config import Config
 
-DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
 DEFAULT_MAX_TOKENS = 20000
 
 def main():
@@ -28,14 +27,14 @@ def main():
 
     parser.add_argument(
         '--api-endpoint',
-        default=Config().api_endpoint,
-        help=f"LLM server API endpoint. Default is {DEFAULT_API_ENDPOINT}"
+        default=None,
+        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
 
     parser.add_argument(
         '--api-key',
         required=False,
-        default=Config().api_key,
+        default=None,
         help='API key for authentication (many local servers don\'t require this)'
     )
 
@@ -55,13 +54,13 @@ def main():
     
     parser.add_argument(
         '--model', '-m',
-        default=Config().default_model,
+        default=None,
         help=f"The model to use for the task breakdown (default: {Config.DEFAULT_MODEL})"
     )
     
     parser.add_argument(
         '--temperature',
-        default=Config().default_model_temperature,
+        default=None,
         help=f"The temperature to use for the task breakdown (default: {Config.DEFAULT_MODEL_TEMPERATURE})"
     )
 
@@ -94,6 +93,23 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
+    config = Config(verbose=args.verbose)
+    
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
+        
+    api_endpoint = config.api_endpoint
+    if args.api_endpoint:
+        api_endpoint = args.api_endpoint
+
+    model = config.default_model
+    if args.model:
+        model = args.model
+        
+    temperature = config.default_model_temperature
+    if args.temperature:
+        temperature = args.temperature
 
     if args.task and args.task_file:
         OutputPrinter.print_error("You cannot provide both a task-file and a task. Exiting.")
@@ -128,13 +144,13 @@ def main():
         OutputPrinter.print_info("Appending context files to prompt:", args.context_files , Colors.BRIGHT_MAGENTA)
     
         
-    workflow = RefinementWorkflow(api_endpoint=args.api_endpoint, 
-        api_key=args.api_key, model=args.model, 
+    workflow = RefinementWorkflow(api_endpoint=api_endpoint, 
+        api_key=api_key, model=model, 
         max_tokens=DEFAULT_MAX_TOKENS, 
-        temperature=args.temperature,
+        temperature=temperature,
         verbose=args.verbose
     )
-    result = workflow.breakdown_task(task=task, model=args.model, context_array=context_array)
+    result = workflow.breakdown_task(task=task, model=model, context_array=context_array)
 
     OutputPrinter.print_section("RESULT", Colors.BRIGHT_BLUE, "═")
     print(result)

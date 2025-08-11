@@ -52,16 +52,19 @@ def main():
     )
     
     parser.add_argument("--api-endpoint", "-ae", 
-                        default=Config().api_endpoint, 
+                        default=None,
+                        type=str, 
                         help="The API endpoint for the LLM.")
     parser.add_argument("--api-key", "-ak", 
-                        default=Config().api_key, 
+                        default=None,
+                        type=str, 
                         help="The API key for the LLM.")
     parser.add_argument("--model", "-m", 
-                        default=Config().default_model, 
+                        default=None,
+                        type=str, 
                         help="The model to use for the LLM.")
     parser.add_argument("--temperature", "-t", 
-                        default=Config().default_model_temperature, 
+                        default=None, 
                         type=float, 
                         help="The temperature for the LLM.")
     parser.add_argument("--max-tokens", "-mt", 
@@ -73,6 +76,7 @@ def main():
                         help="Enable verbose output.")
     parser.add_argument("--context-text", "-ct", 
                         default=None, 
+                        type=str,
                         help="Additional context text for the LLM.")
     parser.add_argument("--context-files", "-cf", 
                         nargs='*', 
@@ -90,17 +94,32 @@ def main():
                         action='store_true', 
                         help="Enable voice chat mode.") # Add voice flag
     parser.add_argument("--whisper-model-language", "-wl", 
-                        default="en", 
+                        default="en",
+                        type=str,
                         help="The language to use for whisper transcriptions (e.g. en, de) (Default: en).")
     
     # Parse arguments
     args = parser.parse_args()
     
-    config = Config()
+    config = Config(verbose=args.verbose)
+    
+    api_endpoint = config.api_endpoint
+    if args.api_endpoint:
+        api_endpoint = args.api_endpoint
+        
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
+        
+    model = config.default_model
+    if args.model:
+        model = args.model
+    
+    temperature = config.default_model_temperature
+    if args.temperature:
+        temperature = args.temperature
+    
     refiner = PromptRefiner(verbose=args.verbose)
-    api_endpoint = args.api_endpoint or config.api_endpoint
-    api_key = args.api_key or config.api_key
-    model = args.model or config.default_model
 
     if not api_endpoint or not api_key or not model:
         OutputPrinter.print_error("API endpoint, API key, and model must be configured or provided.")
@@ -184,7 +203,7 @@ def main():
                     # import only when activated
                     from ..voice_helper import run_voice_chat # Import the voice chat function
                     OutputPrinter.print_info("Starting voice chat. Press CTRL+C to exit.", "")
-                    action = await run_voice_chat(llm_api, model, args.temperature, args.max_tokens, conversation_history, log_files, args.hide_reasoning, args.verbose, refiner, whisper_model_language=whisper_model_language)
+                    action = await run_voice_chat(llm_api, model, temperature, args.max_tokens, conversation_history, log_files, args.hide_reasoning, args.verbose, refiner, whisper_model_language=whisper_model_language)
                     if action == "toggle_voice":
                         voice_mode = not voice_mode
                         OutputPrinter.print_info(f"Switched to {'voice' if voice_mode else 'text'} mode.", "")
@@ -239,7 +258,7 @@ def main():
                     response_content_full = llm_api.chat_completion(
                         messages=conversation_history,
                         model=model,
-                        temperature=args.temperature,
+                        temperature=temperature,
                         max_tokens=args.max_tokens
                     )
                     

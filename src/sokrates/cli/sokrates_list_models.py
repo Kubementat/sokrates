@@ -32,22 +32,28 @@ Examples:
     parser.add_argument(
         '--api-endpoint',
         required=False,
-        default=Config().api_endpoint,
+        default=None,
         help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
     
     parser.add_argument(
         '--api-key',
         required=False,
-        default=Config().api_key,
+        default=None,
         help='API key for authentication (many local servers don\'t require this)'
+    )
+    
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output'
     )
     
     # Parse arguments
     args = parser.parse_args()
     
     try:
-        config = Config()
+        config = Config(verbose=args.verbose)
         api_endpoint = config.api_endpoint
         api_key = config.api_key
         
@@ -56,7 +62,7 @@ Examples:
         if args.api_key:
             api_key = args.api_key
         
-        llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
+        llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
         models = llm_api.list_models()
         
         print("Available models:")

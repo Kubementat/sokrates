@@ -110,19 +110,22 @@ Examples:
     parser.add_argument(
         '--api-endpoint',
         required=False,
-        default=Config().api_endpoint,
+        type=str,
+        default=None,
         help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
     
     parser.add_argument(
         '--api-key',
-        default=Config().api_key,
+        default=None,
+        type=str,
         help='API key for authentication (many local servers don\'t require this)'
     )
     
     parser.add_argument(
         '--models', '-m',
-        default=Config().default_model,
+        default=None,
+        type=str,
         help=f"Comma separated list of models to use (default: {Config.DEFAULT_MODEL}). For multiple models e.g: qwen/qwen3-14b,phi4"
     )
     
@@ -136,7 +139,7 @@ Examples:
     parser.add_argument(
         '--temperature', '-t',
         type=float,
-        default=Config().default_model_temperature,
+        default=None,
         help=f"Temperature for response generation (default: {Config.DEFAULT_MODEL_TEMPERATURE})"
     )
     
@@ -148,6 +151,7 @@ Examples:
     
     parser.add_argument(
         '--output', '-o',
+        type=str,
         help='Output filename to save the response (e.g., response.md)'
     )
     
@@ -155,6 +159,7 @@ Examples:
     parser.add_argument(
         '--context-text', '-ct',
         default=None,
+        type=str,
         help='Optional additional context text to prepend before the prompt'
     )
     parser.add_argument(
@@ -170,7 +175,27 @@ Examples:
     # Parse arguments
     args = parser.parse_args()
     
-    config = Config()
+    config = Config(verbose=args.verbose)
+    
+    api_endpoint = config.api_endpoint
+    if args.api_endpoint:
+        api_endpoint = args.api_endpoint
+        if not validate_endpoint_url(api_endpoint):
+            OutputPrinter.print_error(f"Invalid API endpoint URL: {api_endpoint}")
+            OutputPrinter.print_warning("URL should start with http:// or https:// (e.g., http://localhost:1234/v1)")
+            sys.exit(1)
+        
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
+    
+    models = [config.default_model]
+    if args.models:
+        models = [s.strip() for s in args.models.split(",")]
+        
+    temperature = config.default_model_temperature
+    if args.temperature:
+        temperature = args.temperature
     
     # Validate that either text_prompt or input-file is provided
     if not args.text_prompt and not args.input_file:
@@ -201,26 +226,6 @@ Examples:
     if not Path(refinement_prompt_file).exists():
         OutputPrinter.print_error(f"Refinement prompt file not found: {refinement_prompt_file}")
         sys.exit(1)
-
-    api_endpoint = args.api_endpoint
-    if api_endpoint:
-        if not validate_endpoint_url(api_endpoint):
-            OutputPrinter.print_error(f"Invalid API endpoint URL: {args.api_endpoint}")
-            OutputPrinter.print_warning("URL should start with http:// or https:// (e.g., http://localhost:1234/v1)")
-            sys.exit(1)
-    else:
-        api_endpoint = config.api_endpoint
-        
-    api_key = args.api_key
-    if not api_key:
-        api_key = config.api_key
-    
-    models = None
-    if args.models is not None:
-        models = [s.strip() for s in args.models.split(",")]
-    # load via env and .env file when not specified via parameter
-    if not models:
-        models = [config.default_model]
     
     if args.verbose:
         OutputPrinter.print_section("⚙️ CONFIGURATION", Colors.BRIGHT_BLUE, "═")
@@ -228,7 +233,7 @@ Examples:
         OutputPrinter.print_info("API Key", '[SET]' if api_key else '[EMPTY]', Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Models", ', '.join(models), Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Max Tokens", f"{args.max_tokens:,}", Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("Temperature", f"{args.temperature}", Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("Temperature", f"{temperature}", Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Refinement prompt file", f"{refinement_prompt_file}", Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Input Method", 'File' if args.input_file else 'Command Line', Colors.BRIGHT_CYAN)
         if args.input_file:

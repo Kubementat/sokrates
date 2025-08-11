@@ -18,13 +18,13 @@ TODO
     
     parser.add_argument(
         '--model', '-m',
-        default=Config().default_model,
-        help=f"The identifier of the model to use (default: {Config.DEFAULT_MODEL})."
+        default=None,
+        help=f"The identifier of the model to use."
     )
     
     parser.add_argument(
         '--api-endpoint', '-ae',
-        default=Config.DEFAULT_API_ENDPOINT,
+        default=None,
         help='OpenAI-compatible API endpoint URL'
     )
     
@@ -44,7 +44,7 @@ TODO
     parser.add_argument(
         '--temperature', '-t',
         type=float,
-        default=Config().default_model_temperature,
+        default=None,
         help=f"Temperature for response generation for all LLM calls (Default: {Config.DEFAULT_MODEL_TEMPERATURE})"
     )
     
@@ -74,9 +74,11 @@ def main():
 
     args = parse_arguments()
 
-    config = Config()
+    config = Config(verbose=args.verbose)
     api_endpoint = config.api_endpoint
     api_key = config.api_key
+    model = config.default_model
+    temperature = config.default_model_temperature
     
     if args.api_key:
         api_key = args.api_key
@@ -84,11 +86,13 @@ def main():
         api_endpoint = args.api_endpoint
     if args.model:
         model = args.model
-    
+    if args.temperature:
+        temperature = args.temperature
+
     OutputPrinter.print_info("api-endpoint",api_endpoint)
     OutputPrinter.print_info("model", model)
     OutputPrinter.print_info("source-documents", args.source_documents)
-    OutputPrinter.print_info("temperature", args.temperature)
+    OutputPrinter.print_info("temperature", temperature)
     OutputPrinter.print_info("max-tokens", args.max_tokens)
     OutputPrinter.print_info("verbose", args.verbose)
     OutputPrinter.print_info("output-file", args.output_file)
@@ -99,7 +103,7 @@ def main():
         api_key=api_key,
         verbose=args.verbose,
         max_tokens=args.max_tokens,
-        temperature=args.temperature
+        temperature=temperature
     )
     
     # load documents and initialize dict to pass into the merge ideas function

@@ -57,26 +57,27 @@ def main():
 
     parser.add_argument(
         '--api-endpoint',
-        default=Config().api_endpoint,
+        default=None,
         help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
     )
 
     parser.add_argument(
         '--api-key',
         required=False,
-        default=Config().api_key,
+        default=None,
         help='API key for authentication (many local servers don\'t require this)'
     )
 
     parser.add_argument(
         '--model', '-m',
-        default=Config().default_model,
+        default=None,
         help=f'The model to use for task execution (default: {Config.DEFAULT_MODEL})'
     )
     
     parser.add_argument(
         '--temperature', '-t',
-        default=Config().default_model_temperature,
+        default=None,
+        type=float,
         help=f'The temperature to use for task execution (default: {Config.DEFAULT_MODEL_TEMPERATURE})'
     )
 
@@ -103,6 +104,22 @@ def main():
     # Parse arguments
     args = parser.parse_args()
     config = Config(verbose=args.verbose)
+    
+    api_endpoint = config.api_endpoint
+    if args.api_endpoint:
+        api_endpoint = args.api_endpoint
+        
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
+        
+    model = config.default_model
+    if args.model:
+        model = args.model
+        
+    temperature = config.default_model_temperature
+    if args.temperature:
+        temperature = args.temperature
 
     refinement_enabled = not args.no_refinement
     
@@ -121,10 +138,10 @@ def main():
 
     # Initialize executor
     executor = SequentialTaskExecutor(
-        api_endpoint=args.api_endpoint,
-        api_key=args.api_key or Config.DEFAULT_API_KEY,
-        model=args.model,
-        temperature=args.temperature,
+        api_endpoint=api_endpoint,
+        api_key=api_key,
+        model=model,
+        temperature=temperature,
         output_dir=target_directory,
         verbose=args.verbose,
         refinement_enabled=refinement_enabled

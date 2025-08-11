@@ -16,9 +16,7 @@ class TestPythonAnalyzer:
         assert not test_file.exists()
         
         source_path = f"{Path(__file__).parent.parent.resolve()}/src"
-        breakpoint()
         PythonAnalyzer.create_markdown_documentation_for_directory(source_path, test_file, verbose=True)
-        breakpoint()
         assert test_file.exists()
     
     # TODO: implement full testsuite

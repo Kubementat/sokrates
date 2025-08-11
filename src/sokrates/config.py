@@ -17,6 +17,13 @@ class Config:
   for various settings like API endpoint, API key, and default model.
   """
   
+  DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
+  DEFAULT_API_KEY = "notrequired"
+  DEFAULT_MODEL = "qwen/qwen3-8b"
+  DEFAULT_MODEL_TEMPERATURE = 0.7
+  DEFAULT_PROMPTS_DIRECTORY = Path(f"{Path(__file__).parent.resolve()}/prompts").resolve()
+  DEFAULT_TASK_QUEUE_DAEMON_PROCESSING_INTERVAL = 15
+  
   _instance = None  # Class variable to hold the single instance
 
   def __new__(cls, *args, **kwargs):
@@ -27,17 +34,8 @@ class Config:
             Config: The single instance of the Config class.
         """
         if not cls._instance:
-            cls._instance = super(Config, cls).__new__(cls)
-            # Initialize your config here, for example:
-            cls._instance.settings = {}
+            cls._instance = super().__new__(cls)
         return cls._instance
-  
-  DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
-  DEFAULT_API_KEY = "notrequired"
-  DEFAULT_MODEL = "qwen/qwen3-8b"
-  DEFAULT_MODEL_TEMPERATURE = 0.7
-  DEFAULT_PROMPTS_DIRECTORY = Path(f"{Path(__file__).parent.resolve()}/prompts").resolve()
-  DEFAULT_TASK_QUEUE_DAEMON_PROCESSING_INTERVAL = 15
   
   def __init__(self, verbose=False) -> None:
     """
@@ -46,23 +44,24 @@ class Config:
     Args:
         verbose (bool): If True, prints basic configuration details upon loading.
     """
-    # TODO: refactor this logic, it's messy right now
-    self.verbose = verbose
-    # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
-    self.home_path: str = f"{str(Path.home())}/.sokrates"
-    self.config_path: str = f"{self.home_path}/.env"
-    self.logs_path: str = f"{self.home_path}/logs"
-    self.daemon_logfile_path: str = f"{self.logs_path}/daemon.log"
-    self.task_queue_daemon_processing_interval = self.DEFAULT_TASK_QUEUE_DAEMON_PROCESSING_INTERVAL
-    self.database_path: str = f"{self.home_path}/sokrates_database.sqlite"
-    self.config_path: str = os.environ.get('SOKRATES_CONFIG_FILEPATH', self.config_path)
-    if os.environ.get('SOKRATES_DATABASE_PATH'):
-      self.database_path: str = os.environ.get('SOKRATES_DATABASE_PATH')
-    if os.environ.get('SOKRATES_TASK_QUEUE_DAEMON_LOGFILE_PATH'):
-      self.daemon_logfile_path: str = os.environ.get('SOKRATES_TASK_QUEUE_DAEMON_LOGFILE_PATH')      
-    self.load_env()
-    self.initialize_directories()
-    self.print_configuration()
+    if not hasattr(self, 'initialized'):
+      self.initialized = True
+      self.verbose = verbose
+      # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
+      self.home_path: str = f"{str(Path.home())}/.sokrates"
+      self.config_path: str = f"{self.home_path}/.env"
+      self.logs_path: str = f"{self.home_path}/logs"
+      self.daemon_logfile_path: str = f"{self.logs_path}/daemon.log"
+      self.task_queue_daemon_processing_interval = self.DEFAULT_TASK_QUEUE_DAEMON_PROCESSING_INTERVAL
+      self.database_path: str = f"{self.home_path}/sokrates_database.sqlite"
+      self.config_path: str = os.environ.get('SOKRATES_CONFIG_FILEPATH', self.config_path)
+      if os.environ.get('SOKRATES_DATABASE_PATH'):
+        self.database_path: str = os.environ.get('SOKRATES_DATABASE_PATH')
+      if os.environ.get('SOKRATES_TASK_QUEUE_DAEMON_LOGFILE_PATH'):
+        self.daemon_logfile_path: str = os.environ.get('SOKRATES_TASK_QUEUE_DAEMON_LOGFILE_PATH')      
+      self.load_env()
+      self.initialize_directories()
+      self.print_configuration()
     
   def print_configuration(self):
       """
@@ -80,14 +79,15 @@ class Config:
       Returns:
           None
       """
-      print(f"{Colors.GREEN}{Colors.BOLD}### Basic Configuration ###{Colors.RESET}")
-      print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_HOME_PATH: {self.home_path}{Colors.RESET}")
-      print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_API_ENDPOINT: {self.api_endpoint}{Colors.RESET}")
-      print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DEFAULT_MODEL: {self.default_model}{Colors.RESET}")
-      print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DEFAULT_MODEL_TEMPERATURE: {self.default_model_temperature}{Colors.RESET}")
-      print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_CONFIG_FILEPATH: {self.config_path}{Colors.RESET}")
-      print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DATABASE_PATH: {self.database_path}{Colors.RESET}")
-      print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DAEMON_LOGFILE_PATH: {self.daemon_logfile_path}{Colors.RESET}")
+      if self.verbose:
+        print(f"{Colors.GREEN}{Colors.BOLD}### Basic Configuration ###{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_HOME_PATH: {self.home_path}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_API_ENDPOINT: {self.api_endpoint}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DEFAULT_MODEL: {self.default_model}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DEFAULT_MODEL_TEMPERATURE: {self.default_model_temperature}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_CONFIG_FILEPATH: {self.config_path}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DATABASE_PATH: {self.database_path}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DAEMON_LOGFILE_PATH: {self.daemon_logfile_path}{Colors.RESET}")
   
   def load_env(self) -> None:
       """
@@ -111,9 +111,14 @@ class Config:
     Returns:
         None
     """
-    print(f"Creating sokrates home path: {self.home_path}")
+    if self.verbose:
+      print(f"Creating sokrates home path: {self.home_path}")
+    
     Path(self.home_path).mkdir(parents=True, exist_ok=True)
-    print(f"Creating sokrates logs path: {self.logs_path}")
+    
+    if self.verbose:
+      print(f"Creating sokrates logs path: {self.logs_path}")
+    
     Path(self.logs_path).mkdir(parents=True, exist_ok=True)
   
   @staticmethod

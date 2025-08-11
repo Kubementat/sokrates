@@ -91,7 +91,7 @@ Example usage:
     parser.add_argument(
         '--temperature', '-t',
         type=float,
-        default=Config().default_model_temperature,
+        default=None,
         help=f"Temperature for response generation for all LLM calls (Default: {Config.DEFAULT_MODEL_TEMPERATURE})"
     )
     
@@ -136,13 +136,14 @@ def main():
 
     args = parse_arguments()
 
-    config = Config()
+    config = Config(verbose=args.verbose)
     api_endpoint = config.api_endpoint
     api_key = config.api_key
     topic_generation_model = config.default_model
     generator_llm_model = config.default_model
     execution_llm_model = config.default_model
     refinement_llm_model = config.default_model
+    temperature = config.default_model_temperature
     
     if args.api_key:
         api_key = args.api_key
@@ -156,6 +157,8 @@ def main():
         execution_llm_model = args.execution_llm_model
     if args.refinement_llm_model:
         refinement_llm_model = args.refinement_llm_model
+    if args.temperature:
+        temperature = args.temperature
 
     OutputPrinter.print_info("topic", args.topic)
     OutputPrinter.print_info("topic-input-file", args.topic_input_file)
@@ -167,7 +170,7 @@ def main():
     OutputPrinter.print_info("generator-llm-model", generator_llm_model)
     OutputPrinter.print_info("execution-llm-model", execution_llm_model)
     OutputPrinter.print_info("refinement-llm-model", refinement_llm_model)
-    OutputPrinter.print_info("temperature", args.temperature)
+    OutputPrinter.print_info("temperature", temperature)
     OutputPrinter.print_info("max-tokens", args.max_tokens)
     OutputPrinter.print_info("verbose", args.verbose)
     output_directory = FileHelper.generate_postfixed_sub_directory_name(args.output_directory)
@@ -188,7 +191,7 @@ def main():
         execution_llm_model=execution_llm_model,
         idea_count=args.idea_count,
         max_tokens=args.max_tokens,
-        temperature=args.temperature
+        temperature=temperature
     )
     workflow.run()
 

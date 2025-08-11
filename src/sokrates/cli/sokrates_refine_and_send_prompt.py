@@ -46,22 +46,22 @@ Example usage:
     parser.add_argument(
         '--refinement-model', '-rm',
         required=False,
-        default=Config().default_model,
-        help=f"Name of the model to use for prompt refinement. Default: {Config.DEFAULT_MODEL}"
+        default=None,
+        help=f"Name of the model to use for prompt refinement."
     )
     
     parser.add_argument(
         '--output-model', '-om',
         required=False,
-        default=Config().default_model,
+        default=None,
         help=f"Name of the model to receive the refined prompt and to generate the final output. Default: {Config.DEFAULT_MODEL}"
     )
     
     parser.add_argument(
         '--refinement-temperature', '-rt',
         type=float,
-        default=Config().default_model_temperature,
-        help=f"Temperature for the refinement model (default: {Config.DEFAULT_MODEL_TEMPERATURE})"
+        default=0.7,
+        help=f"Temperature for the refinement model (Default: 0.7)."
     )
     
     parser.add_argument(
@@ -91,14 +91,14 @@ Example usage:
     
     parser.add_argument(
         '--api-endpoint',
-        default=Config().api_endpoint,
+        default=None,
         required=False,
         help='OpenAI-compatible API endpoint URL'
     )
     
     parser.add_argument(
         '--api-key',
-        default=Config().api_key,
+        default=None,
         required=False,
         help='API key for authentication'
     )
@@ -159,20 +159,37 @@ def main():
     # Parse arguments
     args = parse_arguments()
     
-    config = Config()
+    config = Config(verbose=args.verbose)
     api_endpoint = config.api_endpoint
-    api_key = config.api_key
-    if args.api_key:
-        api_key = args.api_key
     if args.api_endpoint:
         api_endpoint = args.api_endpoint
     
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
+        
+    output_model = config.default_model
+    if args.output_model:
+        output_model = args.output_model
+        
+    refinement_model = config.default_model
+    if args.refinement_model:
+        refinement_model = args.refinement_model
+    
+    refinement_temperature = config.default_model_temperature
+    if args.refinement_temperature:
+        refinement_temperature = args.refinement_temperature
+        
+    output_temperature = config.default_model_temperature
+    if args.output_temperature:
+        output_temperature = args.output_temperature
+    
     # Validate temperature ranges
-    if not (0.0 <= args.refinement_temperature <= 1.0):
+    if not (0.0 <= refinement_temperature <= 1.0):
         print(f"{Colors.RED}Refinement temperature must be between 0.0 and 1.0{Colors.RESET}")
         sys.exit(1)
     
-    if not (0.0 <= args.output_temperature <= 1.0):
+    if not (0.0 <= output_temperature <= 1.0):
         print(f"{Colors.RED}Output model temperature must be between 0.0 and 1.0{Colors.RESET}")
         sys.exit(1)
 
@@ -239,13 +256,13 @@ def main():
     
     # Step 3: Send to refinement model
     print(f"\n{Colors.YELLOW}{'='*60}")
-    print(f"{Colors.YELLOW}🔄 Sending to refinement model: {args.refinement_model}")
+    print(f"{Colors.YELLOW}🔄 Sending to refinement model: {refinement_model}")
     print(f"{Colors.YELLOW}{'='*60}{Colors.RESET}")
     refinement_response = llm_api.send(
         prompt=combined_prompt,
-        model=args.refinement_model,
+        model=refinement_model,
         max_tokens=args.max_tokens_refinement,
-        temperature=args.refinement_temperature
+        temperature=refinement_temperature
     )
     print(f"{Colors.GREEN}Received refinement response: {len(refinement_response)} characters{Colors.RESET}")
     
@@ -258,13 +275,13 @@ def main():
     
     # Step 5: Send to output model
     print(f"\n{Colors.GREEN}{'='*60}")
-    print(f"{Colors.GREEN}🔄 Sending to output model: {args.output_model}")
+    print(f"{Colors.GREEN}🔄 Sending to output model: {output_model}")
     print(f"{Colors.GREEN}{'='*60}{Colors.RESET}")
     final_response = llm_api.send(
         prompt=cleaned_refined_prompt,
-        model=args.output_model,
+        model=output_model,
         max_tokens=args.max_tokens_output,
-        temperature=args.output_temperature,
+        temperature=output_temperature,
         context_array=context_array
     )
     print(f"{Colors.GREEN}Received final response: {len(final_response)} characters{Colors.RESET}")

@@ -145,11 +145,11 @@ Call example:
     parser.add_argument('prompt', nargs='?', help='Text prompt to send to LLMs (optional)')
     
     # Required flags
-    parser.add_argument('--api-endpoint', '-ae', default=Config().api_endpoint, help='LLM server API endpoint')
-    parser.add_argument('--api-key', '-ak', default=Config().api_key, help='API key for authentication (can be empty for local servers)')
-    parser.add_argument('--models', '-m', default=Config().default_model, help='Comma separated model names to use (can be multiple)')
+    parser.add_argument('--api-endpoint', '-ae', default=None, help='LLM server API endpoint')
+    parser.add_argument('--api-key', '-ak', default=None, help='API key for authentication (can be empty for local servers)')
+    parser.add_argument('--models', '-m', default=None, help='Comma separated model names to use (can be multiple)')
     parser.add_argument('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')
-    parser.add_argument('--temperature', '-t', default=Config().default_model_temperature, type=float, help='Temperature for response generation')
+    parser.add_argument('--temperature', '-t', default=None, type=float, help='Temperature for response generation')
     parser.add_argument('--verbose','-v', action='store_true', help='Enable verbose output')
     parser.add_argument('--output-directory', '-o', default=None, help='Directory to write model outputs to as markdown files')
     parser.add_argument('--input-file','-i', default=None, help='File containing the prompt to send')
@@ -161,6 +161,20 @@ Call example:
     
     # Parse arguments
     args = parser.parse_args()
+    config = Config(verbose=args.verbose)
+    
+    api_endpoint = config.api_endpoint
+    if args.api_endpoint:
+        api_endpoint = args.api_endpoint
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
+    models = config.default_model
+    if args.models:
+        models = args.models
+    temperature = config.default_model_temperature
+    if args.temperature:
+        temperature = args.temperature
     
     # Validate input requirements
     if (args.prompt is None and args.input_file is None and args.input_directory is None):
@@ -172,11 +186,11 @@ Call example:
         sys.exit(1)
     
     # Initialize LLM API client
-    llm_api = LLMApi(api_endpoint=args.api_endpoint, api_key=args.api_key, verbose=args.verbose)
+    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
     
     # Convert models string to list if needed
-    if isinstance(args.models, str):
-        models = args.models.split(',')
+    if isinstance(models, str):
+        models = models.split(',')
     
     # Handle input directory
     prompt_files = []
@@ -200,7 +214,7 @@ Call example:
     if args.prompt is not None:
         for model in models:
             prompt_model(llm_api, prompt=args.prompt, model=model, max_tokens=args.max_tokens, 
-                temperature=args.temperature, output_directory=args.output_directory, source_prompt_file=None, 
+                temperature=temperature, output_directory=args.output_directory, source_prompt_file=None, 
                 verbose=args.verbose, post_process_results=args.post_process_results,
                 context_text=args.context_text, context_directories=args.context_directories, 
                 context_files=args.context_files)
@@ -218,7 +232,7 @@ Call example:
 
             for model in models:
                 prompt_model(llm_api, prompt=prompt, model=model, max_tokens=args.max_tokens, 
-                    temperature=args.temperature, output_directory=args.output_directory, 
+                    temperature=temperature, output_directory=args.output_directory, 
                     source_prompt_file=filepath, verbose=args.verbose, 
                     post_process_results=args.post_process_results,
                     context_text=args.context_text, context_directories=args.context_directories, 

@@ -38,20 +38,20 @@ def main():
     parser.add_argument(
         '--api-endpoint',
         required=False,
-        default=Config().api_endpoint,
-        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        default=None,
+        help=f"LLM server API endpoint."
     )
     
     parser.add_argument(
         '--api-key',
-        default=Config().api_key,
+        default=None,
         help='API key for authentication (many local servers don\'t require this)'
     )
     
     parser.add_argument(
         '--model', '-m',
-        default=Config().default_model,
-        help=f"A model name to use for the generation (default: {Config.DEFAULT_MODEL})."
+        default=None,
+        help=f"A model name to use for the generation."
     )
     
     parser.add_argument(
@@ -64,8 +64,8 @@ def main():
     parser.add_argument(
         '--temperature', '-t',
         type=float,
-        default=Config().default_model_temperature,
-        help='Temperature for response generation (default: 0.7)'
+        default=None,
+        help='Temperature for response generation.'
     )
     
     parser.add_argument(
@@ -83,23 +83,25 @@ def main():
     args = parser.parse_args()
     config = Config(verbose=args.verbose)
     
-    api_endpoint = args.api_endpoint
-    if not api_endpoint:
-        api_endpoint = config.api_endpoint
+    api_endpoint = config.api_endpoint
+    if args.api_endpoint:
+        api_endpoint = args.api_endpoint
     
-    api_key = args.api_key
-    if not api_key:
-        api_key = config.api_key
+    api_key = config.api_key
+    if args.api_key:
+        api_key = args.api_key
         
-    model = args.model
-    if not model:
-        model = config.default_model
+    model = config.default_model
+    if args.model:
+        model = args.model
     
-# TODO: Implement all parameters and error handling
-    # TODO: Implement all parameters and error handling....
+    temperature = config.default_model_temperature
+    if args.temperature:
+        temperature = args.temperature
+    
     workflow = RefinementWorkflow(api_endpoint=api_endpoint, api_key=api_key, 
         verbose=args.verbose, model=model,
-        temperature=args.temperature, max_tokens=args.max_tokens)
+        temperature=temperature, max_tokens=args.max_tokens)
     
     context_files = [
         Path(f"{Path(__file__).parent.parent.resolve()}/prompts/context/self-improvement-principles-v1.md").resolve()
