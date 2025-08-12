@@ -1,9 +1,11 @@
 ## Changelog
 
 **Week 2025-08-10**
-- bump to version 0.7.0
+- bump to version 0.7.1
 - introduce sokrates-python-summarize cli for summarizing python code into a markdown documentation
 - set default model for test_all_commands to qwen3-4b-instruct-2507-mlx
+- fix singleton behavior of Config class
+- refactor cli Config class usage
 
 **Week 2025-08-03**
 - fix testsuite imports, add conftest.py, remove click from dependencies and use argparse consistently for all cli commands, adjust readme
