@@ -19,7 +19,7 @@ class Config:
   
   DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
   DEFAULT_API_KEY = "notrequired"
-  DEFAULT_MODEL = "qwen/qwen3-8b"
+  DEFAULT_MODEL = "qwen3-4b-instruct-2507-mlx"
   DEFAULT_MODEL_TEMPERATURE = 0.7
   DEFAULT_PROMPTS_DIRECTORY = Path(f"{Path(__file__).parent.resolve()}/prompts").resolve()
   DEFAULT_TASK_QUEUE_DAEMON_PROCESSING_INTERVAL = 15
@@ -49,6 +49,7 @@ class Config:
       self.verbose = verbose
       # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
       self.home_path: str = f"{str(Path.home())}/.sokrates"
+      self.home_path: str = os.environ.get('SOKRATES_HOME_PATH', self.home_path)
       self.config_path: str = f"{self.home_path}/.env"
       self.logs_path: str = f"{self.home_path}/logs"
       self.daemon_logfile_path: str = f"{self.logs_path}/daemon.log"
@@ -94,11 +95,15 @@ class Config:
       Loads environment variables from the specified .env file.
       Sets API endpoint, API key, and default model, applying defaults if not found.
       """
-      load_dotenv(self.config_path)
+      load_dotenv(self.config_path,override=True)
       self.api_endpoint: str | None = os.environ.get('SOKRATES_API_ENDPOINT', self.DEFAULT_API_ENDPOINT)
       self.api_key: str | None = os.environ.get('SOKRATES_API_KEY', self.DEFAULT_API_KEY)
       self.default_model: str | None = os.environ.get('SOKRATES_DEFAULT_MODEL', self.DEFAULT_MODEL)
-      self.default_model_temperature: float | None = float(os.environ.get('SOKRATES_DEFAULT_MODEL_TEMPERATURE', self.DEFAULT_MODEL_TEMPERATURE))
+      
+      temperature = float(os.environ.get('SOKRATES_DEFAULT_MODEL_TEMPERATURE', self.DEFAULT_MODEL_TEMPERATURE))
+      if temperature <= 0 or temperature >= 1:
+        raise EnvironmentError
+      self.default_model_temperature: float | None = temperature
       
   def initialize_directories(self):
     """
@@ -141,7 +146,7 @@ class Config:
     if key == 'api_endpoint':
       return Config._instance.api_endpoint 
     if key == 'api_key':
-      return Config._instance.api_endpoint 
+      return Config._instance.api_key 
     if key == 'default_model':
       return Config._instance.default_model
     if key == 'default_model_temperature':

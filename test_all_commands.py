@@ -70,7 +70,7 @@ def test_all_commands(api_endpoint, api_key, model):
         },
         {
             "cmd": "sokrates-python-summarize",
-            "args": "--source-directory src/ --output tmp/python_summary.md"
+            "args": "--source-directory src/sokrates/coding --output tmp/python_summary.md"
         }
     ]
 

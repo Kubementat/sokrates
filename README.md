@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.7.1](https://img/img.shields.io/badge/Version-0.7.1-brightgreen.svg)](https://github.com/Kubementat/sokrates)
+[![Version: 0.7.2](https://img/img.shields.io/badge/Version-0.7.2-brightgreen.svg)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -65,7 +65,7 @@ uv pip install sokrates[voice]
 sokrates-list-models --api-endpoint http://localhost:1234/v1
 ```
 
-### Optional Dependencies for Voice Features
+### Optional Prerequisites for Voice Features
 
 ```bash
 # On macOS
@@ -88,18 +88,7 @@ uv sync --all-extras # for voice support enabled version
 
 ### Dependencies
 
-The project includes the following key dependencies:
-- **openai**: OpenAI API client for LLM interactions
-- **psutil**: System monitoring and resource tracking
-- **requests**: HTTP client for API calls
-- **tabulate**: Table formatting for CLI output
-- **colorama**: Terminal color support
-- **markdownify**: HTML to Markdown conversion
-- **openai-whisper**: Speech-to-text capabilities
-- **pyaudio**: Audio input/output for voice features
-- **dotenv**: Environment variable management
-- **pytest**: Testing framework
-- **pytest-mock**: Mocking for testing
+For a list of all dependencies view the [pyproject.toml](pyproject.toml) file.
 
 ## Configuration
 
@@ -199,14 +188,14 @@ sokrates-daemon stop
 sokrates-list-models --api-endpoint http://localhost:1234/v1
 
 # Send a simple prompt
-sokrates-send-prompt --model qwen/qwen3-8b --prompt "Explain quantum computing in simple terms"
+sokrates-send-prompt --model qwen3-4b-instruct-2507-mlx --prompt "Explain quantum computing in simple terms"
 
 # Interactive chat with voice support
-sokrates-chat --model qwen/qwen3-8b --voice  # Enable voice mode
-sokrates-chat --model qwen/qwen3-8b --context-files ./docs/context.md
+sokrates-chat --model qwen3-4b-instruct-2507-mlx --voice  # Enable voice mode
+sokrates-chat --model qwen3-4b-instruct-2507-mlx --context-files ./docs/context.md
 
 # Refine a prompt for better performance
-sokrates-refine-prompt --prompt "Write a story about a robot" --model qwen/qwen3-8b
+sokrates-refine-prompt --prompt "Write a story about a robot" --model qwen3-4b-instruct-2507-mlx
 ```
 
 ### sokrates-chat Commands
@@ -289,7 +278,7 @@ sokrates-merge-ideas --source-documents 'docs/idea1.md,docs/idea2.md' --output-f
 
 ```bash
 # Benchmark model performance
-sokrates-benchmark-model --model qwen/qwen3-8b --iterations 10 --temperature 0.7
+sokrates-benchmark-model --model qwen3-4b-instruct-2507-mlx --iterations 10 --temperature 0.7
 
 # Convert benchmark results to markdown
 sokrates-benchmark-results-to-markdown --input benchmark_results.json --output benchmark_report.md
@@ -359,7 +348,26 @@ cd sokrates
 uv sync --all-extras
 uv pip install -e .
 source .venv/bin/activate
+```
+
+### Run the testsuite
+For the testsuite we expect a locally running LM Studio instance with the default model [qwen3-4b-instruct-2507-mlx](https://huggingface.co/lmstudio-community/Qwen3-4B-Instruct-2507-MLX-4bit) available and ready for execution.
+For details for setting up LM Studio visit [their documentation](https://lmstudio.ai/docs/app).
+
+```bash
+# run all unit tests
 uv run python -m pytest tests
+
+# run only unit tests (without LLM interactions)
+uv run python -m pytest tests --ignore=tests/integration_tests
+
+# run the integartion pytest testsuite
+uv run python -m pytest tests/integration_tests
+
+# run integration tests using the commands
+uv run test_all_commands.py
+# for options check
+uv run test_all_commands.py --help
 ```
 
 ### Guidelines

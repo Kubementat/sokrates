@@ -22,7 +22,6 @@ class IdeaGenerationWorkflow:
     This class manages the flow from initial topic generation to final output,
     leveraging different LLM models for various stages of the process.
     """
-    DEFAULT_MODEL = "qwen3-8b" # TODO: make this configurable or deriving from Config
     DEFAULT_TOPIC_GENERATOR_PATH = "prompt_generators/topic-generator.md"
     DEFAULT_PROMPT_GENERATOR_PATH = "prompt_generators/prompt-generator-v1.md"
     DEFAULT_REFINEMENT_PATH = "refine-prompt.md"

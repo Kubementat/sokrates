@@ -8,7 +8,7 @@ temperature adjustment, context management, and conversation logging.
 Parameters:
   --api-endpoint (-ae): LLM API endpoint (required if not in config)
   --api-key (-ak): API key for authentication (required if not in config)
-  --model (-m): LLM model identifier (default: qwen/qwen3-8b)
+  --model (-m): LLM model identifier (default: qwen3-4b-instruct-2507-mlx)
   --temperature (-t): Sampling temperature (0.0-1.0, default: 0.7)
   --max-tokens (-mt): Maximum response tokens (default: 6000)
   --verbose (-v): Enable verbose output
@@ -20,7 +20,7 @@ Parameters:
 
 Usage Example:
   python llm_chat.py \\
-    --model qwen/qwen3-8b \\
+    --model qwen3-4b-instruct-2507-mlx \\
     --temperature 0.8 \\
     --max-tokens 1024 \\
     --context-files ./context/prompt.md \\

@@ -1,7 +1,9 @@
 ## Changelog
 
 **Week 2025-08-10**
-- bump to version 0.7.1
+- bump to version 0.7.2
+- add more test coverage
+- change default model to qwen3-4b-instruct-2507-mlx
 - introduce sokrates-python-summarize cli for summarizing python code into a markdown documentation
 - set default model for test_all_commands to qwen3-4b-instruct-2507-mlx
 - fix singleton behavior of Config class

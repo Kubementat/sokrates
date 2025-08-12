@@ -10,6 +10,7 @@ import json
 import tempfile
 from sokrates.sequential_task_executor import SequentialTaskExecutor
 from sokrates.file_helper import FileHelper
+import pytest
 
 def create_test_task_file():
     """Create a test JSON file with sample tasks"""
@@ -50,7 +51,7 @@ def test_sequential_task_executor():
         executor = SequentialTaskExecutor(
             api_endpoint="http://localhost:1234/v1",
             api_key="notrequired",
-            model="qwen/qwen3-8b",
+            model=pytest.TESTING_MODEL,
             output_dir="../tmp/test_results",
             verbose=False
         )
