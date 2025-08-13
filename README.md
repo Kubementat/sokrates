@@ -5,6 +5,8 @@
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
+[sokrates @PyPi](https://pypi.org/project/sokrates)
+
 ## Table of Contents
 - [Description](#description)
 - [Installation](#installation)
@@ -49,6 +51,18 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 - Optional: FFmpeg (for voice features)
 - Optional: Whisper-cpp (for enhanced voice processing)
 
+### Install Prerequisites for Voice Features (Optional)
+
+```bash
+# On macOS
+brew install ffmpeg
+brew install whisper-cpp
+
+# On Ubuntu/Debian
+sudo apt-get install ffmpeg
+sudo apt-get install whisper-cpp
+```
+
 ### Install from PyPI
 
 ```bash
@@ -61,20 +75,8 @@ uv pip install sokrates
 ## voice enabled version
 uv pip install sokrates[voice]
 
-# Test the installation
+# Test the installation (this expects you to have an OpenAI compatbile endpoint running on localhost:1234/v1 , e.g. via LM Studio or ollama)
 sokrates-list-models --api-endpoint http://localhost:1234/v1
-```
-
-### Optional Prerequisites for Voice Features
-
-```bash
-# On macOS
-brew install ffmpeg
-brew install whisper-cpp
-
-# On Ubuntu/Debian
-sudo apt-get install ffmpeg
-sudo apt-get install whisper-cpp
 ```
 
 ### Install for Development
