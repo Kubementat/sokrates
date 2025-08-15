@@ -19,9 +19,9 @@ Example:
 
 import argparse
 import sys
-from ...task_queue.manager import TaskQueueManager
-from ...colors import Colors
-from ...output_printer import OutputPrinter
+from sokrates.task_queue.manager import TaskQueueManager
+from sokrates.colors import Colors
+from sokrates.output_printer import OutputPrinter
 
 def main():
     """

@@ -57,10 +57,12 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 # On macOS
 brew install ffmpeg
 brew install whisper-cpp
+brew install espeak-ng
 
 # On Ubuntu/Debian
 sudo apt-get install ffmpeg
 sudo apt-get install whisper-cpp
+sudo apt-get install espeak-ng
 ```
 
 ### Install from PyPI
@@ -119,7 +121,10 @@ command --help
 
 e.g.
 
-uv run list-models --help
+uv run sokrates-list-models --help
+
+# for listing all available commands run:
+uv run | grep sokrates
 ```
 
 ### Available Commands

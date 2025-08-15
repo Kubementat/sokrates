@@ -74,6 +74,7 @@ sokrates-daemon = "sokrates.cli.task_queue.sokrates_daemon:main"
 
 # Python tools
 sokrates-python-summarize = "sokrates.cli.coding.sokrates_python_summarize:main"
+sokrates-code-review = "sokrates.cli.coding.sokrates_code_review:main"
 
 [[tool.uv.index]]
 name = "pypi"

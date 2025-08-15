@@ -3,32 +3,32 @@
   "subtasks": [
     {
       "id": 1,
-      "description": "Create a Python function that takes a list of dictionaries representing employees (with keys 'name', 'department', and 'salary') and returns a dictionary grouping employees by department, with each department containing a list of employee names sorted alphabetically. Also provide a pytest test case for testing the created functionality.",
+      "description": "Create a complete HTML page for a portfolio website for a Software developer; who is a cat; with semantic HTML structure, CSS Flexbox layout, and responsive design that works on mobile, tablet, and desktop screens.",
       "complexity": 7
     },
     {
       "id": 2,
-      "description": "Write a Python decorator that logs function calls with their arguments and return values to a file. The decorator should work with any function and preserve the original function's metadata. Also provide a pytest test case for testing the created functionality.",
-      "complexity": 7
-    },
-    {
-      "id": 3,
-      "description": "Create a Python function that processes a JSON file containing user data and generates a report showing statistics about users by age groups. Include proper error handling for missing fields. Also provide a pytest test case for testing the created functionality.",
-      "complexity": 7
-    },
-    {
-      "id": 4,
-      "description": "Write a Ruby class `Library` with methods to add books (with title, author, and ISBN), remove books by ISBN, and search for books by title, author or a sub-string of a ISBN. Also provide an rspec testsuite for the created functionality.",
-      "complexity": 7
-    },
-    {
-      "id": 5,
       "description": "Create a snake clone in HTML, CSS and Javascript in one file. Make the game look very stylish and modern. Use particle effects when food is eaten. Allow different grid sizes for the game. Make the movement of the snake look interesting to watch and colorful.",
       "complexity": 7
     },
     {
+      "id": 3,
+      "description": "Write a modern todo list web applications using html, css and javascript in one file. Add a modern feature set and a modern polished look the application.",
+      "complexity": 7
+    },
+    {
+      "id": 4,
+      "description": "Create a version of conway's game of life in html, css and javascript in one file.",
+      "complexity": 7
+    },
+    {
+      "id": 5,
+      "description": "Create a fully working Tetris clone in html, css and javascript. The game should have a modern look and feel and use interesting animations for all important game actions. It should also provide a preview section that displays the next brick. The game should be visually impressive and have great looking effects.",
+      "complexity": 7
+    },
+    {
       "id": 6,
-      "description": "Write JavaScript code to create a simple Todo list application with HTML structure and CSS styling. Include functionality to add, mark complete, and delete todos. All should be contained in one html file.",
+      "description": "Make a presentation about how large language models are trained. It should be suitable for an 8 year old. It should be created using reveal.js in one file.",
       "complexity": 7
     },
     {
@@ -43,7 +43,7 @@
     },
     {
       "id": 9,
-      "description": "Create a complete HTML page for a portfolio website for a Software developer; who is a cat; with semantic HTML structure, CSS Flexbox layout, and responsive design that works on mobile, tablet, and desktop screens.",
+      "description": "Write a space invaders clone in Python using the pygame library in one file. It should look modern and polished.",
       "complexity": 7
     },
     {
@@ -63,7 +63,7 @@
     },
     {
       "id": 13,
-      "description": "Make a presentation about how large language models are trained. It should be suitable for an 8 year old. It should be created using reveal.js in one file.",
+      "description": "Write a text based role playing game in Python that is playable fully on the terminal. The game's setting should be a science fiction setting of your choice.",
       "complexity": 7
     },
     {
@@ -73,12 +73,12 @@
     },
     {
       "id": 15,
-      "description": "Create a version of conway's game of life in html, css and javascript in one file.",
+      "description": "Write a Ruby class `Library` with methods to add books (with title, author, and ISBN), remove books by ISBN, and search for books by title, author or a sub-string of a ISBN. Also provide an rspec testsuite for the created functionality.",
       "complexity": 7
     },
     {
       "id": 16,
-      "description": "Create a fully working Tetris clone in html, css and javascript. The game should have a modern look and feel and use intersting animations for all important game actions. It should also provide a preview section that displays the next brick. The game should be visually impressive and have great looking effects.",
+      "description": "Write a Python decorator that logs function calls with their arguments and return values to a file. The decorator should work with any function and preserve the original function's metadata. Also provide a pytest test case for testing the created functionality.",
       "complexity": 7
     }
   ],

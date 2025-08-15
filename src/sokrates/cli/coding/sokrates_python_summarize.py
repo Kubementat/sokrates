@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-LM Studio Benchmark Script
-Benchmarks LLM performance through LM Studio's OpenAI-compatible API
+Python Summarizer command
+Summarizes the class and function signatures and according docstrings in a markdown file
+The result can be fed to a large language model as context for understanding how to use the documented code
 """
 
 import argparse
-import os
-from ...coding.python_analyzer import PythonAnalyzer
-from ...output_printer import OutputPrinter
-from ...colors import Colors
+import sys
+from sokrates.coding.python_analyzer import PythonAnalyzer
+from sokrates.output_printer import OutputPrinter
+from sokrates.colors import Colors
 
 def main():
     """Main execution function"""
@@ -33,8 +34,10 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Benchmark interrupted by user")
+        print("\n\n⚠️  Python summary workflow interrupted by user")
+        sys.exit(1)
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
         import traceback
         traceback.print_exc()
+        sys.exit(1)

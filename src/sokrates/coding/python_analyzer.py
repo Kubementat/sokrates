@@ -72,8 +72,8 @@ class PythonAnalyzer:
             - Writes documentation to the target file specified
             - Prints directory contents if verbose is True
         """
-        file_paths = FileHelper.directory_tree(directory_path, sort=True)
-        file_paths = list(filter(lambda s: ".py" in s and not "__init__.py" in s, file_paths))
+        file_paths = FileHelper.directory_tree(directory_path, sort=True, file_extensions=['.py'])
+        file_paths = list(filter(lambda s: not "__init__.py" in s, file_paths))
         
         if verbose:
             print(f"Python files to summarize:")

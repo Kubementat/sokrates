@@ -19,7 +19,7 @@ class TaskQueueDatabase:
     """
     Manages the SQLite database for task queue storage and retrieval.
 
-    This class provides methods for adding tasks to the queue, retrieving pending
+    This class provides methods for adding tasks to the queue, retrieving 
     tasks, updating task status, and logging history changes. It ensures data
     integrity through transaction management and proper error handling.
 

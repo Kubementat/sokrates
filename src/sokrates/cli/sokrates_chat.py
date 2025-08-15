@@ -114,6 +114,8 @@ def main():
     model = config.default_model
     if args.model:
         model = args.model
+        
+    OutputPrinter.print_info("You are chatting with the model:", model, Colors.BRIGHT_MAGENTA)
     
     temperature = config.default_model_temperature
     if args.temperature:

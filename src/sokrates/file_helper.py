@@ -389,7 +389,7 @@ class FileHelper:
         return FileHelper.combine_files(file_list, verbose=verbose)
 
     @staticmethod
-    def directory_tree(directory, exclude_patterns=None, sort=False):
+    def directory_tree(directory, exclude_patterns=None, sort=False, file_extensions=None):
         """
         Generate a tree structure of all files in the given directory.
         
@@ -397,6 +397,7 @@ class FileHelper:
             directory (str): Path to the directory to scan
             exclude_patterns (list): List of compiled regex patterns to exclude
             sort (bool): Whether to sort the output
+            file_extensions (list): List of file extensions to include (e.g., ['.py', '.js'])
         
         Returns:
             list: List of full file paths
@@ -433,7 +434,7 @@ class FileHelper:
                     full_file_path = os.path.join(root, file)
                     abs_path = os.path.abspath(full_file_path)
                     
-                    # Check if this file should be excluded
+                    # Check if this file should be excluded based on patterns
                     is_excluded = False
                     
                     for pattern in exclude_patterns:
@@ -455,8 +456,16 @@ class FileHelper:
                         except Exception:
                             continue
                     
+                    # If not excluded, check if we should include based on extensions
                     if not is_excluded:
-                        file_paths.append(abs_path)
+                        # If no specific file extensions requested, include all files
+                        if file_extensions is None:
+                            file_paths.append(abs_path)
+                        else:
+                            # Check if the file has one of the allowed extensions
+                            file_ext = os.path.splitext(full_file_path)[1].lower()
+                            if file_ext in [ext.lower() for ext in file_extensions]:
+                                file_paths.append(abs_path)
                 
         except PermissionError as e:
             print(f"Permission denied accessing some directories: {e}")

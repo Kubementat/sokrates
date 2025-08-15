@@ -160,6 +160,7 @@ def main():
     if args.temperature:
         temperature = args.temperature
 
+    OutputPrinter.print_info("idea-count", args.idea_count)
     OutputPrinter.print_info("topic", args.topic)
     OutputPrinter.print_info("topic-input-file", args.topic_input_file)
     
