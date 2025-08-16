@@ -10,6 +10,7 @@ import sys
 import signal
 import time
 import subprocess
+import argparse
 from sokrates.task_queue.daemon import TaskQueueDaemon
 from sokrates.output_printer import OutputPrinter
 from sokrates.config import Config
@@ -18,6 +19,8 @@ DAEMON_PROCESS_NAMES=[
     "sokrates-daemon",
     "sokrates_daemon"
 ]
+
+CONFIG = Config()
 
 def start_daemon():
     """Start the task queue daemon."""
@@ -40,12 +43,11 @@ def start_daemon():
         # Child process - run the daemon with redirected output
         try:
             # Redirect stdout and stderr to log file
-            log_file_path = Config().daemon_logfile_path
-            sys.stdout = open(log_file_path, 'a')
-            sys.stderr = open(log_file_path, 'a')
+            sys.stdout = open(CONFIG.daemon_logfile_path, 'a')
+            sys.stderr = open(CONFIG.daemon_logfile_path, 'a')
 
             # Also redirect logging to the same file (it's already set up in TaskQueueDaemon)
-            daemon = TaskQueueDaemon()
+            daemon = TaskQueueDaemon(config=CONFIG)
             daemon.run()
 
             # Close log files on exit
@@ -144,9 +146,8 @@ def check_status():
         return False
 
 def main():
-    """Main CLI entry point."""
-    import argparse
-
+    """Main CLI entry point for sokrates daemon CLI."""
+    
     parser = argparse.ArgumentParser(description='Manage the task queue daemon')
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 

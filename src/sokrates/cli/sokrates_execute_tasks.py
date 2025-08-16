@@ -22,11 +22,11 @@ Example:
 
 import argparse
 import sys
-from ..sequential_task_executor import SequentialTaskExecutor
-from ..colors import Colors
-from ..output_printer import OutputPrinter
-from ..file_helper import FileHelper
-from ..config import Config
+from sokrates.sequential_task_executor import SequentialTaskExecutor
+from sokrates.colors import Colors
+from sokrates.output_printer import OutputPrinter
+from sokrates.file_helper import FileHelper
+from sokrates.config import Config
 from pathlib import Path
 from datetime import datetime
 
@@ -128,7 +128,7 @@ def main():
         sys.exit(1)
     
     # prepare and configure target directory    
-    target_directory = Config.create_and_return_task_execution_directory(args.output_directory)
+    target_directory = FileHelper.create_and_return_task_execution_directory(args.output_directory)
     OutputPrinter.print_info("Writing results to directory", target_directory)
     
     # copy over task file for better reusability of the created directory
@@ -136,11 +136,14 @@ def main():
     task_file_copy_full_path  = Path(target_directory) / task_file_name
     FileHelper.copy_file(args.task_file,task_file_copy_full_path, verbose=args.verbose)
 
+    refinement_prompt_path = f"{config.prompts_directory}/refine-prompt.md"
+    
     # Initialize executor
     executor = SequentialTaskExecutor(
         api_endpoint=api_endpoint,
         api_key=api_key,
         model=model,
+        refinement_prompt_path=refinement_prompt_path,
         temperature=temperature,
         output_dir=target_directory,
         verbose=args.verbose,

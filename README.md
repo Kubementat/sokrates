@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.7.2](https://img/img.shields.io/badge/Version-0.7.2-brightgreen.svg)](https://github.com/Kubementat/sokrates)
+[![Version: 0.8.3](https://img/img.shields.io/badge/Version-0.8.3-brightgreen.svg)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -295,6 +295,9 @@ sokrates-benchmark-results-to-markdown --input benchmark_results.json --output b
 ```bash
 # Summarize python source dode classes and functions in the `src` directory and write the result to `docs/code_summary.md`
 sokrates-python-summarize --source-directory src/ --output docs/code_summary.md
+
+# Perform a code review for a list of code files or a directory
+sokrates-code-review --files src/sokrates/config.py --verbose -o docs/code_reviews
 ```
 
 ## Features

@@ -12,7 +12,8 @@ Classes:
 import uuid
 from typing import List, Dict, Optional
 from .database import TaskQueueDatabase
-from ..file_helper import FileHelper
+from sokrates.file_helper import FileHelper
+from sokrates.config import Config
 
 class TaskQueueManager:
     """
@@ -33,7 +34,7 @@ class TaskQueueManager:
         remove_task(): Remove a task from the queue
     """
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, config: Config):
         """
         Initializes the TaskQueueManager with database configuration.
 
@@ -41,7 +42,8 @@ class TaskQueueManager:
             db_path (str, optional): Path to the SQLite database file.
                 If None, uses the default from TaskQueueDatabase.
         """
-        self.db = TaskQueueDatabase(db_path)
+        self.config = config
+        self.db = TaskQueueDatabase(self.config.database_path)
 
     def add_task_from_file(self, task_file_path: str,
                           priority: str = "normal") -> str:

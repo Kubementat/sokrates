@@ -4,23 +4,18 @@ Sequential Task Executor Module
 
 Main Purpose: Execute tasks from JSON files using LLM APIs with prompt refinement workflow
 Parameters:
-  - api_endpoint (str): LLM API endpoint URL. Default: Config.DEFAULT_API_ENDPOINT
-  - api_key (str): Authentication key for API access. Default: Config.DEFAULT_API_KEY
-  - model (str): Model identifier to use. Default: Config.DEFAULT_MODEL
-  - temperature (float): Controls randomness in prompt refinement. Default: Config.DEFAULT_MODEL_TEMPERATURE
-  - output_dir (str, optional): Directory path for saving results. Default: "./task_results"
-  - verbose (bool, optional): Enables detailed logging if True. Default: False
-
-Usage Example:
-  executor = SequentialTaskExecutor(output_dir="./results", verbose=True)
-  result_summary = executor.execute_tasks_from_file("tasks.json")
+  - api_endpoint (str): LLM API endpoint URL.
+  - api_key (str): Authentication key for API access. 
+  - model (str): Model identifier to use.
+  - temperature (float): Controls randomness in prompt refinement. 
+  - output_dir (str, optional): Directory path for saving results.
+  - verbose (bool, optional): Enables detailed logging if True.
 """
 
 import os
 from typing import List, Dict
 from .refinement_workflow import RefinementWorkflow
 from .file_helper import FileHelper
-from .config import Config
 from .output_printer import OutputPrinter
 from .llm_api import LLMApi
 
@@ -52,36 +47,38 @@ class SequentialTaskExecutor:
         _process_single_task_file(): Process individual task file with refinement and execution
     """
 
-    def __init__(self, api_endpoint: str = Config.DEFAULT_API_ENDPOINT,
-                 api_key: str = Config.DEFAULT_API_KEY,
-                 model: str = Config.DEFAULT_MODEL,
-                 temperature: float = Config.DEFAULT_MODEL_TEMPERATURE,
+    def __init__(self, api_endpoint: str,
+                 api_key: str,
+                 model: str,
+                 refinement_prompt_path: str,
+                 temperature: float,
                  output_dir: str = None,
                  verbose: bool = False,
-                 refinement_enabled: bool = True):
+                 refinement_enabled: bool = True,
+                 ):
         """
         Initializes the SequentialTaskExecutor with configuration and workflow setup.
 
         Args:
-            api_endpoint (str): LLM API endpoint. Defaults to Config.DEFAULT_API_ENDPOINT.
-            api_key (str): API key for authentication. Defaults to Config.DEFAULT_API_KEY.
-            model (str): LLM model to use. Defaults to Config.DEFAULT_MODEL.
+            api_endpoint (str): LLM API endpoint. 
+            api_key (str): API key for authentication. 
+            model (str): LLM model to use. 
             output_dir (str, optional): Directory where task results will be saved.
-                If None, defaults to "./task_results".
+                If None, defaults to "$HOME/.sokrates/tasks/results".
             verbose (bool, optional): If True, enables verbose output. Defaults to False.
 
         Side Effects:
             - Creates output directory if it doesn't exist
             - Initializes refinement workflow instance
         """
-        self.config = Config(verbose=verbose)
         self.api_endpoint = api_endpoint
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
-        self.output_dir = Config.create_and_return_task_execution_directory(output_dir)
+        self.output_dir = FileHelper.create_and_return_task_execution_directory(output_dir)
         self.verbose = verbose
         self.refinement_enabled = refinement_enabled
+        self.refinement_prompt_path = refinement_prompt_path
 
         # Create output directory if it doesn't exist
         os.makedirs(self.output_dir, exist_ok=True)
@@ -219,10 +216,9 @@ Handle the sub-task in the context of the main objective.
         # Step 2: Refine the prompt using existing refinement workflow
         if self.verbose:
             OutputPrinter.print(f"Refining and executing prompt for task {task_id} ...")
-
-        # Use a generic refinement prompt for task execution
-        refinement_prompt_path = f"{Config.DEFAULT_PROMPTS_DIRECTORY}/refine-prompt.md"
-        refinement_prompt = FileHelper.read_file(refinement_prompt_path, verbose=self.verbose)
+        
+        # read refinement prompt path
+        refinement_prompt = FileHelper.read_file(self.refinement_prompt_path, verbose=self.verbose)
 
         execution_result = ""
         

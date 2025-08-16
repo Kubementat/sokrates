@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from sokrates.llm_api import LLMApi
 from sokrates.config import Config
+import pytest
 
 
 class TestLLMApi:
@@ -22,7 +23,7 @@ class TestLLMApi:
 
     def setup_method(self):
         """Set up test fixtures before each test method."""
-        self.api_endpoint = "http://localhost:1234/v1"
+        self.api_endpoint = pytest.TESTING_ENDPOINT
         self.api_key = "test_api_key"
         self.verbose = False
 

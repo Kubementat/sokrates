@@ -11,20 +11,19 @@ import sys
 import time
 import logging
 from logging.handlers import RotatingFileHandler
-from .processor import TaskProcessor
-from ..config import Config
-
+from sokrates.task_queue.processor import TaskProcessor
+from sokrates.config import Config
 class TaskQueueDaemon:
     """
     Background daemon for processing tasks from the task queue.
 
     Attributes:
         processor: TaskProcessor instance for task execution
-        interval: Time between processing cycles in seconds
+        processing_interval: Time between processing cycles in seconds
         running: Flag indicating if daemon is running
     """
 
-    def __init__(self, db_path=None):
+    def __init__(self, config: Config):
         """
         Initialize the TaskQueueDaemon with configuration and set up components.
 
@@ -35,16 +34,18 @@ class TaskQueueDaemon:
             db_path (str, optional): Path to the SQLite database file.
                 If None, uses the default from Config.
         """
-        self.interval = Config().task_queue_daemon_processing_interval
+        self.config = config
+        self.processing_interval = self.config.daemon_processing_interval
+        self.daemon_logfile_path = self.config.daemon_logfile_path
         self.running = False
 
         # Set up logging
         self.setup_logger()
-        self.processor = TaskProcessor(db_path, logger=self.logger)
+        self.processor = TaskProcessor(config=self.config)
 
     def setup_logger(self):
         """Configure logging for the daemon."""
-        log_file = Config().daemon_logfile_path
+        log_file = self.daemon_logfile_path
         logger = logging.getLogger('TaskQueueDaemon')
         logger.setLevel(logging.INFO)
 
@@ -65,7 +66,7 @@ class TaskQueueDaemon:
     def process_cycle(self):
         """Process a single cycle of tasks using TaskProcessor."""
         try:
-            self.logger.info(f"Starting processing cycle (interval: {self.interval}s)")
+            self.logger.info(f"Starting processing cycle (processing_interval: {self.processing_interval}s)")
             
             self.processor.process_tasks()
             self.logger.info("Processing cycle completed")
@@ -80,7 +81,7 @@ class TaskQueueDaemon:
         try:
             while self.running:
                 self.process_cycle()
-                time.sleep(self.interval)
+                time.sleep(self.processing_interval)
         except KeyboardInterrupt:
             pass
         finally:
@@ -128,19 +129,3 @@ class TaskQueueDaemon:
         """Handle termination signals."""
         self.logger.info(f"Received signal {signum}. Shutting down...")
         self.shutdown()
-
-def main():
-    """Main entry point for the daemon."""
-    # Set up signal handlers
-    daemon = TaskQueueDaemon()
-    signal.signal(signal.SIGTERM, daemon.handle_signal)
-    signal.signal(signal.SIGINT, daemon.handle_signal)
-
-    try:
-        daemon.run()
-    except Exception as e:
-        print(f"Error starting daemon: {e}")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    main()

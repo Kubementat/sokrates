@@ -15,3 +15,4 @@ import src.sokrates
 sys.modules['sokrates'] = src.sokrates
 
 pytest.TESTING_MODEL = "qwen3-4b-instruct-2507-mlx"
+pytest.TESTING_ENDPOINT = "http://localhost:1234/v1"

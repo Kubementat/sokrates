@@ -19,6 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from sokrates.idea_generation_workflow import IdeaGenerationWorkflow
 from sokrates.config import Config
+import pytest
 
 
 class TestIdeaGenerationWorkflowIntegration:
@@ -30,7 +31,7 @@ class TestIdeaGenerationWorkflowIntegration:
         self.temp_dir = tempfile.mkdtemp()
         
         # Mock the API endpoint and key to avoid actual LLM calls during testing
-        self.api_endpoint = "http://localhost:1234/v1"
+        self.api_endpoint = pytest.TESTING_ENDPOINT
         self.api_key = "test_api_key"
 
     def teardown_method(self):

@@ -22,6 +22,7 @@ import sys
 from sokrates.task_queue.manager import TaskQueueManager
 from sokrates.colors import Colors
 from sokrates.output_printer import OutputPrinter
+from sokrates.config import Config
 
 def main():
     """
@@ -56,13 +57,14 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
+    config = Config(verbose=args.verbose)
 
     if args.verbose:
         print(f"{Colors.BRIGHT_BLUE}Starting task addition process...{Colors.RESET}")
 
     try:
         # Initialize TaskQueueManager
-        manager = TaskQueueManager()
+        manager = TaskQueueManager(config=config)
 
         # Add task to queue
         task_id = manager.add_task_from_file(

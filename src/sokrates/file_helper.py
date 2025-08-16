@@ -477,3 +477,35 @@ class FileHelper:
             file_paths.sort()
         
         return file_paths
+
+    @staticmethod
+    def create_and_return_task_execution_directory(output_directory=None) -> str:
+        """
+        Creates and returns the target directory for task results.
+
+        Args:
+            output_directory (Path, optional): Path to custom output directory.
+                If provided, creates this directory. If None, uses default path in $HOME/.sokrates/tasks/results/YYYY-MM-DD_HH-mm .
+
+        Returns:
+            Path: Path object pointing to the created directory
+
+        Raises:
+            FileExistsError: If the specified output directory already exists
+        """
+        if output_directory:
+            Path(output_directory).mkdir(parents=True, exist_ok=True)
+            return output_directory
+        
+        # use default if not specified
+        now = datetime.now()
+        home_dir = Path.home()
+        
+        # Format the directory name as 'YYYY-MM-DD_HH-MM'
+        directory_name = now.strftime("%Y-%m-%d_%H-%M")
+        
+        default_task_result_parent_dir = home_dir / ".sokrates" / "tasks" / "results"
+        target_dir = Path(default_task_result_parent_dir) / directory_name
+        Path(target_dir).mkdir(parents=True, exist_ok=True)
+        
+        return str(target_dir)

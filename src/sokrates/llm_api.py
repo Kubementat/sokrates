@@ -72,7 +72,7 @@ class LLMApi:
             print(f"{Colors.RED}{Colors.BOLD}Error listing models: {str(e)}{Colors.RESET}")
             raise(e)
 
-    def send(self, prompt: str, model: str = Config.DEFAULT_MODEL, context: str = None, context_array: List[str] = None, max_tokens: int = 2000, temperature: float = 0.7) -> str:
+    def send(self, prompt: str, model: str = Config.DEFAULT_MODEL, context: str = None, context_array: List[str] = None, max_tokens: int = 2000, temperature: float = 0.7, system_prompt: str = None) -> str:
         """
         Sends a text prompt to the LLM server for generation and returns the response.
         Context can be provided as a single string or a list of strings, which will be
@@ -81,6 +81,7 @@ class LLMApi:
         Args:
             prompt (str): The main text prompt to send to the LLM.
             model (str): The name of the model to use for generation. Defaults to Config.DEFAULT_MODEL.
+            system_prompt (str): A system prompt to use for processing the sent prompt (Default: None)
             context (str, optional): A single string of context to prepend to the prompt.
                                      Defaults to None.
             context_array (List[str], optional): A list of context text fragments to prepend.
@@ -97,6 +98,9 @@ class LLMApi:
             Exception: If the API call to the LLM server fails.
         """
         print(f"{Colors.CYAN}{Colors.BOLD}Generating with model {model} ...{Colors.RESET}", file=sys.stderr)
+        
+        if self.verbose and system_prompt:
+            print(f"{Colors.CYAN}{Colors.BOLD}Using provided system prompt:\n{system_prompt}{Colors.RESET}", file=sys.stderr)
         
         if context_array:
             print(f"{Colors.CYAN}{Colors.BOLD}Added provided context array to the prompt.{Colors.RESET}", file=sys.stderr)
@@ -117,15 +121,27 @@ class LLMApi:
                 print()
                 print(f"{Colors.BLUE}{'-'*20}{Colors.RESET}")
                 print()
+                
+            messages = []
+            
+            if system_prompt:
+                messages.append(
+                    {
+                        "role": "system", 
+                        "content": system_prompt
+                    }
+                )
+            
+            messages.append(
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            )
 
             stream = client.chat.completions.create(
                 model=model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
+                messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 stream=True

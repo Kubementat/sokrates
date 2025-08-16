@@ -10,6 +10,7 @@ Classes:
 """
 
 import time
+from pathlib import Path
 from typing import Optional
 from .manager import TaskQueueManager
 from .status_tracker import StatusTracker
@@ -34,15 +35,15 @@ class TaskProcessor:
         execute_task(): Execute a single task using SequentialTaskExecutor
     """
 
-    def __init__(self, db_path: Optional[str] = None, logger = None):
+    def __init__(self, config: Config, logger = None):
         """
         Initializes the TaskProcessor with configured components.
 
         Args:
-            db_path (str, optional): Path to the SQLite database file.
-                If None, uses the default from TaskQueueManager.
+            db_path (str): Path to the SQLite database file.
         """
-        self.manager = TaskQueueManager(db_path)
+        self.config = config
+        self.manager = TaskQueueManager(config)
         self.status_tracker = StatusTracker(self.manager)
         self.error_handler = ErrorHandler()
         self.logger = logger
@@ -92,11 +93,16 @@ class TaskProcessor:
         task_id = task['task_id']
         file_path = task['file_path']
         
+        # TODO: Refactor Config dependency
+        # remove tight coupling with Config class and pass along the parameters directly
+        refinement_prompt_path = f"{self.config.prompts_directory}/refine-prompt.md"
+        
         executor = SequentialTaskExecutor(
-                api_endpoint=Config().api_endpoint,
-                api_key=Config().api_key,
-                model=Config().default_model,
-                temperature=Config().default_model_temperature,
+                api_endpoint=self.config.api_endpoint,
+                api_key=self.config.api_key,
+                model=self.config.default_model,
+                temperature=self.config.default_model_temperature,
+                refinement_prompt_path=str((Path(self.config.prompts_directory) / 'refine-prompt.md').resolve()),
                 verbose=True
                 )
 

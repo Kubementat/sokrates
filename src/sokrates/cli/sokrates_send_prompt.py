@@ -66,7 +66,7 @@ def write_output_file(content, model, source_prompt_file, output_directory, verb
 
 def prompt_model(llm_api, prompt, model, max_tokens, temperature, 
     output_directory, source_prompt_file=None, verbose=False, post_process_results=False,
-    context_text=None, context_directories=None, context_files=None):
+    context_text=None, context_directories=None, context_files=None, system_prompt=None):
     """Process a prompt with a specific LLM model and handle the response.
 
     This function sends a prompt to an LLM server using the provided configuration,
@@ -85,6 +85,7 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
         context_text (str, optional): Additional text to prepend to the prompt.
         context_directories (list, optional): List of directories containing files with context.
         context_files (list, optional): List of file paths containing additional context.
+        system_prompt (str, optional): The system prompt to use for processing
 
     Returns:
         None
@@ -107,7 +108,8 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
             model=model,
             max_tokens=max_tokens,
             temperature=temperature,
-            context_array=context_array
+            context_array=context_array,
+            system_prompt=system_prompt
         )
         logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nOutput for model {model} :\n{COLOR_RESET}")
@@ -148,6 +150,7 @@ Call example:
     parser.add_argument('--api-endpoint', '-ae', default=None, help='LLM server API endpoint')
     parser.add_argument('--api-key', '-ak', default=None, help='API key for authentication (can be empty for local servers)')
     parser.add_argument('--models', '-m', default=None, help='Comma separated model names to use (can be multiple)')
+    parser.add_argument('--system-prompt', '-sp', default=None, help='An optional system prompt to use for prompt processing by the LLM')
     parser.add_argument('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')
     parser.add_argument('--temperature', '-t', default=None, type=float, help='Temperature for response generation')
     parser.add_argument('--verbose','-v', action='store_true', help='Enable verbose output')
@@ -217,7 +220,7 @@ Call example:
                 temperature=temperature, output_directory=args.output_directory, source_prompt_file=None, 
                 verbose=args.verbose, post_process_results=args.post_process_results,
                 context_text=args.context_text, context_directories=args.context_directories, 
-                context_files=args.context_files)
+                context_files=args.context_files, system_prompt=args.system_prompt)
             sys.exit(0)
 
     # Process multiple prompt files from directory

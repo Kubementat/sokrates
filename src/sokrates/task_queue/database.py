@@ -13,7 +13,6 @@ Classes:
 import sqlite3
 import time
 from typing import List, Dict, Optional
-from ..config import Config
 
 class TaskQueueDatabase:
     """
@@ -37,19 +36,18 @@ class TaskQueueDatabase:
         close(): Close the database connection
     """
 
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: str):
         """
         Initializes the TaskQueueDatabase with configuration and database setup.
 
         Args:
-            db_path (str, optional): Path to the SQLite database file.
-                If None, uses the value from Config.QUEUE_STORAGE_PATH.
+            db_path (str): Path to the SQLite database file.
 
         Side Effects:
             - Creates database tables if they don't exist
             - Establishes initial database connection
         """
-        self.db_path = db_path or Config().database_path
+        self.db_path = db_path
         self.conn = None
         self._connect()
         self._initialize_tables()

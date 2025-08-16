@@ -220,7 +220,7 @@ def handle_talk_command(conversation_history: list, refiner):
             OutputPrinter.print(f"{Colors.YELLOW}Press Enter to stop the audio playback.{Colors.RESET}")
             try:
                 # Import TextToSpeech class
-                from .text_to_speech import TextToSpeech
+                from sokrates.text_to_speech import TextToSpeech
                 # Initialize TTS instance
                 tts = TextToSpeech()
                 
@@ -300,7 +300,7 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
                 OutputPrinter.print(f"{Colors.YELLOW}Press Enter to stop the audio playback.{Colors.RESET}")
                 try:
                     # Import TextToSpeech class
-                    from .text_to_speech import TextToSpeech
+                    from sokrates.text_to_speech import TextToSpeech
                     # Initialize TTS instance
                     tts = TextToSpeech()
                     

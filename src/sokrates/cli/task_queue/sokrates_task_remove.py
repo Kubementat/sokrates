@@ -21,6 +21,7 @@ import sys
 from sokrates.task_queue.manager import TaskQueueManager
 from sokrates.colors import Colors
 from sokrates.output_printer import OutputPrinter
+from sokrates.config import Config
 
 def main():
     """
@@ -54,13 +55,14 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
+    config = Config(verbose=args.verbose)
 
     if args.verbose:
         print(f"{Colors.BRIGHT_BLUE}Preparing to remove task {args.task_id}...{Colors.RESET}")
 
     try:
         # Initialize TaskQueueManager
-        manager = TaskQueueManager()
+        manager = TaskQueueManager(config=config)
 
         # Check if task exists first
         all_tasks = manager.get_all_tasks()

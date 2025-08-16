@@ -11,6 +11,7 @@ import tempfile
 from sokrates.sequential_task_executor import SequentialTaskExecutor
 from sokrates.file_helper import FileHelper
 import pytest
+from pathlib import Path
 
 def create_test_task_file():
     """Create a test JSON file with sample tasks"""
@@ -46,12 +47,15 @@ def test_sequential_task_executor():
     # Create test task file
     task_file = create_test_task_file()
 
+    refinement_prompt_path = (Path(__file__).parent.parent.parent / "src" / "sokrates" / "prompts" / "refine-prompt.md").resolve()
     try:
         # Initialize executor with minimal configuration for testing
         executor = SequentialTaskExecutor(
-            api_endpoint="http://localhost:1234/v1",
+            api_endpoint=pytest.TESTING_ENDPOINT,
             api_key="notrequired",
             model=pytest.TESTING_MODEL,
+            refinement_prompt_path=str(refinement_prompt_path),
+            temperature=0.7,
             output_dir="../tmp/test_results",
             verbose=False
         )

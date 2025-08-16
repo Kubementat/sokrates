@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from .colors import Colors
-from datetime import datetime
+from threading import Lock
 
 class Config:
   """
@@ -21,10 +21,11 @@ class Config:
   DEFAULT_API_KEY = "notrequired"
   DEFAULT_MODEL = "qwen3-4b-instruct-2507-mlx"
   DEFAULT_MODEL_TEMPERATURE = 0.7
-  DEFAULT_PROMPTS_DIRECTORY = Path(f"{Path(__file__).parent.resolve()}/prompts").resolve()
-  DEFAULT_TASK_QUEUE_DAEMON_PROCESSING_INTERVAL = 15
+  DEFAULT_PROMPTS_DIRECTORY = str((Path(__file__).parent / "prompts").resolve())
+  DEFAULT_DAEMON_PROCESSING_INTERVAL = 15
   
   _instance = None  # Class variable to hold the single instance
+  _lock = Lock()
 
   def __new__(cls, *args, **kwargs):
         """
@@ -34,7 +35,11 @@ class Config:
             Config: The single instance of the Config class.
         """
         if not cls._instance:
-            cls._instance = super().__new__(cls)
+            # thread safe 
+            with cls._lock:
+                # Double-check to prevent race condition
+                if not cls._instance:
+                    cls._instance = super().__new__(cls)
         return cls._instance
   
   def __init__(self, verbose=False) -> None:
@@ -45,52 +50,65 @@ class Config:
         verbose (bool): If True, prints basic configuration details upon loading.
     """
     if not hasattr(self, 'initialized'):
+      # initialization
       self.initialized = True
       self.verbose = verbose
+      
+      # static settings
+      self.daemon_processing_interval = self.DEFAULT_DAEMON_PROCESSING_INTERVAL
+      
       # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
-      self.home_path: str = f"{str(Path.home())}/.sokrates"
-      self.home_path: str = os.environ.get('SOKRATES_HOME_PATH', self.home_path)
-      self.config_path: str = f"{self.home_path}/.env"
-      self.logs_path: str = f"{self.home_path}/logs"
-      self.daemon_logfile_path: str = f"{self.logs_path}/daemon.log"
-      self.task_queue_daemon_processing_interval = self.DEFAULT_TASK_QUEUE_DAEMON_PROCESSING_INTERVAL
-      self.database_path: str = f"{self.home_path}/sokrates_database.sqlite"
-      self.config_path: str = os.environ.get('SOKRATES_CONFIG_FILEPATH', self.config_path)
-      if os.environ.get('SOKRATES_DATABASE_PATH'):
-        self.database_path: str = os.environ.get('SOKRATES_DATABASE_PATH')
-      if os.environ.get('SOKRATES_TASK_QUEUE_DAEMON_LOGFILE_PATH'):
-        self.daemon_logfile_path: str = os.environ.get('SOKRATES_TASK_QUEUE_DAEMON_LOGFILE_PATH')      
-      self.load_env()
-      self.initialize_directories()
-      self.print_configuration()
+      home_base = Path.home()
+      self.home_path: str = os.environ.get(
+        'SOKRATES_HOME_PATH', 
+        str((home_base / ".sokrates").resolve())
+      )
+      self.config_path: str = os.environ.get(
+        'SOKRATES_CONFIG_FILEPATH', 
+        str((Path(self.home_path) / '.env').resolve())
+      )
+      
+      # log paths
+      self.logs_path: str = str((Path(self.home_path) / 'logs').resolve())
+      self.daemon_logfile_path: str = os.environ.get(
+        'SOKRATES_DAEMON_LOGFILE_PATH',
+        str((Path(self.logs_path) / 'daemon.log').resolve())
+      )
+      
+      # database path
+      self.database_path: str = os.environ.get(
+        'SOKRATES_DATABASE_PATH', 
+        str((Path(self.home_path) / 'sokrates_database.sqlite').resolve())
+      )
+      
+      self.prompts_directory: str = os.environ.get(
+        'SOKRATES_PROMPTS_PATH',
+        self.DEFAULT_PROMPTS_DIRECTORY
+      )
+      
+      self._load_env()
+      self._setup_directories()
+      self._log_configuration()
     
-  def print_configuration(self):
+  def _log_configuration(self) -> None:
       """
       Prints the current configuration settings to the console in a formatted way.
-      
-      This method displays various configuration parameters such as:
-      - SOKRATES_HOME_PATH
-      - SOKRATES_API_ENDPOINT  
-      - SOKRATES_DEFAULT_MODEL
-      - SOKRATES_DEFAULT_MODEL_TEMPERATURE
-      - SOKRATES_CONFIG_FILEPATH
-      - SOKRATES_DATABASE_PATH
-      - SOKRATES_DAEMON_LOGFILE_PATH
       
       Returns:
           None
       """
       if self.verbose:
         print(f"{Colors.GREEN}{Colors.BOLD}### Basic Configuration ###{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_HOME_PATH: {self.home_path}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_API_ENDPOINT: {self.api_endpoint}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DEFAULT_MODEL: {self.default_model}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DEFAULT_MODEL_TEMPERATURE: {self.default_model_temperature}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_CONFIG_FILEPATH: {self.config_path}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DATABASE_PATH: {self.database_path}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - SOKRATES_DAEMON_LOGFILE_PATH: {self.daemon_logfile_path}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - home_path: {self.home_path}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - config_path: {self.config_path}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - database_path: {self.database_path}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - logfile_path: {self.daemon_logfile_path}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - api_endpoint: {self.api_endpoint}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - default_model: {self.default_model}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - default_model_temperature: {self.default_model_temperature}{Colors.RESET}")
+        print(f"{Colors.BLUE}{Colors.BOLD} - daemon_processing_interval: {self.daemon_processing_interval}{Colors.RESET}")
   
-  def load_env(self) -> None:
+  def _load_env(self) -> None:
       """
       Loads environment variables from the specified .env file.
       Sets API endpoint, API key, and default model, applying defaults if not found.
@@ -101,11 +119,11 @@ class Config:
       self.default_model: str | None = os.environ.get('SOKRATES_DEFAULT_MODEL', self.DEFAULT_MODEL)
       
       temperature = float(os.environ.get('SOKRATES_DEFAULT_MODEL_TEMPERATURE', self.DEFAULT_MODEL_TEMPERATURE))
-      if temperature <= 0 or temperature >= 1:
-        raise EnvironmentError
+      if not (0 < temperature < 1):
+        raise ValueError(f"Temperature must be between 0 and 1 (exclusive), got {temperature}")
       self.default_model_temperature: float | None = temperature
       
-  def initialize_directories(self):
+  def _setup_directories(self) -> None:
     """
     Creates the necessary directory structure for the application.
     
@@ -119,13 +137,19 @@ class Config:
     if self.verbose:
       print(f"Creating sokrates home path: {self.home_path}")
     
-    Path(self.home_path).mkdir(parents=True, exist_ok=True)
+    try:
+      Path(self.home_path).mkdir(parents=True, exist_ok=True)
+    except (OSError, PermissionError) as e:
+      raise RuntimeError(f"Failed to create sokrates home directory at `{self.home_path}`: {e}")
     
     if self.verbose:
-      print(f"Creating sokrates logs path: {self.logs_path}")
+      print(f"Creating sokrates logs path at: {self.logs_path}")
     
-    Path(self.logs_path).mkdir(parents=True, exist_ok=True)
-  
+    try:
+      Path(self.logs_path).mkdir(parents=True, exist_ok=True)
+    except (OSError, PermissionError) as e:
+      raise RuntimeError(f"Failed to create sokrates logs directory at `{self.logs_path}`: {e}")
+
   @staticmethod
   def _get_local_member_value(key):
     """
@@ -137,75 +161,30 @@ class Config:
 
     Args:
         key (str): The configuration parameter name to retrieve.
-            Valid keys include: 'api_endpoint', 'api_key', 'default_model',
-            'default_model_temperature', 'database_path', and 'task_queue_daemon_logfile_path'.
 
     Returns:
         The value of the requested configuration parameter, or None if not found.
     """
-    if key == 'api_endpoint':
-      return Config._instance.api_endpoint 
-    if key == 'api_key':
-      return Config._instance.api_key 
-    if key == 'default_model':
-      return Config._instance.default_model
-    if key == 'default_model_temperature':
-      return Config._instance.default_model_temperature
-    if key == 'database_path':
-      return Config._instance.database_path
-    if key == 'task_queue_daemon_logfile_path':
-      return Config._instance.daemon_logfile_path
+    if hasattr(Config._instance, key):
+        return getattr(Config._instance, key)
     return None
   
   @staticmethod
-  def get(key, default_value=None):
+  def get(key, default_value=None) -> str:
     """
-    Retrieves a configuration value by key.
-
-    This method first checks if the requested key exists in the local Config instance,
-    and returns its value if found. If not found locally, it falls back to checking
-    the environment variables for a matching key.
-
+    Retrieves configuration value with precedence:
+    1. Config instance attribute
+    2. Environment variable
+    3. Provided default_value
+    
     Args:
-        key (str): The configuration parameter name to retrieve.
-        default_value (any, optional): A default value to return if the key is not found.
-
+        key (str): Configuration parameter name
+        default_value: Fallback if neither instance nor env var exists
+        
     Returns:
-        The configuration value for the specified key, or the default_value if not found.
+        str | None: Configuration value or default_value
     """
     lval = Config._get_local_member_value(key)
-    if lval:
+    if lval is not None:
       return lval
     return os.environ.get(key, default_value)
-  
-  @staticmethod
-  def create_and_return_task_execution_directory(output_directory=None):
-    """
-    Creates and returns the target directory for task results.
-
-    Args:
-        output_directory (Path, optional): Path to custom output directory.
-            If provided, creates this directory. If None, uses default path in $HOME/.sokrates/tasks/results/YYYY-MM-DD_HH-mm .
-
-    Returns:
-        Path: Path object pointing to the created directory
-
-    Raises:
-        FileExistsError: If the specified output directory already exists
-    """
-    if output_directory:
-        Path(output_directory).mkdir(parents=True, exist_ok=True)
-        return output_directory
-    
-    # use default if not specified
-    now = datetime.now()
-    home_dir = Path.home()
-    
-    # Format the directory name as 'YYYY-MM-DD_HH-MM'
-    directory_name = now.strftime("%Y-%m-%d_%H-%M")
-    
-    default_task_result_parent_dir = home_dir / ".sokrates" / "tasks" / "results"
-    target_dir = Path(default_task_result_parent_dir) / directory_name
-    Path(target_dir).mkdir(parents=True, exist_ok=True)
-    
-    return target_dir

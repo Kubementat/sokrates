@@ -71,6 +71,10 @@ def test_all_commands(api_endpoint, api_key, model):
         {
             "cmd": "sokrates-python-summarize",
             "args": "--source-directory src/sokrates/coding --output tmp/python_summary.md"
+        },
+        {
+            "cmd": "sokrates-code-review",
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --files src/sokrates/llm_api.py --verbose -o src/docs/code_reviews"
         }
     ]
 
