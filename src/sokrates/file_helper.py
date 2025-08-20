@@ -75,7 +75,10 @@ class FileHelper:
         Side Effects:
             - None (pure function)
         """
-        return name.replace('/', '_').replace(':', '-').replace('*', '-').replace('?', '').replace('"', '')
+        result = name.replace('/', '_').replace(':', '-').replace('*', '-').replace('?', '').replace('"', '').replace(' ', '-')
+        if len(result) < 1 or bool(re.match(r'^[_-]*$', result)):
+            raise ValueError(f"The provided name: {name} can't be resolved to a clean name." )
+        return result
 
     @staticmethod
     def list_files_in_directory(directory_path: str, verbose: bool = False) -> List[str]:

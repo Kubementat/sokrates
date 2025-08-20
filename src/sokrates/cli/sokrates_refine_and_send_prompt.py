@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 
-from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config, OutputPrinter
+from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config, OutputPrinter
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""

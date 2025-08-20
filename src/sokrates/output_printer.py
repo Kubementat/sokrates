@@ -24,7 +24,7 @@ class OutputPrinter:
     """
     border = "═" * width
     print(f"\n{color}{Colors.BOLD}╔{border}╗{Colors.RESET}")
-    print(f"{color}{Colors.BOLD}║{title.center(width)}║{Colors.RESET}")
+    print(f"{color}{Colors.BOLD}║{title.center(width)}{Colors.RESET}")
     print(f"{color}{Colors.BOLD}╚{border}╝{Colors.RESET}\n")
 
   @staticmethod

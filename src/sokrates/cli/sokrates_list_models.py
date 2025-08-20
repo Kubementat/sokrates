@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-from .. import LLMApi, Config
+from sokrates.llm_api import LLMApi
+from sokrates.config import Config
 
 def main():
     """

@@ -46,6 +46,8 @@ class SequentialTaskExecutor:
         execute_tasks_from_file(): Execute all tasks from a JSON file
         _process_single_task_file(): Process individual task file with refinement and execution
     """
+    
+    DEFAULT_MAX_TOKENS = 10000
 
     def __init__(self, api_endpoint: str,
                  api_key: str,
@@ -55,6 +57,7 @@ class SequentialTaskExecutor:
                  output_dir: str = None,
                  verbose: bool = False,
                  refinement_enabled: bool = True,
+                 max_tokens = DEFAULT_MAX_TOKENS
                  ):
         """
         Initializes the SequentialTaskExecutor with configuration and workflow setup.
@@ -75,6 +78,7 @@ class SequentialTaskExecutor:
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
+        self.max_tokens = max_tokens
         self.output_dir = FileHelper.create_and_return_task_execution_directory(output_dir)
         self.verbose = verbose
         self.refinement_enabled = refinement_enabled
@@ -89,7 +93,8 @@ class SequentialTaskExecutor:
             api_key=self.api_key,
             model=self.model,
             verbose=self.verbose,
-            temperature=self.temperature
+            temperature=self.temperature,
+            max_tokens=self.max_tokens
         )
 
     def execute_tasks_from_file(self, task_file_path: str) -> Dict[str, any]:
@@ -230,7 +235,8 @@ Handle the sub-task in the context of the main objective.
                 refinement_prompt=refinement_prompt,  # No further refinement needed for execution
                 refinement_model=self.model,
                 execution_model=self.model,
-                refinement_temperature=self.temperature
+                refinement_temperature=self.temperature,
+                max_tokens=self.max_tokens
             )
         else:
             OutputPrinter.print(f"Refinement is disabled. Executing the prompt directly ...")
@@ -239,7 +245,7 @@ Handle the sub-task in the context of the main objective.
                             api_key=self.api_key)
             execution_result = llmapi.send(task_prompt, 
                             model = self.model, 
-                            max_tokens=20000, 
+                            max_tokens=self.max_tokens, 
                             temperature=self.temperature)
 
         if self.verbose:

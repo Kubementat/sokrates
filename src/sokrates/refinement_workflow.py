@@ -69,7 +69,13 @@ class RefinementWorkflow:
         print(f"{Colors.MAGENTA}{markdown_output}\n{Colors.RESET}")
       return markdown_output
     
-    def refine_and_send_prompt(self, input_prompt: str, refinement_prompt: str, refinement_model: str = None, execution_model: str = None, refinement_temperature: float = None) -> str:
+    def refine_and_send_prompt(self, 
+          input_prompt: str, refinement_prompt: str, 
+          refinement_model: str = None,
+          refinement_temperature: float = None,
+          execution_model: str = None,
+          max_tokens: int = None
+          ) -> str:
       """
       Refines an input prompt and then sends the refined prompt to an LLM for execution.
 
@@ -89,6 +95,8 @@ class RefinementWorkflow:
         execution_model = self.model
       if not refinement_temperature:
         refinement_temperature = self.temperature
+      if not max_tokens:
+        max_tokens = self.max_tokens
       
       if self.verbose:
         print(f"{Colors.MAGENTA}Refining and sending prompt...\n{Colors.RESET}")
@@ -99,7 +107,7 @@ class RefinementWorkflow:
       
       
       response_content = self.llm_api.send(refined_prompt, model=execution_model, 
-        max_tokens=self.max_tokens, temperature=refinement_temperature)
+          temperature=refinement_temperature, max_tokens=max_tokens)
       processed_content = self.refiner.clean_response(response_content)
 
       # Format as markdown

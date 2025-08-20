@@ -22,7 +22,7 @@ import logging
 import os
 from pathlib import Path
 from openai import OpenAI
-from .. import LLMApi, FileHelper, PromptRefiner, Config
+from sokrates import LLMApi, FileHelper, PromptRefiner, Config
 
 # ANSI escape codes for colors
 COLOR_RESET = "\033[0m"

@@ -2,11 +2,11 @@
 import argparse
 import sys
 from pathlib import Path
-from ..refinement_workflow import RefinementWorkflow
-from ..colors import Colors
-from ..file_helper import FileHelper
-from ..output_printer import OutputPrinter
-from ..config import Config
+from sokrates.refinement_workflow import RefinementWorkflow
+from sokrates.colors import Colors
+from sokrates.file_helper import FileHelper
+from sokrates.output_printer import OutputPrinter
+from sokrates.config import Config
 
 DEFAULT_MAX_TOKENS = 20000
 

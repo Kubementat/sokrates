@@ -43,8 +43,8 @@ Functions:
 This script is designed to be used in code documentation workflows and can 
 generate comprehensive technical documentation for Python projects.
 """
-from .. import FileHelper
-from .. import OutputPrinter
+from sokrates import FileHelper
+from sokrates import OutputPrinter
 import ast
 import os
 from typing import Tuple, List, Dict, Any
@@ -176,16 +176,45 @@ class PythonAnalyzer:
     def _extract_args(args_node: ast.arguments) -> List[Dict[str, Any]]:
         """Extract argument information from function arguments."""
         result = []
-        for arg in args_node.args:
-            if isinstance(arg, ast.arg):
-                annotation = None
-                if isinstance(arg.annotation, ast.Name):
-                    annotation = arg.annotation.id
-                
-                result.append({
-                    'name': arg.arg,
-                    'annotation': annotation
-                })
+        
+        # Handle regular arguments
+        if hasattr(args_node, 'args') and args_node.args:
+            for arg in args_node.args:
+                if isinstance(arg, ast.arg):
+                    annotation = None
+                    
+                    # Extract type hint information
+                    if hasattr(arg, 'annotation') and arg.annotation:
+                        if isinstance(arg.annotation, ast.Name):
+                            annotation = arg.annotation.id
+                        elif isinstance(arg.annotation, ast.Subscript):
+                            annotation = f"{arg.annotation.value.id}[{str(arg.annotation.slice)}]"
+                    
+                    result.append({
+                        'name': arg.arg,
+                        'annotation': annotation,
+                        'has_default': False,
+                        'default_value': None
+                    })
+        
+        # Handle varargs and kwargs
+        if hasattr(args_node, 'vararg') and args_node.vararg:
+            result.append({
+                'name': args_node.vararg.arg,
+                'annotation': getattr(args_node.vararg, 'annotation', None),
+                'is_vararg': True,
+                'has_default': False,
+                'default_value': None
+            })
+        
+        if hasattr(args_node, 'kwarg') and args_node.kwarg:
+            result.append({
+                'name': args_node.kwarg.arg,
+                'annotation': getattr(args_node.kwarg, 'annotation', None),
+                'is_kwarg': True,
+                'has_default': False,
+                'default_value': None
+            })
         
         return result
 
@@ -220,15 +249,86 @@ class PythonAnalyzer:
 
     @staticmethod
     def _extract_function_info(func_node: ast.FunctionDef) -> Dict[str, Any]:
-        """Extract function information."""
+        """Extract enhanced function information including return type and complexity metrics."""
         decorators = PythonAnalyzer._extract_decorators(func_node)
+        
+        # Extract return type annotation
+        return_annotation = None
+        if func_node.returns:
+            if isinstance(func_node.returns, ast.Name):
+                return_annotation = func_node.returns.id
+            elif isinstance(func_node.returns, ast.Subscript):
+                return_annotation = f"{func_node.returns.value.id}[{str(func_node.returns.slice)}]"
+        
+        # Analyze function complexity
+        complexity_metrics = PythonAnalyzer._analyze_function_complexity(func_node)
+        
+        # Check for error handling patterns
+        exception_handling = PythonAnalyzer._extract_exception_patterns(func_node)
         
         return {
             'name': func_node.name,
             'line_number': func_node.lineno,
             'docstring': ast.get_docstring(func_node),
             'decorators': decorators,
-            'args': PythonAnalyzer._extract_args(func_node.args)
+            'args': PythonAnalyzer._extract_args(func_node.args),
+            'return_type': return_annotation,
+            'complexity_metrics': complexity_metrics,
+            'exception_handling': exception_handling
+        }
+
+    @staticmethod
+    def _analyze_function_complexity(func_node: ast.FunctionDef) -> Dict[str, Any]:
+        """Analyze function complexity metrics."""
+        cyclomatic_complexity = 1  # Base complexity
+        
+        # Count decision points (if statements, for loops, while loops, etc.)
+        for node in ast.walk(func_node):
+            if isinstance(node, (ast.If, ast.For, ast.While, ast.AsyncFor)):
+                cyclomatic_complexity += 1
+            elif isinstance(node, ast.ExceptHandler):
+                cyclomatic_complexity += 1
+        
+        # Count function calls to estimate complexity
+        call_count = 0
+        for node in ast.walk(func_node):
+            if isinstance(node, ast.Call):
+                call_count += 1
+        
+        return {
+            'cyclomatic_complexity': cyclomatic_complexity,
+            'call_count': call_count,
+            'has_loops': any(isinstance(n, (ast.For, ast.While, ast.AsyncFor)) for n in ast.walk(func_node)),
+            'has_conditionals': any(isinstance(n, ast.If) for n in ast.walk(func_node))
+        }
+
+    @staticmethod
+    def _extract_exception_patterns(func_node: ast.FunctionDef) -> Dict[str, Any]:
+        """Extract exception handling patterns from function."""
+        exceptions_caught = []
+        exceptions_raised = []
+        
+        # Look for try-except blocks and raise statements
+        for node in ast.walk(func_node):
+            if isinstance(node, ast.ExceptHandler):
+                if isinstance(node.type, (ast.Name, ast.Tuple)):
+                    if isinstance(node.type, ast.Name):
+                        exceptions_caught.append(node.type.id)
+                    else:
+                        # Handle tuple of exception types
+                        for exc_type in node.type.elts:
+                            if isinstance(exc_type, ast.Name):
+                                exceptions_caught.append(exc_type.id)
+            
+            elif isinstance(node, ast.Raise):
+                if isinstance(node.exc, ast.Call) and isinstance(node.exc.func, ast.Name):
+                    exceptions_raised.append(node.exc.func.id)
+        
+        return {
+            'exceptions_caught': list(set(exceptions_caught)),
+            'exceptions_raised': list(set(exceptions_raised)),
+            'has_exception_handling': len(exceptions_caught) > 0,
+            'has_raise_statements': len(exceptions_raised) > 0
         }
 
     @staticmethod
@@ -252,8 +352,113 @@ class PythonAnalyzer:
                 classes.append(PythonAnalyzer._extract_class_info(node))
             elif isinstance(node, ast.FunctionDef):
                 functions.append(PythonAnalyzer._extract_function_info(node))
-        
         return classes, functions
+
+    @staticmethod
+    def get_test_file_context(test_filepath: str) -> Dict[str, Any]:
+        """
+        Extract test-related information from existing test files.
+        
+        Args:
+            test_filepath (str): Path to the test file
+            
+        Returns:
+            Dict[str, Any]: Test context including test functions and patterns
+        """
+        try:
+            tree = PythonAnalyzer._parse_ast(test_filepath)
+            
+            test_functions = []
+            test_patterns = {
+                'uses_pytest': False,
+                'uses_unittest': False,
+                'has_fixtures': [],
+                'has_parametrize': False,
+                'mock_usage': []
+            }
+            
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) and node.name.startswith('test_'):
+                    test_functions.append(PythonAnalyzer._extract_function_info(node))
+                    
+                    # Check for pytest fixtures
+                    for decorator in getattr(node, 'decorator_list', []):
+                        if hasattr(decorator, 'id') and decorator.id == 'pytest.fixture':
+                            test_patterns['has_fixtures'].append(node.name)
+                        
+                        # Check for parametrize decorators
+                        if (hasattr(decorator, 'func') and
+                            hasattr(decorator.func, 'id') and
+                            decorator.func.id == 'parametrize'):
+                            test_patterns['has_parametrize'] = True
+                
+                # Check for pytest imports
+                elif isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if 'pytest' in alias.name:
+                            test_patterns['uses_pytest'] = True
+                elif isinstance(node, ast.ImportFrom):
+                    if (node.module and
+                        ('pytest' in node.module or 'unittest' in node.module)):
+                        if 'pytest' in node.module:
+                            test_patterns['uses_pytest'] = True
+                        else:
+                            test_patterns['uses_unittest'] = True
+            
+            return {
+                'filepath': test_filepath,
+                'test_functions': test_functions,
+                'patterns': test_patterns,
+                'existing_tests_count': len(test_functions)
+            }
+            
+        except Exception as e:
+            return {
+                'filepath': test_filepath,
+                'error': str(e),
+                'test_functions': [],
+                'patterns': {
+                    'uses_pytest': False,
+                    'uses_unittest': False,
+                    'has_fixtures': [],
+                    'has_parametrize': False,
+                    'mock_usage': []
+                },
+                'existing_tests_count': 0
+            }
+
+    @staticmethod
+    def analyze_source_file(source_filepath: str, test_filepath: str = None) -> Dict[str, Any]:
+        """
+        Analyze source code for a given source file, optionally considering existing tests for the code.
+        
+        Args:
+            source_filepath (str): Path to the source Python file
+            test_filepath (str, optional): Path to existing test file if any
+            
+        Returns:
+            Dict[str, Any]: Complete analysis of the code in the source filepath
+        """
+        # Analyze source code
+        classes, functions = PythonAnalyzer._get_class_and_function_definitions(source_filepath)
+        
+        result = {
+            'source_file': {
+                'filepath': source_filepath,
+                'classes': classes,
+                'functions': functions,
+                'total_functions': len(functions),
+                'total_classes': len(classes)
+            }
+        }
+        
+        # Add existing test context if provided
+        if test_filepath and os.path.exists(test_filepath):
+            result['existing_tests'] = PythonAnalyzer.get_test_file_context(test_filepath)
+        else:
+            result['existing_tests'] = None
+        
+        return result
 
     @staticmethod
     def _format_md_class(cls_info: Dict[str, Any]) -> str:

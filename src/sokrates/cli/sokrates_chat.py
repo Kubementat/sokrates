@@ -31,12 +31,12 @@ import sys
 import os
 import argparse
 
-from ..llm_api import LLMApi
-from ..config import Config
-from ..colors import Colors
-from ..file_helper import FileHelper
-from ..output_printer import OutputPrinter
-from ..prompt_refiner import PromptRefiner
+from sokrates.llm_api import LLMApi
+from sokrates.config import Config
+from sokrates.colors import Colors
+from sokrates.file_helper import FileHelper
+from sokrates.output_printer import OutputPrinter
+from sokrates.prompt_refiner import PromptRefiner
 import re
 from datetime import datetime
 from pathlib import Path
@@ -203,7 +203,7 @@ def main():
             try:
                 if voice_mode:
                     # import only when activated
-                    from ..voice_helper import run_voice_chat # Import the voice chat function
+                    from sokrates.voice_helper import run_voice_chat # Import the voice chat function
                     OutputPrinter.print_info("Starting voice chat. Press CTRL+C to exit.", "")
                     action = await run_voice_chat(llm_api, model, temperature, args.max_tokens, conversation_history, log_files, args.hide_reasoning, args.verbose, refiner, whisper_model_language=whisper_model_language)
                     if action == "toggle_voice":
@@ -237,7 +237,7 @@ def main():
                         continue
                     elif user_input.lower() == "/talk":
                         # Import the handle_talk_command function
-                        from ..voice_helper import handle_talk_command
+                        from sokrates.voice_helper import handle_talk_command
                         handle_talk_command(conversation_history, refiner)
                         continue
                     elif user_input.lower().startswith("/add "):

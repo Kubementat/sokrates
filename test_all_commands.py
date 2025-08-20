@@ -26,7 +26,7 @@ def test_all_commands(api_endpoint, api_key, model):
     COMMANDS = [
         {
             "cmd": "sokrates-breakdown-task",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --task 'Get rich in 1 year'"
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --task 'Get rich in 1 year' --verbose"
         },
         {
             "cmd": "sokrates-benchmark-model",
@@ -34,7 +34,7 @@ def test_all_commands(api_endpoint, api_key, model):
         },
         {
             "cmd": "sokrates-execute-tasks",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' -tf tests/tasks/black_holes.json -o tmp/black_hole_task_execution_results_01"
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' -tf tests/fixtures/tasks/black_holes.json -o tmp/black_hole_task_execution_results_01 --verbose"
         },
         {
             "cmd": "sokrates-fetch-to-md",
@@ -42,39 +42,43 @@ def test_all_commands(api_endpoint, api_key, model):
         },
         {
             "cmd": "sokrates-idea-generator",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' --topic-generation-model '{model}' --generator-llm-model '{model}' --execution-llm-model '{model}' --refinement-llm-model '{model}' --output-directory tmp/meta_ideas"
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' --topic-generation-model '{model}' --generator-llm-model '{model}' --execution-llm-model '{model}' --refinement-llm-model '{model}' --output-directory tmp/meta_ideas --max-tokens 2000 --verbose"
         },
         {
             "cmd": "sokrates-merge-ideas",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --verbose -o tmp/00catdog_text.md --source-documents 'tests/documents/cats.md,tests/documents/dogs.md'"
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --verbose -o tmp/00catdog_text.md --source-documents 'tests/documents/cats.md,tests/documents/dogs.md' --max-tokens 1000"
         },
         {
             "cmd": "sokrates-refine-and-send-prompt",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' --refinement-model '{model}' --output-model '{model}' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md'"
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' --refinement-model '{model}' --output-model '{model}' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich.md --context-directories 'tests/contexts/testcase1' --context-files 'tests/contexts/context_formulation.md' --verbose"
         },
         {
             "cmd": "sokrates-refine-prompt",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt --context-directories 'tests/contexts/testcase1'"
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' -p 'Generate a detailed plan on how to get rich.' --output tmp/00how_to_get_rich_refined_prompt --context-directories 'tests/contexts/testcase1' --verbose"
         },
         {
             "cmd": "sokrates-send-prompt",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' 'Hi, i would like to sell a company to the highest bidder. Please formulate a strategy and encorporate the rules of acquisition for making a good plan.' --output-directory tmp/ --context-files 'src/sokrates/prompts/context/ferengi-rules-of-acquisition.md' --context-text '__You are a Ferengi from Star Trek__'"
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' 'Hi, i would like to sell a company to the highest bidder. Please formulate a strategy and encorporate the rules of acquisition for making a good plan.' --output-directory tmp/ --context-files 'src/sokrates/prompts/context/ferengi-rules-of-acquisition.md' --context-text '__You are a Ferengi from Star Trek__' --max-tokens 1000 --verbose"
         },
         {
             "cmd": "sokrates-task-add",
-            "args": "-tf tests/tasks/black_holes.json"
+            "args": "-tf tests/fixtures/tasks/black_holes.json"
         },
         {
             "cmd": "sokrates-task-list",
             "args": ""
         },
         {
-            "cmd": "sokrates-python-summarize",
-            "args": "--source-directory src/sokrates/coding --output tmp/python_summary.md"
+            "cmd": "sokrates-code-summarize",
+            "args": f"--source-directory src/sokrates/coding --output tmp/python_summary.md --verbose"
         },
         {
             "cmd": "sokrates-code-review",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --files src/sokrates/llm_api.py --verbose -o src/docs/code_reviews"
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --files src/sokrates/llm_api.py --verbose -o tmp/code_reviews"
+        },
+        {
+            "cmd": "sokrates-code-generate-tests",
+            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --files src/sokrates/prompt_refiner.py -o tmp/generated_tests --verbose --max-tokens 30000"
         }
     ]
 

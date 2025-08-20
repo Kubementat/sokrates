@@ -25,8 +25,8 @@ import argparse
 from pathlib import Path
 import time
 from openai import OpenAI
-from .. import LLMApi, PromptRefiner, Colors, FileHelper, Config
-from ..output_printer import OutputPrinter
+from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config
+from sokrates.output_printer import OutputPrinter
 
 # TODO:
 # - Improve extraction of generated prompts (remove "think" tags).

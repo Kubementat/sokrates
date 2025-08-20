@@ -129,62 +129,7 @@ class CodeReviewWorkflow:
                     'classes': [],
                     'functions': []
                 }
-        
-        return analysis_results
-
-    def analyze_large_file(self, file_path: str, chunk_size: int = 8192) -> Dict[str, Any]:
-        """
-        Analyze a large Python file using streaming to avoid memory issues.
-        
-        Args:
-            file_path (str): Path to the Python file to be analyzed
-            chunk_size (int): Size of chunks for reading the file in bytes
-            
-        Returns:
-            Dict[str, Any]: Dictionary containing analysis results with streamed content
-                           Includes 'filepath', 'file_content' (as list of chunks),
-                           'classes', and 'functions' keys.
-        
-        Raises:
-            OSError: If there are issues reading the file
-        """
-        if self.verbose:
-            print(f"Analyzing large file {file_path} with chunk size {chunk_size}")
-            
-        analysis_results = {
-            'filepath': file_path,
-            'file_content_chunks': [],
-            'classes': [],
-            'functions': []
-        }
-        
-        try:
-            # Read file in chunks using FileHelper to avoid memory issues
-            remaining_file = FileHelper.read_file(file_path, verbose=self.verbose)
-            chunk_count = 0
-            
-            while remaining_file:
-                chunk = remaining_file[:chunk_size]
-                remaining_file = remaining_file[chunk_size:]
-                
-                analysis_results['file_content_chunks'].append({
-                    'chunk_number': chunk_count,
-                    'content': chunk,
-                    'size_bytes': len(chunk.encode('utf-8'))
-                })
-                chunk_count += 1
-            
-            # Extract the raw AST data for more detailed analysis
-            classes, functions = PythonAnalyzer._get_class_and_function_definitions(file_path)
-            
-            analysis_results.update({
-                'classes': classes,
-                'functions': functions
-            })
-                
-        except Exception as e:
-            print(f"Error analyzing large file {file_path}: {e}")
-            analysis_results['error'] = str(e)
+                raise e
         
         return analysis_results
 

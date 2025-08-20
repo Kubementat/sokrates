@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.8.3](https://img/img.shields.io/badge/Version-0.8.3-brightgreen.svg)](https://github.com/Kubementat/sokrates)
+[![Version: 0.9.0](https://img/img.shields.io/badge/Version-0.9.0-brightgreen.svg)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -31,6 +31,9 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 - **Task Queue System**: Robust background task processing with persistence, error handling, and retry mechanisms
 - **Multi-stage Workflows**: Complex task breakdown, idea generation, and sequential task execution
 - **Python coding tools**: A set of useful tools for python coding
+  - generate code reviews
+  - generate test cases
+  - summarize functionality
 - **Extensive CLI Interface**: 15+ specialized commands for rapid experimentation and automation
 
 
@@ -42,6 +45,7 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 - **Output Processing**: Advanced text cleaning and formatting utilities for LLM-generated content
 - **Performance Analytics**: Detailed timing metrics and token generation statistics
 - **File Management**: Comprehensive file handling for context loading and result storage
+- **CLI Tools**: For interacting with LLMs (for details: see below)
 
 ## Installation
 
@@ -157,7 +161,9 @@ uv run | grep sokrates
 - `sokrates-benchmark-results-to-markdown`: Convert benchmark results to formatted markdown
 
 #### Python coding tools
-- `sokrates-python-summarize`: Parse a directory with python sources and generate a summary including all present classes and functions with signatures and documentation
+- `sokrates-code-summarize`: Parse a directory with python sources and generate a summary including all present classes and functions with signatures and documentation
+- `sokrates-code-review`: Parse a directory or a list of files with python sources and generate code reviews for each provided file
+- `sokrates-code-generate-tests`: Parse a directory or a list of files with python sources and generate tests for the code
 
 ### Task Queuing System
 
@@ -294,7 +300,7 @@ sokrates-benchmark-results-to-markdown --input benchmark_results.json --output b
 #### Python coding tools
 ```bash
 # Summarize python source dode classes and functions in the `src` directory and write the result to `docs/code_summary.md`
-sokrates-python-summarize --source-directory src/ --output docs/code_summary.md
+sokrates-code-summarize --source-directory src/ --output docs/code_summary.md
 
 # Perform a code review for a list of code files or a directory
 sokrates-code-review --files src/sokrates/config.py --verbose -o docs/code_reviews

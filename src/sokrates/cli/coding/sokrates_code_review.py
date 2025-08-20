@@ -8,6 +8,7 @@ on Python source code using LLMs and the sokrates library's analysis capabilitie
 
 import argparse
 import os
+import sys
 from sokrates.coding.code_review_workflow import run_code_review
 from sokrates.output_printer import OutputPrinter
 from sokrates.colors import Colors
@@ -112,7 +113,7 @@ def main():
         print(f"\n❌ Error during code review: {e}")
         import traceback
         traceback.print_exc()
-        return 1
+        sys.exit(1) 
 
 
 if __name__ == "__main__":
@@ -121,9 +122,9 @@ if __name__ == "__main__":
         exit(exit_code)
     except KeyboardInterrupt:
         print("\n\n⚠️  Code review interrupted by user")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
         import traceback
         traceback.print_exc()
-        exit(1)
+        sys.exit(1)

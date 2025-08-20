@@ -57,12 +57,12 @@ class TestIdeaGenerationWorkflowIntegration:
         workflow = IdeaGenerationWorkflow(
             api_endpoint=self.api_endpoint,
             api_key=self.api_key,
-            topic_input_file="tests/topics/science_fiction_games_topic.md",
+            topic_input_file="tests/fixtures/topics/science_fiction_games_topic.md",
             verbose=False
         )
         
         content = None
-        with open("tests/topics/science_fiction_games_topic.md", "r") as file:
+        with open("tests/fixtures/topics/science_fiction_games_topic.md", "r") as file:
           content = file.read()
         
         # Test that the content from file is returned

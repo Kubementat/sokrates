@@ -281,8 +281,4 @@ class LLMApi:
         Returns:
             str: A single string containing the combined context.
         """
-        combined_content = ""
-        for context_part in context:
-            combined_content = f"{combined_content}\n---\n{context_part}"
-        combined_content = f"{combined_content}\n ---"
-        return combined_content
+        return "\n---\n".join(context)

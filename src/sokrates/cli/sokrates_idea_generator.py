@@ -5,8 +5,8 @@
 import argparse
 import sys
 from pathlib import Path
-from ..output_printer import OutputPrinter
-from .. import Colors, Config, IdeaGenerationWorkflow, FileHelper
+from sokrates.output_printer import OutputPrinter
+from sokrates import Colors, Config, IdeaGenerationWorkflow, FileHelper
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""

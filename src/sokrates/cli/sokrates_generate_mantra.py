@@ -5,10 +5,10 @@ Python Script to generate a daily mantra and practical call to action utilizing 
 import argparse
 from pathlib import Path
 
-from ..colors import Colors
-from ..config import Config
-from ..refinement_workflow import RefinementWorkflow
-from ..output_printer import OutputPrinter
+from sokrates.colors import Colors
+from sokrates.config import Config
+from sokrates.refinement_workflow import RefinementWorkflow
+from sokrates.output_printer import OutputPrinter
 
 def main():
     """Main function to handle command line arguments and orchestrate the process."""

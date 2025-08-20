@@ -10,7 +10,7 @@ Classes:
 """
 
 import time
-from ..config import Config
+from sokrates.config import Config
 
 class ErrorHandler:
     """
