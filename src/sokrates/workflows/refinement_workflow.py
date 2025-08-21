@@ -36,20 +36,21 @@ class RefinementWorkflow:
           temperature (float): The sampling temperature for LLM responses. Defaults to 0.7.
           verbose (bool): If True, enables verbose output. Defaults to False.
       """
-      self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=verbose)
+      self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
       self.refiner = PromptRefiner(verbose=verbose)
       self.model = model
       self.max_tokens = max_tokens
       self.temperature = temperature
       self.verbose = verbose
 
-    def refine_prompt(self, input_prompt: str, refinement_prompt: str, context_array: List[str]=None) -> str:
+    def refine_prompt(self, input_prompt: str, refinement_prompt: str, context: List[str]=None) -> str:
       """
       Refines an input prompt using a specified refinement prompt and an LLM.
 
       Args:
           input_prompt (str): The initial prompt to be refined.
           refinement_prompt (str): The prompt containing instructions for refinement.
+          context (List[str], optional): additional context to include in the refinement prompt
 
       Returns:
           str: The refined and formatted prompt as a Markdown string.
@@ -58,7 +59,7 @@ class RefinementWorkflow:
         print(f"{Colors.MAGENTA}Refining prompt:\n{Colors.RESET}")
         print(f"{Colors.MAGENTA}{input_prompt}\n{Colors.RESET}")
       combined_prompt = self.refiner.combine_refinement_prompt(input_prompt, refinement_prompt)
-      response_content = self.llm_api.send(combined_prompt, model=self.model, max_tokens=self.max_tokens, context_array=context_array)
+      response_content = self.llm_api.send(combined_prompt, model=self.model, max_tokens=self.max_tokens, context=context)
       processed_content = self.refiner.clean_response(response_content)
 
       # Format as markdown
@@ -116,14 +117,14 @@ class RefinementWorkflow:
         print(f"{Colors.MAGENTA}{markdown_output}\n{Colors.RESET}")
       return markdown_output
     
-    def breakdown_task(self, task: str, model: str, context_array: List[str] = None):
+    def breakdown_task(self, task: str, context: List[str] = None):
       """
       Breaks down a task into sub-tasks using LLM refinement.
 
       Args:
           task (str): The main task to be broken down.
           model (str): The LLM model to use for breakdown.
-          context_array (List[str], optional): Additional context to include in the breakdown process.
+          context (List[str], optional): Additional context to include in the breakdown process.
 
       Returns:
           str: The breakdown of the task as a Markdown string.
@@ -131,7 +132,7 @@ class RefinementWorkflow:
       breakdown_instructions_filepath = Path(f"{Path(__file__).parent.parent.resolve()}/prompts/breakdown-v1.md").resolve()
       breakdown_instructions = FileHelper.read_file(breakdown_instructions_filepath)
       
-      result = self.refine_prompt(input_prompt=task, refinement_prompt=breakdown_instructions, context_array=context_array)
+      result = self.refine_prompt(input_prompt=task, refinement_prompt=breakdown_instructions, context=context)
       return result
     
     def generate_mantra(self, context_files: List[str] = None, task_file_path: str = None) -> str:

@@ -71,7 +71,6 @@ class TestGenerator:
         """
         self.verbose = verbose
         self.llm_api = LLMApi(
-            verbose=verbose, 
             api_endpoint=api_endpoint, 
             api_key=api_key
         )

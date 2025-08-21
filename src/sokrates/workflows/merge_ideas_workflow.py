@@ -34,7 +34,7 @@ class MergeIdeasWorkflow:
           temperature (float): Sampling temperature for response generation
           verbose (bool): Enable verbose output for debugging
       """
-      self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=verbose)
+      self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
       self.refiner = PromptRefiner(verbose=verbose)
       self.model = model
       self.max_tokens = max_tokens
@@ -43,14 +43,12 @@ class MergeIdeasWorkflow:
       # Path to the prompt template used for merging ideas
       self.idea_merger_prompt_file = str(Path(f"{Constants.DEFAULT_PROMPTS_DIRECTORY}/merge-ideas-v1.md").resolve())
 
-    def merge_ideas(self, source_documents: dict, context_array: List[str]=None) -> str:
+    def merge_ideas(self, source_documents: dict) -> str:
       """
       Merge multiple source documents into a coherent output using LLM.
       
       Args:
           source_documents (dict): Dictionary containing documents with 'identifier' and 'content' keys
-          context_array (List[str], optional): Additional context to provide to the LLM
-          
       Returns:
           str: The merged content formatted as markdown
       """
@@ -67,7 +65,7 @@ class MergeIdeasWorkflow:
       # Combine the prompt template with the formatted documents
       combined_prompt = f"{idea_merger_prompt}\n{file_list_str}\n"
       # Send the combined prompt to the LLM for processing
-      response_content = self.llm_api.send(combined_prompt, model=self.model, max_tokens=self.max_tokens, context_array=context_array)
+      response_content = self.llm_api.send(combined_prompt, model=self.model, max_tokens=self.max_tokens)
       # Clean and refine the LLM response
       processed_content = self.refiner.clean_response(response_content)
 

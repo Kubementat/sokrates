@@ -24,9 +24,9 @@ import sys
 import argparse
 from pathlib import Path
 import time
-from openai import OpenAI
 from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config
 from sokrates.output_printer import OutputPrinter
+from .helper import Helper
 
 def validate_endpoint_url(url):
     """
@@ -158,6 +158,7 @@ Examples:
     )
     parser.add_argument(
         '--context-files', '-cf',
+        default=None,
         help='Optional comma separated additional context text file paths with content that should be prepended before the prompt'
     )
     parser.add_argument(
@@ -229,6 +230,9 @@ Examples:
         OutputPrinter.print_info("Max Tokens", f"{args.max_tokens:,}", Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Temperature", f"{temperature}", Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Refinement prompt file", f"{refinement_prompt_file}", Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("context-text", args.context_text, Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("context-files", args.context_files, Colors.BRIGHT_CYAN)
+        OutputPrinter.print_info("context-directories", args.context_directories, Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Input Method", 'File' if args.input_file else 'Command Line', Colors.BRIGHT_CYAN)
         if args.input_file:
             OutputPrinter.print_info("Input File", args.input_file, Colors.BRIGHT_CYAN)
@@ -237,22 +241,14 @@ Examples:
         print()
         
     # context
-    context_array = []
-    if args.context_text:
-        context_array.append(args.context_text)
-        OutputPrinter.print_info("Appending context text to prompt:", args.context_text , Colors.BRIGHT_MAGENTA)
-    if args.context_directories:
-        directories = [s.strip() for s in args.context_directories.split(",")]
-        context_array.extend(FileHelper.read_multiple_files_from_directories(directories, verbose=args.verbose))
-        OutputPrinter.print_info("Appending context directories to prompt:", args.context_directories , Colors.BRIGHT_MAGENTA)
-    if args.context_files:
-        files = [s.strip() for s in args.context_files.split(",")]
-        context_array.extend(FileHelper.read_multiple_files(files, verbose=args.verbose))
-        OutputPrinter.print_info("Appending context files to prompt:", args.context_files , Colors.BRIGHT_MAGENTA)
+    context = Helper.construct_context_from_arguments(
+        context_text=args.context_text,
+        context_directories=args.context_directories,
+        context_files=args.context_files)
     
     try:
         refiner = PromptRefiner(verbose=args.verbose)
-        llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
+        llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
         
         # Load initial prompt (either from command line or file)
         if args.input_file:
@@ -284,7 +280,7 @@ Examples:
             OutputPrinter.print_header(f"🎯 MODEL {i}/{len(models)}: {model_name}", Colors.BRIGHT_GREEN, 60)
 
             response_content = llm_api.send(combined_prompt, model=model_name, 
-                max_tokens=args.max_tokens, context_array=context_array)
+                max_tokens=args.max_tokens, context=context)
             processed_content = refiner.clean_response(response_content)
         
             # Format as markdown

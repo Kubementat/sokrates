@@ -21,7 +21,6 @@ class TestLLMApi:
         """Set up test fixtures before each test method."""
         self.api_endpoint = pytest.TESTING_ENDPOINT
         self.api_key = "test_api_key"
-        self.verbose = False
 
     @patch('sokrates.llm_api.OpenAI')
     def test_init_with_custom_values(self, mock_openai):
@@ -31,14 +30,12 @@ class TestLLMApi:
         mock_openai.return_value = mock_client_instance
         
         api = LLMApi(
-            verbose=True,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
-        
+
         assert api.api_endpoint == self.api_endpoint
         assert api.api_key == self.api_key
-        assert api.verbose is True
 
     @patch('sokrates.llm_api.OpenAI')
     def test_get_openai_client(self, mock_openai):
@@ -48,7 +45,6 @@ class TestLLMApi:
         mock_openai.return_value = mock_client_instance
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -80,7 +76,6 @@ class TestLLMApi:
         mock_client_instance.models.list.return_value = mock_models_response
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -102,7 +97,6 @@ class TestLLMApi:
         mock_client_instance.models.list.side_effect = Exception("API Error")
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -113,8 +107,8 @@ class TestLLMApi:
         assert "API Error" in str(exc_info.value)
 
     @patch('sokrates.llm_api.OpenAI')
-    def test_send_with_context_array(self, mock_openai):
-        """Test sending prompt with context array."""
+    def test_send_with_context(self, mock_openai):
+        """Test sending prompt with context."""
         # Setup mocks
         mock_client_instance = Mock()
         mock_openai.return_value = mock_client_instance
@@ -132,7 +126,6 @@ class TestLLMApi:
         mock_client_instance.chat.completions.create.return_value = mock_stream_response
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -141,7 +134,7 @@ class TestLLMApi:
         result = api.send(
             prompt="Test prompt",
             model="test-model",
-            context_array=["context1", "context2"],
+            context=["context1", "context2"],
             max_tokens=1000,
             temperature=0.7
         )
@@ -166,7 +159,6 @@ class TestLLMApi:
         mock_client_instance.chat.completions.create.return_value = mock_stream_response
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -200,7 +192,6 @@ class TestLLMApi:
         mock_client_instance.chat.completions.create.return_value = mock_stream_response
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -228,7 +219,6 @@ class TestLLMApi:
         mock_client_instance.chat.completions.create.side_effect = Exception("API Error")
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -261,7 +251,6 @@ class TestLLMApi:
         mock_client_instance.chat.completions.create.return_value = mock_stream_response
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -294,7 +283,6 @@ class TestLLMApi:
         mock_client_instance.chat.completions.create.side_effect = Exception("API Error")
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -316,7 +304,6 @@ class TestLLMApi:
         mock_openai.return_value = mock_client_instance
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )
@@ -345,7 +332,6 @@ class TestLLMApi:
         mock_client_instance.chat.completions.create.return_value = mock_stream_response
         
         api = LLMApi(
-            verbose=self.verbose,
             api_endpoint=self.api_endpoint,
             api_key=self.api_key
         )

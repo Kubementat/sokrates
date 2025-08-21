@@ -63,7 +63,7 @@ Examples:
         if args.api_key:
             api_key = args.api_key
         
-        llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
+        llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
         models = llm_api.list_models()
         
         print("Available models:")

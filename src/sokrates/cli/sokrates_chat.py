@@ -126,7 +126,7 @@ def main():
         OutputPrinter.print_error("API endpoint, API key, and model must be configured or provided.")
         sys.exit(1)
     
-    llm_api = LLMApi(verbose=args.verbose, api_endpoint=api_endpoint, api_key=api_key)
+    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
     conversation_history = []
     log_files = [] # Initialize as a list to hold all log file handles
 

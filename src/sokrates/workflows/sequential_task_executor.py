@@ -240,8 +240,7 @@ Handle the sub-task in the context of the main objective.
             )
         else:
             OutputPrinter.print(f"Refinement is disabled. Executing the prompt directly ...")
-            llmapi = LLMApi(verbose=self.verbose, 
-                            api_endpoint=self.api_endpoint, 
+            llmapi = LLMApi(api_endpoint=self.api_endpoint, 
                             api_key=self.api_key)
             execution_result = llmapi.send(task_prompt, 
                             model = self.model, 

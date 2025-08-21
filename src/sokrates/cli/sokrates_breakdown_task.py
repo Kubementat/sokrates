@@ -7,6 +7,7 @@ from sokrates.colors import Colors
 from sokrates.file_helper import FileHelper
 from sokrates.output_printer import OutputPrinter
 from sokrates.config import Config
+from .helper import Helper
 
 DEFAULT_MAX_TOKENS = 5000
 
@@ -125,18 +126,10 @@ def main():
         task = FileHelper.read_file(args.task_file, verbose=args.verbose)
         
     # context
-    context_array = []
-    if args.context_text:
-        context_array.append(args.context_text)
-        OutputPrinter.print_info("Appending context text to prompt:", args.context_text , Colors.BRIGHT_MAGENTA)
-    if args.context_directories:
-        directories = [s.strip() for s in args.context_directories.split(",")]
-        context_array.extend(FileHelper.read_multiple_files_from_directories(directories, verbose=args.verbose))
-        OutputPrinter.print_info("Appending context directories to prompt:", args.context_directories , Colors.BRIGHT_MAGENTA)
-    if args.context_files:
-        files = [s.strip() for s in args.context_files.split(",")]
-        context_array.extend(FileHelper.read_multiple_files(files, verbose=args.verbose))
-        OutputPrinter.print_info("Appending context files to prompt:", args.context_files , Colors.BRIGHT_MAGENTA)
+    context = Helper.construct_context_from_arguments(
+        context_text=args.context_text,
+        context_directories=args.context_directories,
+        context_files=args.context_files)
     
     OutputPrinter.print_info("api-endpoint", api_endpoint)
     OutputPrinter.print_info("model", model)
@@ -149,7 +142,7 @@ def main():
         temperature=temperature,
         verbose=args.verbose
     )
-    result = workflow.breakdown_task(task=task, model=model, context_array=context_array)
+    result = workflow.breakdown_task(task=task, context=context)
 
     OutputPrinter.print_section("RESULT", Colors.BRIGHT_BLUE, "═")
     print(result)

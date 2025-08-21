@@ -58,7 +58,7 @@ class CodeReviewWorkflow:
                                             If None, uses default templates.
         """
         self.verbose = verbose
-        self.llm_api = LLMApi(verbose=verbose, api_endpoint=api_endpoint, api_key=api_key)
+        self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
         self.prompt_refiner = PromptRefiner(verbose=verbose)
         
         # Use provided templates or fall back to defaults

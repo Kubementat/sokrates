@@ -23,6 +23,7 @@ import os
 from pathlib import Path
 from openai import OpenAI
 from sokrates import LLMApi, FileHelper, PromptRefiner, Config
+from .helper import Helper
 
 # ANSI escape codes for colors
 COLOR_RESET = "\033[0m"
@@ -94,21 +95,16 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
         logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nQuerying {model} ... \n{COLOR_RESET}")
             
-        context_array = []
-        if context_text:
-            context_array.append(context_text)
-        if context_directories:
-            directories = [s.strip() for s in context_directories.split(",")]
-            context_array.extend(FileHelper.read_multiple_files_from_directories(directories, verbose=verbose))
-        if context_files:
-            files = [s.strip() for s in context_files.split(",")]
-            context_array.extend(FileHelper.read_multiple_files(files, verbose=verbose))
-
+        context = Helper.construct_context_from_arguments(
+            context_text=context_text,
+            context_directories=context_directories,
+            context_files=context_files)
+        
         response = llm_api.send(prompt,
             model=model,
             max_tokens=max_tokens,
             temperature=temperature,
-            context_array=context_array,
+            context=context,
             system_prompt=system_prompt
         )
         logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
@@ -189,7 +185,7 @@ Call example:
         sys.exit(1)
     
     # Initialize LLM API client
-    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
+    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
     
     # Convert models string to list if needed
     if isinstance(models, str):

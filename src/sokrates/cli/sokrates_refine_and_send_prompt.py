@@ -10,8 +10,7 @@ leveraging the LLMApi and PromptRefiner classes.
 import argparse
 import sys
 from pathlib import Path
-
-
+from .helper import Helper
 from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config, OutputPrinter
 
 def parse_arguments() -> argparse.Namespace:
@@ -206,21 +205,14 @@ def main():
         print(f"{Colors.RED}No --input-file or --text-prompt parameters provided. Exiting.{Colors.RESET}")
         sys.exit(1)
         
-    context_array = []
-    if args.context_text:
-        context_array.append(args.context_text)
-        OutputPrinter.print_info("Appending context text to prompt:", args.context_text , Colors.BRIGHT_MAGENTA)
-    if args.context_directories:
-        directories = [s.strip() for s in args.context_directories.split(",")]
-        context_array.extend(FileHelper.read_multiple_files_from_directories(directories, verbose=args.verbose))
-        OutputPrinter.print_info("Appending context directories to prompt:", args.context_directories , Colors.BRIGHT_MAGENTA)
-    if args.context_files:
-        files = [s.strip() for s in args.context_files.split(",")]
-        context_array.extend(FileHelper.read_multiple_files(files, verbose=args.verbose))
-        OutputPrinter.print_info("Appending context files to prompt:", args.context_files , Colors.BRIGHT_MAGENTA)
-        
+    # context
+    context = Helper.construct_context_from_arguments(
+        context_text=args.context_text,
+        context_directories=args.context_directories,
+        context_files=args.context_files)
+
     # Initialize LLMApi, PromptRefiner
-    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key, verbose=args.verbose)
+    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
     prompt_refiner = PromptRefiner(verbose=args.verbose)
 
     # Step 1: Read input files
@@ -282,7 +274,7 @@ def main():
         model=output_model,
         max_tokens=args.max_tokens_output,
         temperature=output_temperature,
-        context_array=context_array
+        context=context
     )
     print(f"{Colors.GREEN}Received final response: {len(final_response)} characters{Colors.RESET}")
     

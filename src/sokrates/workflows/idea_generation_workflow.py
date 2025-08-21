@@ -71,8 +71,7 @@ class IdeaGenerationWorkflow:
         self.api_endpoint = api_endpoint
         self.api_key = api_key
         self.llm_api = LLMApi(api_endpoint=api_endpoint,
-                               api_key=api_key,
-                               verbose=verbose)
+                               api_key=api_key)
         self.prompt_refiner = PromptRefiner(verbose=verbose)
         self.topic = topic
         self.topic_input_file = topic_input_file
