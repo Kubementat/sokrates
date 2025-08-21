@@ -2,13 +2,13 @@
 import argparse
 import sys
 from pathlib import Path
-from sokrates.refinement_workflow import RefinementWorkflow
+from sokrates.workflows.refinement_workflow import RefinementWorkflow
 from sokrates.colors import Colors
 from sokrates.file_helper import FileHelper
 from sokrates.output_printer import OutputPrinter
 from sokrates.config import Config
 
-DEFAULT_MAX_TOKENS = 20000
+DEFAULT_MAX_TOKENS = 5000
 
 def main():
     """Main function for the task breakdown CLI tool.
@@ -28,7 +28,7 @@ def main():
     parser.add_argument(
         '--api-endpoint',
         default=None,
-        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        help=f"LLM server API endpoint."
     )
 
     parser.add_argument(
@@ -55,13 +55,13 @@ def main():
     parser.add_argument(
         '--model', '-m',
         default=None,
-        help=f"The model to use for the task breakdown (default: {Config.DEFAULT_MODEL})"
+        help=f"The model to use for the task breakdown"
     )
     
     parser.add_argument(
         '--temperature',
         default=None,
-        help=f"The temperature to use for the task breakdown (default: {Config.DEFAULT_MODEL_TEMPERATURE})"
+        help=f"The temperature to use for the task breakdown"
     )
 
     parser.add_argument(
@@ -90,26 +90,24 @@ def main():
         default=None,
         help='Optional comma separated additional directory paths with files with content that should be prepended before the prompt'
     )
+    
+    parser.add_argument(
+        '--max-tokens', '-mt',
+        default=DEFAULT_MAX_TOKENS,
+        help="Max number of output tokens to generate"
+    )
 
     # Parse arguments
     args = parser.parse_args()
     config = Config(verbose=args.verbose)
     
-    api_key = config.api_key
-    if args.api_key:
-        api_key = args.api_key
+    api_key = args.api_key or config.api_key
         
-    api_endpoint = config.api_endpoint
-    if args.api_endpoint:
-        api_endpoint = args.api_endpoint
-
-    model = config.default_model
-    if args.model:
-        model = args.model
+    api_endpoint = args.api_endpoint or config.api_endpoint
+    
+    model = args.model or config.default_model
         
-    temperature = config.default_model_temperature
-    if args.temperature:
-        temperature = args.temperature
+    temperature = args.temperature or config.default_model_temperature
 
     if args.task and args.task_file:
         OutputPrinter.print_error("You cannot provide both a task-file and a task. Exiting.")
@@ -118,9 +116,6 @@ def main():
     if not args.task and not args.task_file:
         OutputPrinter.print_error("You did not provide a task via --task or --task-file. Exiting.")
         sys.exit(1)
-        
-    if not args.api_key:
-        api_key = 'notrequired'
     
     task = ""
     if args.task:
@@ -143,10 +138,14 @@ def main():
         context_array.extend(FileHelper.read_multiple_files(files, verbose=args.verbose))
         OutputPrinter.print_info("Appending context files to prompt:", args.context_files , Colors.BRIGHT_MAGENTA)
     
+    OutputPrinter.print_info("api-endpoint", api_endpoint)
+    OutputPrinter.print_info("model", model)
+    OutputPrinter.print_info("temperature", temperature)
+    OutputPrinter.print_info("max-tokens", args.max_tokens)
         
     workflow = RefinementWorkflow(api_endpoint=api_endpoint, 
         api_key=api_key, model=model, 
-        max_tokens=DEFAULT_MAX_TOKENS, 
+        max_tokens=args.max_tokens, 
         temperature=temperature,
         verbose=args.verbose
     )

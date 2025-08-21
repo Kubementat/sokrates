@@ -28,12 +28,6 @@ from openai import OpenAI
 from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config
 from sokrates.output_printer import OutputPrinter
 
-# TODO:
-# - Improve extraction of generated prompts (remove "think" tags).
-# Feature: Allow sending the refined prompt to other LLMs.
-# - allow specifying an output directory for the generated prompts (create it if not present)
-# Add a parameter to specify the wait time after model unloading (default: 0 seconds).
-
 def validate_endpoint_url(url):
     """
     Basic validation for API endpoint URL.
@@ -112,7 +106,7 @@ Examples:
         required=False,
         type=str,
         default=None,
-        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        help=f"LLM server API endpoint."
     )
     
     parser.add_argument(
@@ -126,7 +120,7 @@ Examples:
         '--models', '-m',
         default=None,
         type=str,
-        help=f"Comma separated list of models to use (default: {Config.DEFAULT_MODEL}). For multiple models e.g: qwen/qwen3-14b,phi4"
+        help=f"Comma separated list of models to use (For multiple models e.g: qwen/qwen3-14b,phi4)"
     )
     
     parser.add_argument(
@@ -140,7 +134,7 @@ Examples:
         '--temperature', '-t',
         type=float,
         default=None,
-        help=f"Temperature for response generation (default: {Config.DEFAULT_MODEL_TEMPERATURE})"
+        help=f"Temperature for response generation"
     )
     
     parser.add_argument(

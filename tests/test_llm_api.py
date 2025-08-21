@@ -9,12 +9,8 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 
-# Import the LLMApi class from sokrates.llm_api
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from sokrates.llm_api import LLMApi
-from sokrates.config import Config
+from sokrates.constants import Constants
 import pytest
 
 
@@ -26,19 +22,6 @@ class TestLLMApi:
         self.api_endpoint = pytest.TESTING_ENDPOINT
         self.api_key = "test_api_key"
         self.verbose = False
-
-    @patch('sokrates.llm_api.OpenAI')
-    def test_init_default_values(self, mock_openai):
-        """Test initialization with default values."""
-        # Setup mocks
-        mock_client_instance = Mock()
-        mock_openai.return_value = mock_client_instance
-        
-        api = LLMApi(verbose=self.verbose)
-        
-        assert api.api_endpoint == Config.DEFAULT_API_ENDPOINT
-        assert api.api_key == Config.DEFAULT_API_KEY
-        assert api.verbose == self.verbose
 
     @patch('sokrates.llm_api.OpenAI')
     def test_init_with_custom_values(self, mock_openai):
@@ -346,17 +329,6 @@ class TestLLMApi:
         assert "---" in result  # Should contain separators
         assert len(result) > 0
 
-    def test_default_values_from_config(self):
-        """Test that default values are properly taken from Config."""
-        api = LLMApi(
-            verbose=self.verbose,
-            api_endpoint=Config.DEFAULT_API_ENDPOINT,
-            api_key=Config.DEFAULT_API_KEY
-        )
-        
-        assert api.api_endpoint == Config.DEFAULT_API_ENDPOINT
-        assert api.api_key == Config.DEFAULT_API_KEY
-
     @patch('sokrates.llm_api.OpenAI')
     def test_send_with_default_model(self, mock_openai):
         """Test sending with default model from config."""
@@ -383,7 +355,7 @@ class TestLLMApi:
         
         # Verify the call was made with default model from config
         call_args = mock_client_instance.chat.completions.create.call_args[1]
-        assert call_args['model'] == Config.DEFAULT_MODEL
+        assert call_args['model'] == Constants.DEFAULT_MODEL
         assert result == "Response"
 
 if __name__ == "__main__":

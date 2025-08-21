@@ -54,7 +54,7 @@ Example usage:
         '--output-model', '-om',
         required=False,
         default=None,
-        help=f"Name of the model to receive the refined prompt and to generate the final output. Default: {Config.DEFAULT_MODEL}"
+        help=f"Name of the model to receive the refined prompt and to generate the final output."
     )
     
     parser.add_argument(

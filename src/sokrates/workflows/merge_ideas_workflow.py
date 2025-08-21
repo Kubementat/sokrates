@@ -1,10 +1,10 @@
 from typing import List
 from pathlib import Path
-from .llm_api import LLMApi
-from .prompt_refiner import PromptRefiner
-from .colors import Colors
-from .config import Config
-from .file_helper import FileHelper
+from sokrates.llm_api import LLMApi
+from sokrates.prompt_refiner import PromptRefiner
+from sokrates.colors import Colors
+from sokrates.constants import Constants
+from sokrates.file_helper import FileHelper
 
 class MergeIdeasWorkflow:
     """
@@ -13,12 +13,15 @@ class MergeIdeasWorkflow:
     This class provides functionality to combine multiple source documents into a
     coherent merged output using an LLM with a specialized prompt template.
     """
+    
+    DEFAULT_MAX_TOKENS = 50000
+    DEFAULT_TEMPERATURE = 0.5
 
-    def __init__(self, api_endpoint: str = Config.DEFAULT_API_ENDPOINT,
-        api_key: str = Config.DEFAULT_API_KEY,
-        model: str = Config.DEFAULT_MODEL,
-        max_tokens: int = 50000,
-        temperature: float = 0.7,
+    def __init__(self, api_endpoint: str = Constants.DEFAULT_API_ENDPOINT,
+        api_key: str = Constants.DEFAULT_API_KEY,
+        model: str = Constants.DEFAULT_MODEL,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+        temperature: float = DEFAULT_TEMPERATURE,
         verbose: bool = False) -> None:
       """
       Initialize the MergeIdeasWorkflow with configuration parameters.
@@ -38,7 +41,7 @@ class MergeIdeasWorkflow:
       self.temperature = temperature
       self.verbose = verbose
       # Path to the prompt template used for merging ideas
-      self.idea_merger_prompt_file = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/merge-ideas-v1.md").resolve())
+      self.idea_merger_prompt_file = str(Path(f"{Constants.DEFAULT_PROMPTS_DIRECTORY}/merge-ideas-v1.md").resolve())
 
     def merge_ideas(self, source_documents: dict, context_array: List[str]=None) -> str:
       """

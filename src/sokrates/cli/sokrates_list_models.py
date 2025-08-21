@@ -34,7 +34,7 @@ Examples:
         '--api-endpoint',
         required=False,
         default=None,
-        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        help=f"LLM server API endpoint."
     )
     
     parser.add_argument(

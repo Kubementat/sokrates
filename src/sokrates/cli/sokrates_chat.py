@@ -28,7 +28,6 @@ Usage Example:
 """
 
 import sys
-import os
 import argparse
 
 from sokrates.llm_api import LLMApi

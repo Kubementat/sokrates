@@ -22,13 +22,12 @@ Example:
 
 import argparse
 import sys
-from sokrates.sequential_task_executor import SequentialTaskExecutor
+from sokrates.workflows.sequential_task_executor import SequentialTaskExecutor
 from sokrates.colors import Colors
 from sokrates.output_printer import OutputPrinter
 from sokrates.file_helper import FileHelper
 from sokrates.config import Config
 from pathlib import Path
-from datetime import datetime
 
 def main():
     """
@@ -58,7 +57,7 @@ def main():
     parser.add_argument(
         '--api-endpoint',
         default=None,
-        help=f"LLM server API endpoint. Default is {Config.DEFAULT_API_ENDPOINT}"
+        help=f"LLM server API endpoint."
     )
 
     parser.add_argument(
@@ -71,14 +70,14 @@ def main():
     parser.add_argument(
         '--model', '-m',
         default=None,
-        help=f'The model to use for task execution (default: {Config.DEFAULT_MODEL})'
+        help=f'The model to use for task execution'
     )
     
     parser.add_argument(
         '--temperature', '-t',
         default=None,
         type=float,
-        help=f'The temperature to use for task execution (default: {Config.DEFAULT_MODEL_TEMPERATURE})'
+        help=f'The temperature to use for task execution'
     )
 
     parser.add_argument(
@@ -135,8 +134,7 @@ def main():
     task_file_name = Path(args.task_file).name
     task_file_copy_full_path  = Path(target_directory) / task_file_name
     FileHelper.copy_file(args.task_file,task_file_copy_full_path, verbose=args.verbose)
-
-    refinement_prompt_path = f"{config.prompts_directory}/refine-prompt.md"
+    refinement_prompt_path = str((Path(config.prompts_directory) / "refine-prompt.md").resolve())
     
     # Initialize executor
     executor = SequentialTaskExecutor(

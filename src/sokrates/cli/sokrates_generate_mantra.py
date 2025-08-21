@@ -7,7 +7,7 @@ from pathlib import Path
 
 from sokrates.colors import Colors
 from sokrates.config import Config
-from sokrates.refinement_workflow import RefinementWorkflow
+from sokrates.workflows.refinement_workflow import RefinementWorkflow
 from sokrates.output_printer import OutputPrinter
 
 def main():
@@ -20,13 +20,6 @@ def main():
     parser = argparse.ArgumentParser(
         description='Generates a daily mantra with a matching practical call to action',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    
-    # TODO: use parameter below
-    parser.add_argument(
-        '--context-directory', '-c',
-        required=False,
-        help='Path to a directoy with text/markdown files to add to the context'
     )
     
     parser.add_argument(

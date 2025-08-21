@@ -8,8 +8,7 @@ This module contains unit tests for the SequentialTaskExecutor class.
 import os
 import json
 import tempfile
-from sokrates.sequential_task_executor import SequentialTaskExecutor
-from sokrates.file_helper import FileHelper
+from sokrates.workflows.sequential_task_executor import SequentialTaskExecutor
 import pytest
 from pathlib import Path
 

@@ -31,8 +31,7 @@ class TaskQueueDaemon:
         logging, and sets up the TaskProcessor for task execution.
 
         Args:
-            db_path (str, optional): Path to the SQLite database file.
-                If None, uses the default from Config.
+            config (Config): Config object for configuration loading attributes from
         """
         self.config = config
         self.processing_interval = self.config.daemon_processing_interval

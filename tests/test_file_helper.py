@@ -7,9 +7,6 @@ from pathlib import Path
 import json
 from unittest.mock import patch, mock_open
 
-# Import the module to test - assuming it's in the correct path
-import sys
-sys.path.insert(0, '/Users/dude/Documents/rubydev/os_projects/sokrates/src')
 from sokrates.file_helper import FileHelper
 
 def test_clean_name():

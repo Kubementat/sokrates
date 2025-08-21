@@ -6,16 +6,9 @@ merging multiple ideas or documents using LLM capabilities.
 """
 
 import pytest
-from unittest.mock import Mock, patch
-from pathlib import Path
 
-# Import the MergeIdeasWorkflow class from src.sokrates.merge_ideas_workflow
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-from sokrates.merge_ideas_workflow import MergeIdeasWorkflow
-from sokrates.config import Config
-
+from sokrates.workflows.merge_ideas_workflow import MergeIdeasWorkflow
+from sokrates.constants import Constants
 
 class TestMergeIdeasWorkflow:
     """Test cases for the MergeIdeasWorkflow class."""
@@ -30,9 +23,9 @@ class TestMergeIdeasWorkflow:
         assert hasattr(workflow, 'max_tokens')
         assert hasattr(workflow, 'temperature')
         assert hasattr(workflow, 'verbose')
-        assert workflow.model == Config.DEFAULT_MODEL
+        assert workflow.model == Constants.DEFAULT_MODEL
         assert workflow.max_tokens == 50000
-        assert workflow.temperature == 0.7
+        assert workflow.temperature == MergeIdeasWorkflow.DEFAULT_TEMPERATURE
         assert workflow.verbose is False
 
     def test_init_with_custom_values(self):

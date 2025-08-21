@@ -17,6 +17,7 @@ from typing import List, Dict, Any
 
 # Maximum tokens for LLM responses - balances detail with performance
 DEFAULT_MAX_TOKENS = 30000
+DEFAULT_TEMPERATURE = 0.7
 
 CODE_REVIEW_TYPE_ALL = "all"
 
@@ -133,8 +134,8 @@ class CodeReviewWorkflow:
         
         return analysis_results
 
-    def generate_review(self, code_analysis: Dict[str, Any], review_type: str = CODE_REVIEW_TYPE_ALL,
-                        model: str = None, temperature: float = 0.7, max_tokens: int = DEFAULT_MAX_TOKENS,
+    def generate_review(self, model: str, code_analysis: Dict[str, Any], review_type: str = CODE_REVIEW_TYPE_ALL,
+                        temperature: float = DEFAULT_TEMPERATURE, max_tokens: int = DEFAULT_MAX_TOKENS,
                         output_dir: str = None) -> Dict[str, Any]:
         """
         Generate a code review using LLM based on the analyzed code and specified review type.
@@ -175,8 +176,9 @@ class CodeReviewWorkflow:
                 
             # Generate individual reviews for this file
             file_reviews = self._generate_file_reviews(
-                file_path, analysis, review_types, contextual_file_listing,
-                model, temperature, max_tokens
+                file_path=file_path, analysis=analysis, 
+                review_types=review_types, contextual_file_listing=contextual_file_listing,
+                model=model, temperature=temperature, max_tokens=max_tokens
             )
             
             reviews[file_path] = file_reviews
@@ -184,15 +186,15 @@ class CodeReviewWorkflow:
             # Save immediately if output directory is specified
             if output_dir:
                 try:
-                    self.generate_and_save_markdown_review(file_path, file_reviews, output_dir, model)
+                    self.generate_and_save_markdown_review(file_path=file_path, file_reviews=file_reviews, output_dir=output_dir, model=model)
                 except Exception as e:
                     print(f"Warning: Failed to save review for {file_path} immediately: {e}")
             
         return reviews
 
-    def _generate_file_reviews(self, file_path: str, analysis: Dict[str, Any],
+    def _generate_file_reviews(self, model: str, file_path: str, analysis: Dict[str, Any],
                              review_types: List[str], contextual_file_listing: str,
-                             model: str = None, temperature: float = 0.7,
+                             temperature: float = DEFAULT_TEMPERATURE,
                              max_tokens: int = DEFAULT_MAX_TOKENS) -> Dict[str, Any]:
         """
         Generate reviews for a single file across multiple review types.
@@ -216,11 +218,15 @@ class CodeReviewWorkflow:
                 # Prepare prompt template and content
                 prompt_template = self._read_prompt_template(review_type)
                 prompt = self._prepare_review_prompt(
-                    prompt_template, contextual_file_listing, file_path, analysis['file_content']
+                    prompt_template=prompt_template, 
+                    contextual_file_listing=contextual_file_listing, 
+                    file_path=file_path, 
+                    file_content=analysis['file_content']
                 )
                 
                 # Send to LLM for review generation
-                response = self._call_llm_for_review(prompt, model, temperature, max_tokens)
+                response = self._call_llm_for_review(prompt=prompt, model=model,
+                                    temperature=temperature, max_tokens=max_tokens)
                 response = self.prompt_refiner.clean_response(response)
                 
                 file_reviews[review_type] = {
@@ -278,8 +284,9 @@ class CodeReviewWorkflow:
             "Please analyze this code and provide specific feedback based on the review criteria above."
         )
 
-    def _call_llm_for_review(self, prompt: str, model: str = None,
-                           temperature: float = 0.7, max_tokens: int = DEFAULT_MAX_TOKENS) -> str:
+    def _call_llm_for_review(self, prompt: str, model: str,
+                           temperature: float = DEFAULT_TEMPERATURE, 
+                           max_tokens: int = DEFAULT_MAX_TOKENS) -> str:
         """
         Send prompt to LLM API and return response.
         
@@ -292,11 +299,8 @@ class CodeReviewWorkflow:
         Returns:
             str: Response from LLM API
         """
-        if model:
-            return self.llm_api.send(prompt, model=model, temperature=temperature, max_tokens=max_tokens)
-        else:
-            return self.llm_api.send(prompt, temperature=temperature, max_tokens=max_tokens)
-
+        return self.llm_api.send(prompt, model=model, temperature=temperature, max_tokens=max_tokens)
+        
     def generate_and_save_markdown_review(self, file_path: str, file_reviews: Dict[str, Any], output_dir: str, model: str) -> str:
         """
         Generate and save a single code review to markdown file immediately.
@@ -365,10 +369,10 @@ class CodeReviewWorkflow:
 
 
 # For backward compatibility and direct usage
-def run_code_review(directory_path: str = None, file_paths: List[str] = None,
-                   output_dir: str = "reviews", review_type: str = CODE_REVIEW_TYPE_ALL,
-                   model: str = None, api_endpoint: str = None,
-                   api_key: str = None, max_tokens: int = DEFAULT_MAX_TOKENS, verbose: bool = False) -> Dict[str, Any]:
+def run_code_review(api_endpoint: str, api_key: str, model: str, 
+                directory_path: str, file_paths: List[str] = None,
+                output_dir: str = "reviews", review_type: str = CODE_REVIEW_TYPE_ALL,
+                max_tokens: int = DEFAULT_MAX_TOKENS, verbose: bool = False) -> Dict[str, Any]:
     """
     Convenience function to run a code review workflow.
     
@@ -386,18 +390,25 @@ def run_code_review(directory_path: str = None, file_paths: List[str] = None,
     Returns:
         Dict[str, Any]: Review results
     """
-    workflow = CodeReviewWorkflow(verbose=verbose, api_endpoint=api_endpoint, api_key=api_key)
+    workflow = CodeReviewWorkflow(verbose=verbose, 
+                        api_endpoint=api_endpoint, 
+                        api_key=api_key)
     
     # Analyze code based on input parameters
     analysis_results = _analyze_code_for_review(workflow, directory_path, file_paths)
         
     # Generate reviews - with immediate writing capability
-    reviews = workflow.generate_review(analysis_results, review_type=review_type, model=model, max_tokens=max_tokens, output_dir=output_dir)
+    reviews = workflow.generate_review(code_analysis=analysis_results, 
+                        model=model, 
+                        review_type=review_type, 
+                        max_tokens=max_tokens, 
+                        output_dir=output_dir)
     
     return reviews
 
-def _analyze_code_for_review(workflow: CodeReviewWorkflow, directory_path: str = None,
-                          file_paths: List[str] = None) -> Dict[str, Any]:
+def _analyze_code_for_review(workflow: CodeReviewWorkflow, 
+                directory_path: str = None,
+                file_paths: List[str] = None) -> Dict[str, Any]:
     """
     Analyze code for review based on input parameters.
     

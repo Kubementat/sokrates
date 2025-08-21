@@ -1,20 +1,43 @@
-# This __init__.py file makes the sokrates directory a Python package.
-# It exposes various modules and their contents directly under the sokrates namespace
-# for easier access and import by other parts of the application.
+__author__ = "Julian Weber"
+__email__ = "julianweberdev@gmail.com"
 
-from .colors import *
-from .config import *
-from .file_helper import *
-from .idea_generation_workflow import *
-from .llm_api import *
-from .lmstudio_benchmark import *
-from .merge_ideas_workflow import *
-from .output_printer import *
-from .prompt_refiner import *
-from .refinement_workflow import *
-from .system_monitor import *
-from .sequential_task_executor import *
-from .utils import *
-# from .text_to_speech import *
-# from .voice_helper import *
-# from .task_queue import *
+from .colors import Colors
+from .config import Config
+from .constants import Constants
+from .file_helper import FileHelper
+from .llm_api import LLMApi
+from .output_printer import OutputPrinter
+from .prompt_refiner import PromptRefiner
+from .system_monitor import SystemMonitor
+from .utils import Utils
+
+# workflows
+from .workflows.lmstudio_benchmark import LMStudioBenchmark
+from .workflows.idea_generation_workflow import IdeaGenerationWorkflow
+from .workflows.merge_ideas_workflow import MergeIdeasWorkflow
+from .workflows.refinement_workflow import RefinementWorkflow
+from .workflows.sequential_task_executor import SequentialTaskExecutor
+
+from .coding.code_review_workflow import CodeReviewWorkflow
+from .coding.python_analyzer import PythonAnalyzer
+from .coding.test_generator import TestGenerator
+
+__all__ = [
+  "Colors",
+  "Config",
+  "Constants",
+  "FileHelper",
+  "LLMApi",
+  "OutputPrinter",
+  "PromptRefiner",
+  "SystemMonitor",
+  "Utils",
+  "LMStudioBenchmark",
+  "IdeaGenerationWorkflow",
+  "MergeIdeasWorkflow",
+  "RefinementWorkflow",
+  "SequentialTaskExecutor",
+  "CodeReviewWorkflow",
+  "PythonAnalyzer",
+  "TestGenerator"
+]

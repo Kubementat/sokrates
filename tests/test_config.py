@@ -12,10 +12,6 @@ from pathlib import Path
 from unittest.mock import patch
 import pytest
 
-# Import the Config class from src.sokrates.config
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from sokrates import Config
 
 @pytest.fixture(autouse=True)
@@ -34,16 +30,6 @@ class TestConfig:
         
         # Both variables should reference the same object
         assert config1 is config2
-
-    def test_default_values(self):
-        """Test that default configuration values are set correctly."""
-        config = Config(verbose=False)
-        
-        assert config.DEFAULT_API_ENDPOINT == "http://localhost:1234/v1"
-        assert config.DEFAULT_API_KEY == "notrequired"
-        assert config.DEFAULT_MODEL == "qwen3-4b-instruct-2507-mlx"
-        assert config.DEFAULT_MODEL_TEMPERATURE == 0.7
-        assert config.DEFAULT_DAEMON_PROCESSING_INTERVAL == 15
 
     def test_config_initialization_with_defaults(self, tmp_path):
         """Test Config initialization with default values when no .env file exists."""

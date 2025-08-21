@@ -8,30 +8,36 @@ import logging
 import sys
 import time
 from typing import List
-import requests
 
 from openai import OpenAI
 from .colors import Colors
-from .config import Config
+from .constants import Constants
 
 class LLMApi:
     """
     Handles interactions with OpenAI-compatible LLM APIs.
     Provides methods for model listing, text generation, and chat completions.
     """
-    def __init__(self, verbose: bool = False, api_endpoint: str = Config.DEFAULT_API_ENDPOINT, api_key: str = Config.DEFAULT_API_KEY):
+    def __init__(self, api_endpoint: str, api_key: str, verbose: bool = False):
         """
         Initializes the LLMApi client.
 
         Args:
             verbose (bool): If True, enables verbose output for API interactions.
-            api_endpoint (str): The URL of the LLM API endpoint. Defaults to Config.DEFAULT_API_ENDPOINT.
-            api_key (str): The API key for authentication. Defaults to Config.DEFAULT_API_KEY.
+            api_endpoint (str): The URL of the LLM API endpoint.
+            api_key (str): The API key for authentication.
         """
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         self.verbose = verbose
         self.api_endpoint = api_endpoint
         self.api_key = api_key
+        self.__validate_configuration()
+        
+    def __validate_configuration(self):
+        if not self.api_endpoint:
+            raise ValueError("api_endpoint is empty!")
+        if not self.api_endpoint.startswith('http'):
+            raise ValueError("api_endpoint does not start with 'http' !")
         
     def get_openai_client(self) -> OpenAI:
         """
@@ -72,7 +78,7 @@ class LLMApi:
             print(f"{Colors.RED}{Colors.BOLD}Error listing models: {str(e)}{Colors.RESET}")
             raise(e)
 
-    def send(self, prompt: str, model: str = Config.DEFAULT_MODEL, context: str = None, context_array: List[str] = None, max_tokens: int = 2000, temperature: float = 0.7, system_prompt: str = None) -> str:
+    def send(self, prompt: str, model: str = Constants.DEFAULT_MODEL, context: str = None, context_array: List[str] = None, max_tokens: int = 2000, temperature: float = 0.7, system_prompt: str = None) -> str:
         """
         Sends a text prompt to the LLM server for generation and returns the response.
         Context can be provided as a single string or a list of strings, which will be
@@ -80,7 +86,7 @@ class LLMApi:
 
         Args:
             prompt (str): The main text prompt to send to the LLM.
-            model (str): The name of the model to use for generation. Defaults to Config.DEFAULT_MODEL.
+            model (str): The name of the model to use for generation. Defaults to Constants.DEFAULT_MODEL.
             system_prompt (str): A system prompt to use for processing the sent prompt (Default: None)
             context (str, optional): A single string of context to prepend to the prompt.
                                      Defaults to None.
@@ -186,9 +192,9 @@ class LLMApi:
             
             return response_content
         except Exception as e:
-            raise Exception(f"{Colors.RED}{Colors.BOLD}Error calling LLM API at {self.api_endpoint}: {e}{Colors.RESET}")
+            raise Exception(f"Error calling LLM API at {self.api_endpoint}: {e}")
 
-    def chat_completion(self, messages: List[dict], model: str = Config.DEFAULT_MODEL, max_tokens: int = 2000, temperature: float = 0.7) -> str:
+    def chat_completion(self, messages: List[dict], model: str = Constants.DEFAULT_MODEL, max_tokens: int = 2000, temperature: float = 0.7) -> str:
         """
         Sends a list of messages (conversation history) to the LLM server for chat completion.
         The response is streamed back, and performance metrics are calculated.
@@ -197,7 +203,7 @@ class LLMApi:
             messages (List[dict]): A list of message dictionaries representing the conversation history.
                                    Each dictionary should have "role" (e.g., "user", "assistant")
                                    and "content" keys.
-            model (str): The name of the model to use for chat completion. Defaults to Config.DEFAULT_MODEL.
+            model (str): The name of the model to use for chat completion. Defaults to Constants.DEFAULT_MODEL.
             max_tokens (int): The maximum number of tokens to generate in the response. Defaults to 2000.
             temperature (float): Controls the randomness of the output. Defaults to 0.7.
 

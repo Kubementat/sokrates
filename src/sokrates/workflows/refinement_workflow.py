@@ -7,11 +7,10 @@
 
 from typing import List
 from pathlib import Path
-from .llm_api import LLMApi
-from .prompt_refiner import PromptRefiner
-from .colors import Colors
-from .config import Config
-from .file_helper import FileHelper
+from sokrates.llm_api import LLMApi
+from sokrates.prompt_refiner import PromptRefiner
+from sokrates.colors import Colors
+from sokrates.file_helper import FileHelper
 
 class RefinementWorkflow:
     """
@@ -20,9 +19,9 @@ class RefinementWorkflow:
     This class integrates with LLM API for model interaction and
     PromptRefiner for prompt processing and response cleaning.
     """
-    def __init__(self, api_endpoint: str = Config.DEFAULT_API_ENDPOINT, 
-        api_key: str = Config.DEFAULT_API_KEY, 
-        model: str = Config.DEFAULT_MODEL, 
+    def __init__(self, api_endpoint: str, 
+        api_key: str, 
+        model: str, 
         max_tokens: int = 20000,
         temperature: float = 0.7,
         verbose: bool = False) -> None:
@@ -30,9 +29,9 @@ class RefinementWorkflow:
       Initializes the RefinementWorkflow.
 
       Args:
-          api_endpoint (str): The API endpoint for the LLM. Defaults to Config.DEFAULT_API_ENDPOINT.
-          api_key (str): The API key for the LLM. Defaults to Config.DEFAULT_API_KEY.
-          model (str): The default LLM model to use. Defaults to Config.DEFAULT_MODEL.
+          api_endpoint (str): The API endpoint for the LLM. 
+          api_key (str): The API key for the LLM. 
+          model (str): The default LLM model to use.
           max_tokens (int): The maximum number of tokens for LLM responses. Defaults to 20000.
           temperature (float): The sampling temperature for LLM responses. Defaults to 0.7.
           verbose (bool): If True, enables verbose output. Defaults to False.
@@ -129,7 +128,7 @@ class RefinementWorkflow:
       Returns:
           str: The breakdown of the task as a Markdown string.
       """
-      breakdown_instructions_filepath = Path(f"{Path(__file__).parent.resolve()}/prompts/breakdown-v1.md").resolve()
+      breakdown_instructions_filepath = Path(f"{Path(__file__).parent.parent.resolve()}/prompts/breakdown-v1.md").resolve()
       breakdown_instructions = FileHelper.read_file(breakdown_instructions_filepath)
       
       result = self.refine_prompt(input_prompt=task, refinement_prompt=breakdown_instructions, context_array=context_array)

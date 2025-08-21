@@ -13,11 +13,11 @@ Parameters:
 """
 
 import os
-from typing import List, Dict
+from typing import Dict
 from .refinement_workflow import RefinementWorkflow
-from .file_helper import FileHelper
-from .output_printer import OutputPrinter
-from .llm_api import LLMApi
+from sokrates.file_helper import FileHelper
+from sokrates.output_printer import OutputPrinter
+from sokrates.llm_api import LLMApi
 
 class SequentialTaskExecutor:
     """

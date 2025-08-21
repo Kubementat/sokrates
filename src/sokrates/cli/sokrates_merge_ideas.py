@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import argparse
 import sys
-from pathlib import Path
+
 from sokrates.output_printer import OutputPrinter
-from sokrates import Colors, Config, MergeIdeasWorkflow, FileHelper
+from sokrates import Colors, Config, FileHelper
+from sokrates.workflows.merge_ideas_workflow import MergeIdeasWorkflow
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -45,7 +46,7 @@ TODO
         '--temperature', '-t',
         type=float,
         default=None,
-        help=f"Temperature for response generation for all LLM calls (Default: {Config.DEFAULT_MODEL_TEMPERATURE})"
+        help=f"Temperature for response generation for all LLM calls"
     )
     
     parser.add_argument(

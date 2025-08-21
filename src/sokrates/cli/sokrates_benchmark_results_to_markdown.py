@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import Dict, List, Any
 from dataclasses import dataclass
 
-
 @dataclass
 class ModelMetrics:
     """Data class to hold model performance metrics"""

@@ -1,11 +1,17 @@
 import unittest
-import re
-from sokrates import RefinementWorkflow
+from sokrates.workflows.refinement_workflow import RefinementWorkflow
 from sokrates import FileHelper
+
+import pytest
 
 class TestRefinementWorkflow(unittest.TestCase):
     def setUp(self):
-        self.workflow = RefinementWorkflow()
+        self.workflow = RefinementWorkflow(api_endpoint=pytest.TESTING_ENDPOINT, 
+                    api_key="not-required",
+                    model=pytest.TESTING_MODEL,
+                    max_tokens=10000,
+                    temperature=0.7,
+                    verbose=True)
 
     def test_refine_prompt(self):
         input_prompt = "This is my original prompt."

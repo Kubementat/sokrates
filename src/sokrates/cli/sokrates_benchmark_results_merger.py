@@ -3,7 +3,6 @@ This script merges benchmarking results from multiple JSON files, calculates ave
 """
 import argparse
 import json
-import os
 from collections import defaultdict
 from colorama import Fore, Style
 from tabulate import tabulate

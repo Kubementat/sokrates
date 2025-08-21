@@ -15,7 +15,7 @@ from typing import Optional
 from .manager import TaskQueueManager
 from .status_tracker import StatusTracker
 from .error_handler import ErrorHandler
-from sokrates.sequential_task_executor import SequentialTaskExecutor
+from sokrates.workflows.sequential_task_executor import SequentialTaskExecutor
 from sokrates.config import Config
 
 class TaskProcessor:

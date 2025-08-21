@@ -4,9 +4,10 @@
 
 import argparse
 import sys
-from pathlib import Path
+
+from sokrates.workflows.idea_generation_workflow import IdeaGenerationWorkflow
 from sokrates.output_printer import OutputPrinter
-from sokrates import Colors, Config, IdeaGenerationWorkflow, FileHelper
+from sokrates import Colors, Config, FileHelper
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -71,7 +72,7 @@ Example usage:
     
     parser.add_argument(
         '--api-endpoint', '-ae',
-        default=Config.DEFAULT_API_ENDPOINT,
+        default=None,
         help='OpenAI-compatible API endpoint URL'
     )
     
@@ -92,7 +93,7 @@ Example usage:
         '--temperature', '-t',
         type=float,
         default=None,
-        help=f"Temperature for response generation for all LLM calls (Default: {Config.DEFAULT_MODEL_TEMPERATURE})"
+        help=f"Temperature for response generation for all LLM calls)"
     )
     
     parser.add_argument(
@@ -137,28 +138,13 @@ def main():
     args = parse_arguments()
 
     config = Config(verbose=args.verbose)
-    api_endpoint = config.api_endpoint
-    api_key = config.api_key
-    topic_generation_model = config.default_model
-    generator_llm_model = config.default_model
-    execution_llm_model = config.default_model
-    refinement_llm_model = config.default_model
-    temperature = config.default_model_temperature
-    
-    if args.api_key:
-        api_key = args.api_key
-    if args.api_endpoint:
-        api_endpoint = args.api_endpoint
-    if args.topic_generation_model:
-        topic_generation_model = args.topic_generation_model
-    if args.generator_llm_model:
-        generator_llm_model = args.generator_llm_model
-    if args.execution_llm_model:
-        execution_llm_model = args.execution_llm_model
-    if args.refinement_llm_model:
-        refinement_llm_model = args.refinement_llm_model
-    if args.temperature:
-        temperature = args.temperature
+    api_endpoint = args.api_endpoint or config.api_endpoint
+    api_key = args.api_key or config.api_key
+    topic_generation_model = args.topic_generation_model or config.default_model
+    generator_llm_model = args.generator_llm_model or config.default_model
+    execution_llm_model = args.execution_llm_model or config.default_model
+    refinement_llm_model = args.refinement_llm_model or config.default_model
+    temperature = args.temperature or config.default_model_temperature
 
     OutputPrinter.print_info("idea-count", args.idea_count)
     OutputPrinter.print_info("topic", args.topic)

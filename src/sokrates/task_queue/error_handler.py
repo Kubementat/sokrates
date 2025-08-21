@@ -10,7 +10,7 @@ Classes:
 """
 
 import time
-from sokrates.config import Config
+from sokrates.constants import Constants
 
 class ErrorHandler:
     """
@@ -32,11 +32,11 @@ class ErrorHandler:
 
     def __init__(self):
         """
-        Initializes the ErrorHandler with configuration from Config.
+        Initializes the ErrorHandler with static config from Constants.
         """
-        self.max_retries = int(Config.get("MAX_RETRIES", 5))
-        self.base_delay = float(Config.get("BASE_RETRY_DELAY", 2))
-        self.dead_letter_enabled = Config.get("DEAD_LETTER_QUEUE_ENABLED", True)
+        self.max_retries = Constants.DEFAULT_TASK_DAEMON_MAX_RETRIES
+        self.base_delay = Constants.DEFAULT_TASK_DAEMON_BASE_RETRY_DELAY
+        self.dead_letter_enabled = Constants.DEFAULT_TASK_DAEMON_DEAD_LETTER_QUEUE_ENABLED
 
     def should_retry(self, task, current_attempt):
         """

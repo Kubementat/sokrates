@@ -6,25 +6,26 @@
 # the prompt engineering process.
 
 from pathlib import Path
-from .llm_api import LLMApi
-from .prompt_refiner import PromptRefiner
-from .colors import Colors
-from .file_helper import FileHelper
-from .config import Config
-from .utils import Utils
-from .output_printer import OutputPrinter
+from sokrates import LLMApi
+from sokrates import PromptRefiner
+from sokrates import Colors
+from sokrates import FileHelper
+from sokrates import Constants
+from sokrates import Utils
+from sokrates import OutputPrinter
 import os
 import json
 import time
+
 class IdeaGenerationWorkflow:
     """
     Orchestrates a multi-step workflow for generating, refining, and executing LLM prompts.
     This class manages the flow from initial topic generation to final output,
     leveraging different LLM models for various stages of the process.
     """
-    DEFAULT_TOPIC_GENERATOR_PATH = "prompt_generators/topic-generator.md"
-    DEFAULT_PROMPT_GENERATOR_PATH = "prompt_generators/prompt-generator-v1.md"
-    DEFAULT_REFINEMENT_PATH = "refine-prompt.md"
+    DEFAULT_TOPIC_GENERATOR_PATH = Path("prompt_generators/topic-generator.md")
+    DEFAULT_PROMPT_GENERATOR_PATH = Path("prompt_generators/prompt-generator-v1.md")
+    DEFAULT_REFINEMENT_FILENAME = "refine-prompt.md"
     MAXIMUM_CATEGORIES_TO_PICK = 5
   
     def __init__(self, api_endpoint: str, api_key: str,
@@ -53,13 +54,13 @@ class IdeaGenerationWorkflow:
             prompt_generator_file (str, optional): Path to the prompt template for generating execution prompts. Defaults to None.
             output_directory (str, optional): Directory where generated outputs will be saved. Defaults to None.
             generator_llm_model (str, optional): The LLM model to use for generating execution prompts.
-                                                 Defaults to Config.DEFAULT_MODEL.
+                                                 Defaults to Constants.DEFAULT_MODEL.
             refinement_llm_model (str, optional): The LLM model to use for refining prompts.
-                                                  Defaults to Config.DEFAULT_MODEL.
+                                                  Defaults to Constants.DEFAULT_MODEL.
             execution_llm_model (str, optional): The LLM model to use for executing the final prompts.
-                                                 Defaults to Config.DEFAULT_MODEL.
+                                                 Defaults to Constants.DEFAULT_MODEL.
             meta_llm_model (str, optional): The LLM model to use for generating the initial topic (meta-prompt).
-                                            Defaults to Config.DEFAULT_MODEL.
+                                            Defaults to Constants.DEFAULT_MODEL.
             max_tokens (int): Maximum tokens for LLM responses. Defaults to 20000.
             temperature (float): Temperature for LLM responses. Defaults to 0.7.
             verbose (bool): If True, enables verbose output. Defaults to False.
@@ -76,19 +77,19 @@ class IdeaGenerationWorkflow:
         self.topic = topic
         self.topic_input_file = topic_input_file
         
-        topic_generation_instructions_file = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/{self.DEFAULT_TOPIC_GENERATOR_PATH}").resolve())
+        topic_generation_instructions_file = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_TOPIC_GENERATOR_PATH ).resolve() )
         OutputPrinter.print_info(f"No topic_generator_file, topic_input_file or topic specified. Using the default topic generation instructions in {topic_generation_instructions_file}", Colors.BRIGHT_MAGENTA)
         self.topic_generator_file = topic_generation_instructions_file
         
         self.refinement_prompt_file = refinement_prompt_file
         if self.refinement_prompt_file is None:
-            full_refinement_filepath = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/{self.DEFAULT_REFINEMENT_PATH}").resolve())
+            full_refinement_filepath = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_REFINEMENT_FILENAME ).resolve() )
             OutputPrinter.print_info(f"No refinement_prompt_file specified. Using the default refinement prompt instructions in {full_refinement_filepath}", Colors.BRIGHT_MAGENTA)
             self.refinement_prompt_file = full_refinement_filepath
         
         self.prompt_generator_file = prompt_generator_file
         if self.prompt_generator_file is None:
-            full_pg_filepath = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/{self.DEFAULT_PROMPT_GENERATOR_PATH}").resolve())
+            full_pg_filepath = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_PROMPT_GENERATOR_PATH ).resolve())
             OutputPrinter.print_info(f"No prompt_generator_file specified. Using the default prompt generator instructions in {full_pg_filepath}", Colors.BRIGHT_MAGENTA)
             self.prompt_generator_file = full_pg_filepath
         
@@ -99,10 +100,10 @@ class IdeaGenerationWorkflow:
         
         self.idea_count = idea_count
         
-        self.generator_llm_model = generator_llm_model if generator_llm_model else Config.DEFAULT_MODEL
-        self.refinement_llm_model = refinement_llm_model if refinement_llm_model else Config.DEFAULT_MODEL
-        self.execution_llm_model = execution_llm_model if execution_llm_model else Config.DEFAULT_MODEL
-        self.topic_generation_llm_model = topic_generation_llm_model if topic_generation_llm_model else Config.DEFAULT_MODEL
+        self.generator_llm_model = generator_llm_model if generator_llm_model else Constants.DEFAULT_MODEL
+        self.refinement_llm_model = refinement_llm_model if refinement_llm_model else Constants.DEFAULT_MODEL
+        self.execution_llm_model = execution_llm_model if execution_llm_model else Constants.DEFAULT_MODEL
+        self.topic_generation_llm_model = topic_generation_llm_model if topic_generation_llm_model else Constants.DEFAULT_MODEL
     
     def pick_topic_categories_from_json(self) -> list:
         """
@@ -115,7 +116,7 @@ class IdeaGenerationWorkflow:
         Returns:
             list: A list of randomly selected topic categories.
         """
-        topic_categories_json_path = str(Path(f"{Config.DEFAULT_PROMPTS_DIRECTORY}/context/topic_categories.json").resolve())
+        topic_categories_json_path = str(Path(f"{Constants.DEFAULT_PROMPTS_DIRECTORY}/context/topic_categories.json").resolve())
         categories_object = FileHelper.read_json_file(topic_categories_json_path, self.verbose)
         all_categories = categories_object["topic_categories"]
         number_of_categories_to_pick = Utils.generate_random_int(min_value=1, max_value=self.MAXIMUM_CATEGORIES_TO_PICK)
@@ -173,6 +174,7 @@ class IdeaGenerationWorkflow:
         else:
             topic_generation_instructions = FileHelper.read_file(self.topic_generator_file, self.verbose)
             topic_generation_prompt = self.generate_topic_generation_prompt(topic_generation_instructions)
+
             response = self.llm_api.send(
                 prompt=topic_generation_prompt,
                 model=self.topic_generation_llm_model,

@@ -9,7 +9,7 @@ import json
 import argparse
 import os
 from datetime import datetime
-from sokrates.lmstudio_benchmark import LMStudioBenchmark
+from sokrates import LMStudioBenchmark
 
 # Test prompts of varying complexity
 DEFAULT_TEST_PROMPTS = [
