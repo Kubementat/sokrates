@@ -1,9 +1,12 @@
 ## Changelog
+**Week
 
-**Week 2025-15-10**
-- version 0.9.0
+
+**Week 2025-08-15**
+- version 0.9.1
   - rename `sokrates-python-summarize` -> `sokrates-code-summarize`
   - introduce `sokrates-code-generate-tests`
+  - refactorings : make it future proof, better maintainable and better extendable
 
 **Week 2025-08-10**
 - version 0.8.2 - introduce coding tools v1
