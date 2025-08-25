@@ -21,6 +21,7 @@ class Helper:
             OutputPrinter.print_info("Appending context files to prompt:", context_files , Colors.BRIGHT_MAGENTA)
         return context
 
+    @staticmethod
     def print_configuration_section(config: Config, args=None):
         api_endpoint_config_source = f"Configuration File: {config.config_path}"
         api_endpoint = config.api_endpoint
