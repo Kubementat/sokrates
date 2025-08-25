@@ -64,9 +64,7 @@ brew install whisper-cpp
 brew install espeak-ng
 
 # On Ubuntu/Debian
-sudo apt-get install ffmpeg
-sudo apt-get install whisper-cpp
-sudo apt-get install espeak-ng
+sudo apt-get install ffmpeg libportaudio2 portaudio19-dev espeak-ng
 ```
 
 ### Install from PyPI
