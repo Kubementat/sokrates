@@ -372,8 +372,7 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
             if transcribed_text:
                 conversation_history.append({"role": "user", "content": transcribed_text})
                 
-                if verbose:
-                    OutputPrinter.print("Sending request to LLM...")
+                OutputPrinter.print("Sending request to LLM...")
                     
                 response_content_full = llm_api.chat_completion(
                     messages=conversation_history,

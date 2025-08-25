@@ -3,6 +3,8 @@
 import argparse
 from sokrates.llm_api import LLMApi
 from sokrates.config import Config
+from sokrates.output_printer import OutputPrinter
+from sokrates.cli.helper import Helper
 
 def main():
     """
@@ -65,10 +67,11 @@ Examples:
         
         llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
         models = llm_api.list_models()
-        
-        print("Available models:")
+        Helper.print_configuration_section(config, args)
+
+        OutputPrinter.print_section("Available models:")
         for model in models:
-            print(f"- {model}")
+            print(model)
             
     except Exception as e:
         print(f"Error: {str(e)}")
