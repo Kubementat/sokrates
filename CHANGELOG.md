@@ -1,6 +1,8 @@
 ## Changelog
-**Week
-
+**Week 2025-08-25**
+- version 0.9.2
+  - sokrates-list-models - better configuration output
+  - restructure docs
 
 **Week 2025-08-15**
 - version 0.9.1
