@@ -47,6 +47,9 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 - **File Management**: Comprehensive file handling for context loading and result storage
 - **CLI Tools**: For interacting with LLMs (for details: see below)
 
+## MCP available
+There's the [sokrates-mcp server](https://github.com/Kubementat/sokrates-mcp) available for integrating sokrates tools via MCP.
+
 ## Installation
 
 ### Prerequisites

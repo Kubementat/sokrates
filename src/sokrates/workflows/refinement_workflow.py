@@ -103,7 +103,7 @@ class RefinementWorkflow:
       refined_prompt = self.refine_prompt(input_prompt=input_prompt, refinement_prompt=refinement_prompt)
       
       if self.verbose:
-        print(f"{Colors.MAGENTA}Sending refined prompt to model: {execution_model}\n{Colors.RESET}") # Corrected model_name to execution_model
+        print(f"{Colors.MAGENTA}Sending refined prompt to model: {execution_model}\n{Colors.RESET}")
       
       
       response_content = self.llm_api.send(refined_prompt, model=execution_model, 
