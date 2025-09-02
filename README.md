@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.9.2](https://img.shields.io/badge/version-0.9.2-green)](https://github.com/Kubementat/sokrates)
+[![Version: 0.10.0](https://img.shields.io/badge/version-0.10.0-green)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -162,6 +162,7 @@ uv run | grep sokrates
 - `sokrates-benchmark-results-to-markdown`: Convert benchmark results to formatted markdown
 
 #### Python coding tools
+- `sokrates-code-analyze`: Parse a directory with any source code (e.g. a git repository) and generate an analysis report as introduction to the code base. This is very handy for diving into new code bases :D
 - `sokrates-code-summarize`: Parse a directory with python sources and generate a summary including all present classes and functions with signatures and documentation
 - `sokrates-code-review`: Parse a directory or a list of files with python sources and generate code reviews for each provided file
 - `sokrates-code-generate-tests`: Parse a directory or a list of files with python sources and generate tests for the code
@@ -300,6 +301,9 @@ sokrates-benchmark-results-to-markdown --input benchmark_results.json --output b
 
 #### Python coding tools
 ```bash
+# Analyze a directory with a code base the `/dir/to/my_git_repo` directory and write the result to `/dir/to/my_git_repo/docs/code_analysis.md`
+sokrates-code-analyze --source-directory /dir/to/my_git_repo --output /dir/to/my_git_repo/docs/code_analysis.md
+
 # Summarize python source dode classes and functions in the `src` directory and write the result to `docs/code_summary.md`
 sokrates-code-summarize --source-directory src/ --output docs/code_summary.md
 

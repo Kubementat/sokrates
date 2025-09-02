@@ -10,7 +10,9 @@ class Constants:
   DEFAULT_MODEL_TEMPERATURE = 0.7
   
   # paths
+  # TODO: refactor this to be a Path and not a string object (see DEFAULT_CODING_PROMPTS_DIRECTORY below)
   DEFAULT_PROMPTS_DIRECTORY = str((Path(__file__).parent / "prompts").resolve())
+  DEFAULT_CODING_PROMPTS_DIRECTORY = (Path(__file__).parent / "prompts" / "coding").resolve()
   
   # Task daemon
   DEFAULT_DAEMON_PROCESSING_INTERVAL = 15

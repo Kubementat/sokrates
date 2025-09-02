@@ -1,4 +1,13 @@
 ## Changelog
+**Week 2025-09-01**
+- version 0.10.0
+  - sokrates-code-analyze - perform an analysis for a given code base
+  - refactoring:
+    - still ongoing
+    - refactor order of test_all_commands.py
+    - introduce the PromptConstructor (this should be extended and used by all workflows later on)
+      - allows creating prompts from template files with placeholders in the format: [[PLACEHOLDER_NAME]]
+
 **Week 2025-08-25**
 - version 0.9.2
   - sokrates-list-models - better configuration output
