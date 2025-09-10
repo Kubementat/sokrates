@@ -8,6 +8,7 @@ import sys
 from sokrates.workflows.idea_generation_workflow import IdeaGenerationWorkflow
 from sokrates.output_printer import OutputPrinter
 from sokrates import Colors, Config, FileHelper
+from sokrates.cli.helper import Helper
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -137,7 +138,7 @@ def main():
 
     args = parse_arguments()
 
-    config = Config(verbose=args.verbose)
+    config = Config()
     api_endpoint = args.api_endpoint or config.api_endpoint
     api_key = args.api_key or config.api_key
     topic_generation_model = args.topic_generation_model or config.default_model
@@ -145,6 +146,8 @@ def main():
     execution_llm_model = args.execution_llm_model or config.default_model
     refinement_llm_model = args.refinement_llm_model or config.default_model
     temperature = args.temperature or config.default_model_temperature
+
+    Helper.print_configuration_section(config=config, args=args)
 
     OutputPrinter.print_info("idea-count", args.idea_count)
     OutputPrinter.print_info("topic", args.topic)

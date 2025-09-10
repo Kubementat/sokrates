@@ -53,7 +53,7 @@ class MergeIdeasWorkflow:
           str: The merged content formatted as markdown
       """
       # Load the specialized prompt template for merging ideas
-      idea_merger_prompt = FileHelper.read_file(self.idea_merger_prompt_file, self.verbose)
+      idea_merger_prompt = FileHelper.read_file(self.idea_merger_prompt_file)
       file_list_str = "# Source documents"
       
       # Format each document with XML-like tags for clear separation

@@ -56,7 +56,7 @@ Examples:
     args = parser.parse_args()
     
     try:
-        config = Config(verbose=args.verbose)
+        config = Config()
         api_endpoint = config.api_endpoint
         api_key = config.api_key
         

@@ -9,6 +9,7 @@ from sokrates.colors import Colors
 from sokrates.config import Config
 from sokrates.workflows.refinement_workflow import RefinementWorkflow
 from sokrates.output_printer import OutputPrinter
+from sokrates.cli.helper import Helper
 
 def main():
     """Main function to handle command line arguments and orchestrate the process."""
@@ -74,7 +75,7 @@ def main():
     
     # Parse arguments
     args = parser.parse_args()
-    config = Config(verbose=args.verbose)
+    config = Config()
     
     api_endpoint = config.api_endpoint
     if args.api_endpoint:
@@ -91,6 +92,8 @@ def main():
     temperature = config.default_model_temperature
     if args.temperature:
         temperature = args.temperature
+
+    Helper.print_configuration_section(config=config, args=args)
     
     workflow = RefinementWorkflow(api_endpoint=api_endpoint, api_key=api_key, 
         verbose=args.verbose, model=model,

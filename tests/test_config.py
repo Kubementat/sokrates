@@ -39,7 +39,7 @@ class TestConfig:
         
         # Mock the home directory to use our temp dir
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config(verbose=False)
+            config = Config()
             
             # Check that default paths are set correctly
             assert config.home_path == str(home_dir / ".sokrates")
@@ -63,7 +63,7 @@ class TestConfig:
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=False)
+                config = Config()
                 
                 # Check that environment variables override defaults
                 assert config.api_endpoint == 'https://api.example.com'
@@ -83,7 +83,7 @@ class TestConfig:
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                  config = Config(verbose=False)
+                  config = Config()
                   
                   # Check that custom path is used
                   assert config.config_path == str(tmp_path / "custom.env")
@@ -94,7 +94,7 @@ class TestConfig:
         home_dir.mkdir()
         
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config(verbose=False)
+            config = Config()
             
             # Check that directories were created
             assert (home_dir / ".sokrates").exists()
@@ -102,7 +102,7 @@ class TestConfig:
 
     def test_get_method_with_local_values(self):
         """Test the get method with local configuration values."""
-        config = Config(verbose=False)
+        config = Config()
         
         # Test getting a value that exists locally
         api_endpoint = Config.get('api_endpoint')
@@ -120,7 +120,7 @@ class TestConfig:
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=False)
+                config = Config()
                 
                 # Test getting a value from environment
                 test_var = Config.get('SOKRATES_TEST_VAR')
@@ -132,7 +132,7 @@ class TestConfig:
         home_dir.mkdir()
         
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config(verbose=False)
+            config = Config()
             
             # Test getting a non-existent value with default
             result = Config.get('non_existent_var', 'default_value')
@@ -144,7 +144,7 @@ class TestConfig:
         home_dir.mkdir()
         
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config(verbose=False)
+            config = Config()
             
             # Test getting a non-existent value with None default
             result = Config.get('non_existent_var')
@@ -152,7 +152,7 @@ class TestConfig:
 
     def test_get_local_member_value(self):
         """Test internal _get_local_member_value method."""
-        config = Config(verbose=False)
+        config = Config()
         
         # Test getting a valid key
         api_endpoint = Config._get_local_member_value('api_endpoint')
@@ -168,7 +168,7 @@ class TestConfig:
         home_dir.mkdir()
         
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config(verbose=False)
+            config = Config()
             
             # This should return the actual api_key, not api_endpoint (which was a bug in original code)
             api_key_result = Config._get_local_member_value('api_key')
@@ -194,36 +194,11 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         # Use the actual load_dotenv function but ensure it loads our test file
         # This approach uses real behavior while maintaining proper test isolation
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config(verbose=False)
+            config = Config()
             
             assert config.api_endpoint == 'https://api.example.com'
             assert config.api_key == 'mock_api_key'
             assert config.default_model == 'gpt-4-turbo'
-
-    def test__setup_directories_with_verbose(self, tmp_path):
-        """Test directory initialization with verbose output."""
-        home_dir = tmp_path / "test_home"
-        home_dir.mkdir()
-        
-        # Mock print function to capture calls
-        with patch('src.sokrates.config.print') as mock_print:
-            with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=True)
-                
-                # Check that print was called for directory creation messages
-                assert mock_print.called
-
-    def test_config_with_verbose_output(self, tmp_path):
-        """Test configuration printing when verbose is enabled."""
-        home_dir = tmp_path / "test_home"
-        home_dir.mkdir()
-        
-        with patch('src.sokrates.config.print') as mock_print:
-            with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=True)
-                
-                # Check that print was called for configuration details
-                assert mock_print.called
 
     def test_config_with_empty_env_vars(self, tmp_path):
         """Test behavior when environment variables are empty strings."""
@@ -237,7 +212,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=False)
+                config = Config()
                 
                 # Empty strings should override defaults
                 assert config.api_endpoint == ''
@@ -257,7 +232,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=False)
+                config = Config()
                 
                 # String 'None' should be treated as string value
                 assert config.api_endpoint == 'None'
@@ -275,7 +250,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=False)
+                config = Config()
                 
                 assert config.api_endpoint == 'https://api.example.com/path?param=value&other=123'
                 assert config.default_model == 'gpt-4-turbo-with-special-chars-!@#$%^&*()'
@@ -291,7 +266,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=False)
+                config = Config()
                 
                 assert config.default_model == 'gpt-4-turbo-unicode-🚀🌟'
 
@@ -306,7 +281,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config(verbose=False)
+                config = Config()
                 
                 assert config.default_model_temperature == 0.999999999
 
@@ -322,7 +297,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
                 try:
-                    config = Config(verbose=False)
+                    config = Config()
                     assert False, "Should have raised ValueError"
                 except ValueError:
                     pass  # Expected behavior
@@ -339,7 +314,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
                 with pytest.raises(BaseException):
-                    config = Config(verbose=False) 
+                    config = Config() 
 
     def test_config_with_zero_temperature(self, tmp_path):
         """Test configuration with zero temperature value. -> should raise an exception"""
@@ -353,7 +328,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
                 with pytest.raises(BaseException):
-                    config = Config(verbose=False)
+                    config = Config()
 
     def test_config_with_too_high_temperature(self, tmp_path):
         """Test configuration with too high temperature values. -> should raise an exception"""
@@ -367,4 +342,4 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
                 with pytest.raises(BaseException):
-                    config = Config(verbose=False)
+                    config = Config()

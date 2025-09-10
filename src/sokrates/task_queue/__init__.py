@@ -12,11 +12,15 @@ from .manager import TaskQueueManager
 from .processor import TaskProcessor
 from .status_tracker import StatusTracker
 from .error_handler import ErrorHandler
+from .file_watcher import FileWatcher
+from .file_processor import FileProcessor
 
 __all__ = [
     "TaskQueueDatabase",
     "TaskQueueManager",
     "TaskProcessor",
     "StatusTracker",
-    "ErrorHandler"
+    "ErrorHandler",
+    "FileWatcher",
+    "FileProcessor"
 ]

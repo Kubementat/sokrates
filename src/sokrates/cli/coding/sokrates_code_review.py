@@ -13,6 +13,7 @@ from sokrates.coding.code_review_workflow import run_code_review
 from sokrates.output_printer import OutputPrinter
 from sokrates.colors import Colors
 from sokrates.config import Config
+from sokrates.cli.helper import Helper
 
 
 def main():
@@ -53,10 +54,12 @@ def main():
     )
     
     args = parser.parse_args()
-    config = Config(verbose=args.verbose)
+    config = Config()
     api_endpoint = args.api_endpoint or config.api_endpoint
     api_key = args.api_key or config.api_key
     model = args.model or config.default_model
+
+    Helper.print_configuration_section(config=config, args=args)
     
     # Validate arguments
     if not args.source_directory and not args.files:

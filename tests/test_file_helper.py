@@ -69,7 +69,7 @@ def test_read_file():
         file_path = Path(temp_dir) / "test.txt"
         
         # Create a test file
-        content = "Hello, World!\n  With whitespace   "
+        content = "Hello, World!\n  With a lot of       whitespace"
         with open(file_path, 'w') as f:
             f.write(content)
         

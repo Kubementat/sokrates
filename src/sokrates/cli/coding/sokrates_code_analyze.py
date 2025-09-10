@@ -50,7 +50,7 @@ def main():
     )
     
     args = parser.parse_args()
-    config = Config(verbose=args.verbose)
+    config = Config()
     api_endpoint = args.api_endpoint or config.api_endpoint
     api_key = args.api_key or config.api_key
     model = args.model or config.default_model

@@ -32,7 +32,19 @@ class Helper:
             api_endpoint = args.api_endpoint
             api_endpoint_config_source = "CLI Parameter: --api-endpoint"
 
-        OutputPrinter.print_section("Configuration")
-        OutputPrinter.print_info("Sokrates home", config.home_path)
-        OutputPrinter.print_info("Configuration source", api_endpoint_config_source)
-        OutputPrinter.print_info("LLM API Endpoint", api_endpoint)
+        OutputPrinter.print_section("Sokrates Configuration")
+        OutputPrinter.print_info("home directory", config.home_path)
+        OutputPrinter.print_info("configuration file", api_endpoint_config_source)
+        OutputPrinter.print_info("LLM API Endpoint", str(api_endpoint))
+        OutputPrinter.print_info("config_path", config.config_path)
+        print("")
+        OutputPrinter.print_info("default_model", str(config.default_model))
+        OutputPrinter.print_info("default_model_temperature", str(config.default_model_temperature))
+        print("")
+        OutputPrinter.print_info("database_path", config.database_path)
+        OutputPrinter.print_info("daemon_logfile_path", config.daemon_logfile_path)
+        OutputPrinter.print_info("daemon_processing_interval", str(config.daemon_processing_interval))
+        OutputPrinter.print_info("file_watcher_enabled", str(config.file_watcher_enabled))
+        OutputPrinter.print_info("file_watcher_directories", str(config.file_watcher_directories))
+        OutputPrinter.print_info("file_watcher_extensions", str(config.file_watcher_extensions))
+        print("──────────────────────────────────────────────────")

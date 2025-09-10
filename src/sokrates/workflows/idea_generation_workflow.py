@@ -116,7 +116,7 @@ class IdeaGenerationWorkflow:
             list: A list of randomly selected topic categories.
         """
         topic_categories_json_path = str(Path(f"{Constants.DEFAULT_PROMPTS_DIRECTORY}/context/topic_categories.json").resolve())
-        categories_object = FileHelper.read_json_file(topic_categories_json_path, self.verbose)
+        categories_object = FileHelper.read_json_file(topic_categories_json_path)
         all_categories = categories_object["topic_categories"]
         number_of_categories_to_pick = Utils.generate_random_int(min_value=1, max_value=self.MAXIMUM_CATEGORIES_TO_PICK)
         categories = []
@@ -168,10 +168,10 @@ class IdeaGenerationWorkflow:
             return self.topic
         
         if self.topic_input_file:
-            return FileHelper.read_file(self.topic_input_file, self.verbose)
+            return FileHelper.read_file(self.topic_input_file)
             
         else:
-            topic_generation_instructions = FileHelper.read_file(self.topic_generator_file, self.verbose)
+            topic_generation_instructions = FileHelper.read_file(self.topic_generator_file)
             topic_generation_prompt = self.generate_topic_generation_prompt(topic_generation_instructions)
 
             response = self.llm_api.send(
@@ -192,7 +192,7 @@ class IdeaGenerationWorkflow:
         Returns:
             list[str]: A list of generated prompts.
         """
-        prompt_generator_template = FileHelper.read_file(self.prompt_generator_file, self.verbose)
+        prompt_generator_template = FileHelper.read_file(self.prompt_generator_file)
         prompt_count_additional_instruction = f"# Number of prompts to generate\nGenerate a total of {self.idea_count} prompts"
         combined_prompt = f"{prompt_generator_template}\n{self.topic}\n---\n{prompt_count_additional_instruction}"
         
@@ -208,7 +208,7 @@ class IdeaGenerationWorkflow:
         
         if self.output_directory:
             json_path = os.path.join(self.output_directory, "generated_prompts.json")
-            FileHelper.write_to_file(json_path, cleaned_json, self.verbose)
+            FileHelper.write_to_file(json_path, cleaned_json)
             OutputPrinter.print_file_created(json_path)
         
         OutputPrinter.print_info("Generated prompts", cleaned_json, Colors.BRIGHT_MAGENTA, Colors.GREEN)
@@ -227,7 +227,7 @@ class IdeaGenerationWorkflow:
         """
         combined_refinement = self.prompt_refiner.combine_refinement_prompt(
             execution_prompt,
-            FileHelper.read_file(self.refinement_prompt_file, self.verbose)
+            FileHelper.read_file(self.refinement_prompt_file)
         )
         
         refined_prompt = self.llm_api.send(
@@ -278,7 +278,7 @@ class IdeaGenerationWorkflow:
                         self.output_directory,
                         FileHelper.clean_name(f"output_{idx+1}_{self.execution_llm_model}.md")
                     )
-                    FileHelper.write_to_file(output_filename, result, self.verbose)
+                    FileHelper.write_to_file(output_filename, result)
                     created_files.append(output_filename)
             except Exception as e:
                 OutputPrinter.print_error(f"Issue processing prompt {idx}: {str(e)}")

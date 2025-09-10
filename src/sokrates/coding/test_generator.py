@@ -260,11 +260,11 @@ class TestGenerator:
                 if self.verbose:
                     print(f"   Existing test file found: {test_filepath}")
             
-            source_file_content = FileHelper.read_file(source_file, verbose=self.verbose)
+            source_file_content = FileHelper.read_file(source_file)
             
             # Prepare prompt based on strategy
             prompt_template_path = self.prompt_templates.get(strategy, self.prompt_templates["base"])
-            prompt_template = FileHelper.read_file(prompt_template_path, verbose=self.verbose)
+            prompt_template = FileHelper.read_file(prompt_template_path)
             
             # Build context-rich prompt
             prompt = self._build_test_generation_prompt(
@@ -287,7 +287,7 @@ class TestGenerator:
             cleaned_tests = self._clean_generated_code(generated_tests)
             
             # Write test file
-            FileHelper.write_to_file(test_filepath, cleaned_tests, verbose=self.verbose)
+            FileHelper.write_to_file(test_filepath, cleaned_tests)
             
             result.update({
                 'tests_generated': self._count_test_functions(cleaned_tests),

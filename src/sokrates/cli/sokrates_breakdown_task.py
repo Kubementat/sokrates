@@ -100,7 +100,7 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
-    config = Config(verbose=args.verbose)
+    config = Config()
     
     api_key = args.api_key or config.api_key
         
@@ -123,7 +123,9 @@ def main():
         task = args.task
         
     if args.task_file:
-        task = FileHelper.read_file(args.task_file, verbose=args.verbose)
+        task = FileHelper.read_file(args.task_file)
+
+    Helper.print_configuration_section(config=config, args=args)
         
     # context
     context = Helper.construct_context_from_arguments(
@@ -149,7 +151,7 @@ def main():
     
     if args.output:
         OutputPrinter.print_info("Writing task list to file:", args.output, Colors.BRIGHT_MAGENTA)
-        FileHelper.write_to_file(args.output, result, verbose=args.verbose)
+        FileHelper.write_to_file(args.output, result)
     
 if __name__ == "__main__":
     try:

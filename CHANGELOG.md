@@ -1,4 +1,10 @@
 ## Changelog
+**version 0.11.0**
+- feature - adds file watcher for executing tasks in the background 
+- refactoring:
+  - still ongoing
+  - removed verbose argument from Config and FileHelper and introduced propper loggers
+
 **Week 2025-09-01**
 - version 0.10.0
   - sokrates-code-analyze - perform an analysis for a given code base

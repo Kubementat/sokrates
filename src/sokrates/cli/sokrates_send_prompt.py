@@ -21,9 +21,8 @@ import sys
 import logging
 import os
 from pathlib import Path
-from openai import OpenAI
 from sokrates import LLMApi, FileHelper, PromptRefiner, Config
-from .helper import Helper
+from sokrates.cli.helper import Helper
 
 # ANSI escape codes for colors
 COLOR_RESET = "\033[0m"
@@ -63,7 +62,7 @@ def write_output_file(content, model, source_prompt_file, output_directory, verb
             source_file_name = FileHelper.clean_name(Path(source_prompt_file).stem)
             output_file = os.path.join(output_directory, f"output_{clean_model_name}_{source_file_name}.md")
         
-        FileHelper.write_to_file(file_path=output_file, content=content, verbose=verbose)
+        FileHelper.write_to_file(file_path=output_file, content=content)
 
 def prompt_model(llm_api, prompt, model, max_tokens, temperature, 
     output_directory, source_prompt_file=None, verbose=False, post_process_results=False,
@@ -160,7 +159,7 @@ Call example:
     
     # Parse arguments
     args = parser.parse_args()
-    config = Config(verbose=args.verbose)
+    config = Config()
     
     api_endpoint = config.api_endpoint
     if args.api_endpoint:
@@ -184,6 +183,7 @@ Call example:
         logging.error(f"{COLOR_RED}{COLOR_BOLD}Both --input-file and --input-directory are provided. Choose one or the other. Exiting.{COLOR_RESET}")
         sys.exit(1)
     
+    Helper.print_configuration_section(config=config, args=args)
     # Initialize LLM API client
     llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
     
@@ -194,7 +194,7 @@ Call example:
     # Handle input directory
     prompt_files = []
     if args.input_directory:
-        prompt_files = FileHelper.list_files_in_directory(args.input_directory, args.verbose)
+        prompt_files = FileHelper.list_files_in_directory(args.input_directory)
         logging.info(f"{COLOR_MAGENTA}Input Directory: {args.input_directory}{COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}Prompt Files: {COLOR_RESET}")
         logging.info(f"{COLOR_MAGENTA}{prompt_files}{COLOR_RESET}")
@@ -223,7 +223,7 @@ Call example:
     for model in models:
         for filepath in prompt_files:  
             try:
-                prompt = FileHelper.read_file(filepath, args.verbose)
+                prompt = FileHelper.read_file(filepath)
             except Exception as e:
                 logging.error(f"{COLOR_RED}{COLOR_BOLD}Error reading input file: {e}{COLOR_RESET}")
                 logging.info(f"{COLOR_MAGENTA}Skipping {filepath}{COLOR_RESET}")

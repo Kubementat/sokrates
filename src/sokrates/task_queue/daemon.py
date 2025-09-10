@@ -12,6 +12,8 @@ import time
 import logging
 from logging.handlers import RotatingFileHandler
 from sokrates.task_queue.processor import TaskProcessor
+from sokrates.task_queue.file_watcher import FileWatcher
+from sokrates.task_queue.file_processor import FileProcessor
 from sokrates.config import Config
 class TaskQueueDaemon:
     """
@@ -41,6 +43,11 @@ class TaskQueueDaemon:
         # Set up logging
         self.setup_logger()
         self.processor = TaskProcessor(config=self.config)
+        
+        # Initialize file watcher components
+        self.file_watcher = None
+        self.file_processor = None
+        self._setup_file_watcher()
 
     def setup_logger(self):
         """Configure logging for the daemon."""
@@ -62,6 +69,59 @@ class TaskQueueDaemon:
 
         self.logger = logger
 
+    def _setup_file_watcher(self):
+        """Set up the file watcher components if enabled."""
+        if not self.config.file_watcher_enabled:
+            self.logger.info("File watcher is disabled")
+            return
+            
+        try:
+            # Initialize file processor
+            self.file_processor = FileProcessor(config=self.config, logger=self.logger)
+            
+            # Initialize file watcher
+            self.file_watcher = FileWatcher(
+                watch_directories=self.config.file_watcher_directories,
+                file_processor_callback=self._process_watched_file,
+                file_extensions=self.config.file_watcher_extensions,
+                logger=self.logger
+            )
+            
+            self.logger.info(f"File watcher configured for directories: {self.config.file_watcher_directories}")
+            self.logger.info(f"File watcher configured for extensions: {self.config.file_watcher_extensions}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to set up file watcher: {e}")
+            self.file_watcher = None
+            self.file_processor = None
+
+    def _process_watched_file(self, file_path: str):
+        """
+        Process a file detected by the file watcher.
+        
+        Args:
+            file_path: Path to the file that was detected
+        """
+        try:
+            self.logger.info(f"Processing watched file: {file_path}")
+            
+            if not self.file_processor:
+                self.logger.error("File processor not available")
+                return
+                
+            # Process the file through the refinement and execution pipeline
+            result = self.file_processor.process_file(file_path)
+            
+            if result['status'] == 'completed':
+                self.logger.info(f"Successfully processed file: {file_path}")
+                self.logger.info(f"Results saved to: {result['output_file']}")
+            else:
+                self.logger.error(f"Failed to process file: {file_path}")
+                self.logger.error(f"Error: {result['error']}")
+                
+        except Exception as e:
+            self.logger.error(f"Error processing watched file {file_path}: {e}")
+
     def process_cycle(self):
         """Process a single cycle of tasks using TaskProcessor."""
         try:
@@ -78,6 +138,11 @@ class TaskQueueDaemon:
         self.logger.info("Task Queue Daemon started")
 
         try:
+            # Start file watcher if enabled
+            if self.file_watcher:
+                self.file_watcher.start()
+                self.logger.info("File watcher started")
+            
             while self.running:
                 self.process_cycle()
                 time.sleep(self.processing_interval)
@@ -93,6 +158,12 @@ class TaskQueueDaemon:
 
         self.logger.info("Shutting down Task Queue Daemon...")
         try:
+            # Stop file watcher if running
+            if self.file_watcher and self.file_watcher.is_running():
+                self.logger.info("Stopping file watcher...")
+                self.file_watcher.stop()
+                self.logger.info("File watcher stopped")
+            
             # Update any in_progress tasks to failed on shutdown
             all_tasks = self.processor.manager.get_all_tasks()
             for task in all_tasks:

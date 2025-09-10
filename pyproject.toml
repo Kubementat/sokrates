@@ -1,6 +1,6 @@
 [project]
 name = "sokrates"
-version = "0.10.0"
+version = "0.11.0"
 description = "A collection of tools for LLM interactions like prompt refinement and idea generation. It also provides a console chat client with speech to text feature."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -20,7 +20,8 @@ dependencies = [
     "tabulate",
     "colorama",
     "html2text",
-    "dotenv"
+    "dotenv",
+    "watchdog"
 ]
 
 [project.optional-dependencies]
@@ -34,7 +35,8 @@ voice = [
 dev = [
     "pytest",
     "pytest-mock",
-    "pytest-cov"
+    "pytest-cov",
+    "ruff"
 ]
 
 [project.urls]

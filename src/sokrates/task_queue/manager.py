@@ -109,11 +109,9 @@ class TaskQueueManager:
         Returns:
             List[Dict]: List of task dictionaries with pending status
         """
-        print("############## GET PENDING TASKS")
         try:
             return self.db.get_pending_tasks(limit)
         except Exception as e:
-            print(f"Error retrieving pending tasks: {e}")
             raise Exception(f"Failed to retrieve pending tasks: {e}")
 
     def update_task_status(self, task_id: str, status: str,

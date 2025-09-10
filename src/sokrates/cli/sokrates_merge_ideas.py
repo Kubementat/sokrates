@@ -4,6 +4,7 @@ import sys
 
 from sokrates.output_printer import OutputPrinter
 from sokrates import Colors, Config, FileHelper
+from sokrates.cli.helper import Helper
 from sokrates.workflows.merge_ideas_workflow import MergeIdeasWorkflow
 
 def parse_arguments() -> argparse.Namespace:
@@ -75,7 +76,7 @@ def main():
 
     args = parse_arguments()
 
-    config = Config(verbose=args.verbose)
+    config = Config()
     api_endpoint = config.api_endpoint
     api_key = config.api_key
     model = config.default_model
@@ -89,6 +90,8 @@ def main():
         model = args.model
     if args.temperature:
         temperature = args.temperature
+
+    Helper.print_configuration_section(config=config, args=args)
 
     OutputPrinter.print_info("api-endpoint",api_endpoint)
     OutputPrinter.print_info("model", model)
@@ -111,14 +114,14 @@ def main():
     document_paths = args.source_documents.split(",")
     source_documents = []
     for doc_path in document_paths:
-        doc_content = FileHelper.read_file(doc_path, args.verbose)
+        doc_content = FileHelper.read_file(doc_path)
         source_documents.append({
             "identifier": doc_path,
             "content": doc_content
         })
     
     doc_output = workflow.merge_ideas(source_documents=source_documents)
-    FileHelper.write_to_file(args.output_file, doc_output, args.verbose)
+    FileHelper.write_to_file(args.output_file, doc_output)
     OutputPrinter.print_success("Finished merging ideas.")
     OutputPrinter.print_file_created(args.output_file)
     

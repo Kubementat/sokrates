@@ -57,7 +57,7 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
-    config = Config(verbose=args.verbose)
+    config = Config()
 
     if args.verbose:
         print(f"{Colors.BRIGHT_BLUE}Retrieving tasks from queue...{Colors.RESET}")

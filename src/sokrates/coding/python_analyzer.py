@@ -84,7 +84,7 @@ class PythonAnalyzer:
         for file_path in file_paths:
             full_analysis = f"{full_analysis}\n{PythonAnalyzer.get_definitions_markdown_for_file(file_path)}"
             
-        FileHelper.write_to_file(target_file,full_analysis, verbose=verbose)
+        FileHelper.write_to_file(target_file,full_analysis)
         OutputPrinter.print_file_created(target_file)
         return full_analysis
     

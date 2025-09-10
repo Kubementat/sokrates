@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 from .colors import Colors
 from .constants import Constants
 from threading import Lock
+from typing import Any
+import logging
 
 class Config:
   """
@@ -36,20 +38,21 @@ class Config:
                     cls._instance = super().__new__(cls)
         return cls._instance
   
-  def __init__(self, verbose=False) -> None:
+  def __init__(self) -> None:
     """
     Initializes the Config object.
-
-    Args:
-        verbose (bool): If True, prints basic configuration details upon loading.
     """
     if not hasattr(self, 'initialized'):
       # initialization
       self.initialized = True
-      self.verbose = verbose
+
+      self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
       
       # static settings
       self.daemon_processing_interval = Constants.DEFAULT_DAEMON_PROCESSING_INTERVAL
+      
+      # Set up basic paths first (needed for other config)
+      self._setup_basic_paths()
       
       # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
       home_base = Path.home()
@@ -81,27 +84,18 @@ class Config:
       )
       
       self._load_env()
-      self._setup_directories()
-      self._log_configuration()
-    
-  def _log_configuration(self) -> None:
-      """
-      Prints the current configuration settings to the console in a formatted way.
+
+      # file watcher settings
+      self.file_watcher_enabled = os.environ.get('SOKRATES_FILE_WATCHER_ENABLED', 'false').lower() == 'true'
+      self.file_watcher_directories = self._parse_file_watcher_directories(
+          os.environ.get('SOKRATES_FILE_WATCHER_DIRECTORIES', '')
+      )
+      self.file_watcher_extensions = self._parse_file_watcher_extensions(
+          os.environ.get('SOKRATES_FILE_WATCHER_EXTENSIONS', '.txt,.md')
+      )
       
-      Returns:
-          None
-      """
-      if self.verbose:
-        print(f"{Colors.GREEN}{Colors.BOLD}### Basic Configuration ###{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - home_path: {self.home_path}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - config_path: {self.config_path}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - database_path: {self.database_path}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - logfile_path: {self.daemon_logfile_path}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - api_endpoint: {self.api_endpoint}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - default_model: {self.default_model}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - default_model_temperature: {self.default_model_temperature}{Colors.RESET}")
-        print(f"{Colors.BLUE}{Colors.BOLD} - daemon_processing_interval: {self.daemon_processing_interval}{Colors.RESET}")
-  
+      self._setup_directories()
+    
   def _load_env(self) -> None:
       """
       Loads environment variables from the specified .env file.
@@ -117,6 +111,45 @@ class Config:
         raise ValueError(f"Temperature must be between 0 and 1 (exclusive), got {temperature}")
       self.default_model_temperature: float | None = temperature
       
+  def _setup_basic_paths(self) -> None:
+    """
+    Sets up basic path configuration.
+    
+    This method sets up the basic path attributes that are needed
+    for other configuration steps.
+    
+    Returns:
+        None
+    """
+    # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
+    home_base = Path.home()
+    self.home_path: str = os.environ.get(
+      'SOKRATES_HOME_PATH',
+      str((home_base / ".sokrates").resolve())
+    )
+    self.config_path: str = os.environ.get(
+      'SOKRATES_CONFIG_FILEPATH',
+      str((Path(self.home_path) / '.env').resolve())
+    )
+    
+    # log paths
+    self.logs_path: str = str((Path(self.home_path) / 'logs').resolve())
+    self.daemon_logfile_path: str = os.environ.get(
+      'SOKRATES_DAEMON_LOGFILE_PATH',
+      str((Path(self.logs_path) / 'daemon.log').resolve())
+    )
+    
+    # database path
+    self.database_path: str = os.environ.get(
+      'SOKRATES_DATABASE_PATH',
+      str((Path(self.home_path) / 'sokrates_database.sqlite').resolve())
+    )
+    
+    self.prompts_directory: str = os.environ.get(
+      'SOKRATES_PROMPTS_PATH',
+      Constants.DEFAULT_PROMPTS_DIRECTORY
+    )
+
   def _setup_directories(self) -> None:
     """
     Creates the necessary directory structure for the application.
@@ -128,21 +161,66 @@ class Config:
     Returns:
         None
     """
-    if self.verbose:
-      print(f"Creating sokrates home path: {self.home_path}")
+    self.logger.info(f"Creating sokrates home path: {self.home_path}")
     
     try:
       Path(self.home_path).mkdir(parents=True, exist_ok=True)
     except (OSError, PermissionError) as e:
       raise RuntimeError(f"Failed to create sokrates home directory at `{self.home_path}`: {e}")
     
-    if self.verbose:
-      print(f"Creating sokrates logs path at: {self.logs_path}")
+    self.logger.info(f"Creating sokrates logs path at: {self.logs_path}")
     
     try:
       Path(self.logs_path).mkdir(parents=True, exist_ok=True)
     except (OSError, PermissionError) as e:
       raise RuntimeError(f"Failed to create sokrates logs directory at `{self.logs_path}`: {e}")
+
+  def _parse_file_watcher_directories(self, directories_str: str) -> list:
+    """
+    Parse file watcher directories from environment variable string.
+    
+    Args:
+        directories_str: Comma-separated directory paths
+        
+    Returns:
+        List of directory paths
+    """
+    if not directories_str.strip():
+      # Default to sokrates home directory/file_watcher
+      default_dir = str((Path(self.home_path) / 'file_watcher').resolve())
+      return [default_dir]
+    
+    directories = []
+    for dir_path in directories_str.split(','):
+      dir_path = dir_path.strip()
+      if dir_path:
+        directories.append(dir_path)
+    
+    return directories
+
+  def _parse_file_watcher_extensions(self, extensions_str: str) -> list:
+    """
+    Parse file watcher extensions from environment variable string.
+    
+    Args:
+        extensions_str: Comma-separated file extensions
+        
+    Returns:
+        List of file extensions
+    """
+    if not extensions_str.strip():
+      return ['.txt', '.md']
+    
+    extensions = []
+    for ext in extensions_str.split(','):
+      ext = ext.strip()
+      if ext:
+        # Ensure extensions start with a dot
+        if not ext.startswith('.'):
+          ext = '.' + ext
+        extensions.append(ext.lower())
+    
+    return extensions
 
   @staticmethod
   def _get_local_member_value(key):
@@ -164,7 +242,7 @@ class Config:
     return None
   
   @staticmethod
-  def get(key, default_value=None) -> str:
+  def get(key, default_value=None) -> Any:
     """
     Retrieves configuration value with precedence:
     1. Config instance attribute

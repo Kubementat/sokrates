@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 from .helper import Helper
 from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config, OutputPrinter
+from sokrates.cli.helper import Helper
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -158,7 +159,7 @@ def main():
     # Parse arguments
     args = parse_arguments()
     
-    config = Config(verbose=args.verbose)
+    config = Config()
     api_endpoint = config.api_endpoint
     if args.api_endpoint:
         api_endpoint = args.api_endpoint
@@ -204,6 +205,8 @@ def main():
     if not args.input_file and not args.text_prompt:
         print(f"{Colors.RED}No --input-file or --text-prompt parameters provided. Exiting.{Colors.RESET}")
         sys.exit(1)
+
+    Helper.print_configuration_section(config=config, args=args)
         
     # context
     context = Helper.construct_context_from_arguments(
@@ -221,7 +224,7 @@ def main():
     print(f"{Colors.BLUE}{'='*60}{Colors.RESET}")
     try:
         # refinement prompt
-        refinement_prompt_content = FileHelper.read_file(refinement_prompt_file,args.verbose)
+        refinement_prompt_content = FileHelper.read_file(refinement_prompt_file)
         print(f"{Colors.GREEN}Successfully read file: {refinement_prompt_file}{Colors.RESET}")
         print(f"{Colors.BLUE}File size: {len(refinement_prompt_content)} characters{Colors.RESET}")
         
@@ -230,7 +233,7 @@ def main():
         if args.text_prompt:
             input_prompt_content = args.text_prompt
         else:
-            input_prompt_content = FileHelper.read_file(args.input_file, args.verbose)
+            input_prompt_content = FileHelper.read_file(args.input_file)
             print(f"{Colors.GREEN}Successfully read file: {args.input_file}{Colors.RESET}")
         print(f"{Colors.BLUE}Input prompt length: {len(input_prompt_content)} characters{Colors.RESET}")
     except (FileNotFoundError, IOError) as e:
@@ -282,7 +285,7 @@ def main():
     if args.output:
         try:
             print(f"\n{Colors.CYAN}{'='*60}{Colors.RESET}")
-            FileHelper.write_to_file(file_path=args.output, content=final_response, verbose=args.verbose)
+            FileHelper.write_to_file(file_path=args.output, content=final_response)
             print(f"{Colors.GREEN}Final response saved to: {args.output}{Colors.RESET}")
         except IOError as e:
             print(f"{Colors.RED}Error writing to output file: {e}{Colors.RESET}")

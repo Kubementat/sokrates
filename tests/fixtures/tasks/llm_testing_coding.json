@@ -33,7 +33,7 @@
     },
     {
       "id": 7,
-      "description": "Create a JavaScript class called `Calculator` that supports basic arithmetic operations (add, subtract, multiply, divide) and handles edge cases like division by zero with proper error messages. Also provide a way to test this by implementing a simple html page with embedded javascript to test the created functionality.",
+      "description": "Create a responsive single page app in html, css and javascript in one self containing file. The app should implement a scientific calculator and work on desktop and mobile devices. It should be modern looking and reactive to user inputs and provide a great user experience.",
       "complexity": 7
     },
     {
@@ -78,7 +78,7 @@
     },
     {
       "id": 16,
-      "description": "Write a Python decorator that logs function calls with their arguments and return values to a file. The decorator should work with any function and preserve the original function's metadata. Also provide a pytest test case for testing the created functionality.",
+      "description": "Write a 3D animation that visualizes how large language models are trained using back propagation. Implement it using HTML, CSS and Javascript with the three.js library. The implementation should be done in one single html file.",
       "complexity": 7
     }
   ],

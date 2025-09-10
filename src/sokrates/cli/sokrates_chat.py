@@ -36,6 +36,7 @@ from sokrates.colors import Colors
 from sokrates.file_helper import FileHelper
 from sokrates.output_printer import OutputPrinter
 from sokrates.prompt_refiner import PromptRefiner
+from sokrates.cli.helper import Helper
 import re
 from datetime import datetime
 from pathlib import Path
@@ -100,7 +101,7 @@ def main():
     # Parse arguments
     args = parser.parse_args()
     
-    config = Config(verbose=args.verbose)
+    config = Config()
     
     api_endpoint = config.api_endpoint
     if args.api_endpoint:
@@ -113,6 +114,8 @@ def main():
     model = config.default_model
     if args.model:
         model = args.model
+
+    Helper.print_configuration_section(config=config, args=args)
         
     OutputPrinter.print_info("You are chatting with the model:", model, Colors.BRIGHT_MAGENTA)
     
@@ -162,13 +165,13 @@ def main():
         context_content.append(args.context_text)
     if args.context_files:
         try:
-            context_content.extend(FileHelper.read_multiple_files(list(args.context_files), verbose=args.verbose))
+            context_content.extend(FileHelper.read_multiple_files(list(args.context_files)))
         except Exception as e:
             OutputPrinter.print_error(f"Error reading context files: {e}")
             sys.exit(1)
     if args.context_directories:
         try:
-            context_content.extend(FileHelper.read_multiple_files_from_directories(list(args.context_directories), verbose=args.verbose))
+            context_content.extend(FileHelper.read_multiple_files_from_directories(list(args.context_directories)))
         except Exception as e:
             OutputPrinter.print_error(f"Error reading context directories: {e}")
             sys.exit(1)

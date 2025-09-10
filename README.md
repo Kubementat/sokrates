@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.10.0](https://img.shields.io/badge/version-0.10.0-green)](https://github.com/Kubementat/sokrates)
+[![Version: 0.11.0](https://img.shields.io/badge/version-0.11.0-green)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -29,6 +29,7 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 - **Advanced Prompt Engineering**: Sophisticated prompt refinement tools that optimize LLM input/output for better performance
 - **Voice-Enabled Chat**: Interactive command-line chat interface with optional voice input/output using OpenAI Whisper
 - **Task Queue System**: Robust background task processing with persistence, error handling, and retry mechanisms
+- **Task File Watcher**: Watcher checks for new file creations in a given directory and executes the task prompts within the files in the background
 - **Multi-stage Workflows**: Complex task breakdown, idea generation, and sequential task execution
 - **Python coding tools**: A set of useful tools for python coding
   - generate code reviews
@@ -273,6 +274,23 @@ sokrates-task-status --task-id abc123 --verbose
 sokrates-task-list --status pending --priority high
 ```
 
+#### File Watcher
+The file watcher automatically monitors specified directories for new files and processes them through the LLM refinement pipeline:
+
+```bash
+# Enable file watcher in your .env file
+echo "SOKRATES_FILE_WATCHER_ENABLED=true" >> ~/.sokrates/.env
+echo "SOKRATES_FILE_WATCHER_DIRECTORIES=/home/user/prompts,/home/user/ideas" >> ~/.sokrates/.env
+
+# Start the daemon with file watcher enabled
+sokrates-daemon start
+
+# Now just drop text files into the watched directories
+# and they will be automatically processed!
+echo "Write a Python function to calculate fibonacci numbers" > ~/prompts/my_request.txt
+# The daemon will detect the file, refine the prompt, and execute it via LLM
+```
+
 #### Idea Generation & Content Creation
 
 ```bash
@@ -322,6 +340,7 @@ sokrates-code-review --files src/sokrates/config.py --verbose -o docs/code_revie
 
 ### 🎯 Task Management & Workflows
 - **Task Queue System**: Background task processing with SQLite persistence
+- **File Watcher**: Automatic directory monitoring with file content processing via LLM refinement
 - **Sequential Task Execution**: Complex multi-step task automation
 - **Task Breakdown**: AI-powered task decomposition into manageable sub-tasks
 - **Priority Queue**: Task prioritization and status tracking

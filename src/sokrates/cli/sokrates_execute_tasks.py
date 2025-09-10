@@ -27,6 +27,7 @@ from sokrates.colors import Colors
 from sokrates.output_printer import OutputPrinter
 from sokrates.file_helper import FileHelper
 from sokrates.config import Config
+from sokrates.cli.helper import Helper
 from pathlib import Path
 
 def main():
@@ -102,7 +103,7 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
-    config = Config(verbose=args.verbose)
+    config = Config()
     
     api_endpoint = config.api_endpoint
     if args.api_endpoint:
@@ -125,6 +126,8 @@ def main():
     if not args.task_file:
         OutputPrinter.print_error("You must provide a task file using --task-file or -tf")
         sys.exit(1)
+
+    Helper.print_configuration_section(config=config, args=args)
     
     # prepare and configure target directory    
     target_directory = FileHelper.create_and_return_task_execution_directory(args.output_directory)
@@ -133,7 +136,7 @@ def main():
     # copy over task file for better reusability of the created directory
     task_file_name = Path(args.task_file).name
     task_file_copy_full_path  = Path(target_directory) / task_file_name
-    FileHelper.copy_file(args.task_file,task_file_copy_full_path, verbose=args.verbose)
+    FileHelper.copy_file(args.task_file,task_file_copy_full_path)
     refinement_prompt_path = str((Path(config.prompts_directory) / "refine-prompt.md").resolve())
     
     # Initialize executor

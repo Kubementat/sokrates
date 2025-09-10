@@ -4,6 +4,7 @@
 # and file creation notifications) to ensure consistent and visually
 # appealing terminal feedback for the user.
 
+from typing import Any
 from .colors import Colors
 
 class OutputPrinter:
@@ -53,7 +54,7 @@ class OutputPrinter:
       print(f"{color}{Colors.BOLD}{char * 50}{Colors.RESET}")
 
   @staticmethod
-  def print_info(label: str, value: str, label_color: str = Colors.BRIGHT_GREEN, value_color: str = Colors.WHITE) -> None:
+  def print_info(label: str, value: Any, label_color: str = Colors.BRIGHT_GREEN, value_color: str = Colors.WHITE) -> None:
       """
       Prints formatted information with a colored label and value.
 
@@ -63,7 +64,7 @@ class OutputPrinter:
           label_color (str): The ANSI color code for the label. Defaults to Colors.BRIGHT_GREEN.
           value_color (str): The ANSI color code for the value. Defaults to Colors.WHITE.
       """
-      print(f"{label_color}{Colors.BOLD}{label}:{Colors.RESET} {value_color}{value}{Colors.RESET}")
+      print(f"{label_color}{Colors.BOLD}{label}:{Colors.RESET} {value_color}{str(value)}{Colors.RESET}")
 
   @staticmethod
   def print_success(message: str) -> None:

@@ -170,7 +170,7 @@ Examples:
     # Parse arguments
     args = parser.parse_args()
     
-    config = Config(verbose=args.verbose)
+    config = Config()
     
     api_endpoint = config.api_endpoint
     if args.api_endpoint:
@@ -221,12 +221,13 @@ Examples:
     if not Path(refinement_prompt_file).exists():
         OutputPrinter.print_error(f"Refinement prompt file not found: {refinement_prompt_file}")
         sys.exit(1)
+
+    Helper.print_configuration_section(config=config, args=args)
+    OutputPrinter.print_info("Models", ', '.join(models), Colors.BRIGHT_CYAN)
     
     if args.verbose:
-        OutputPrinter.print_section("⚙️ CONFIGURATION", Colors.BRIGHT_BLUE, "═")
         OutputPrinter.print_info("API Endpoint", api_endpoint, Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("API Key", '[SET]' if api_key else '[EMPTY]', Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("Models", ', '.join(models), Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Max Tokens", f"{args.max_tokens:,}", Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Temperature", f"{temperature}", Colors.BRIGHT_CYAN)
         OutputPrinter.print_info("Refinement prompt file", f"{refinement_prompt_file}", Colors.BRIGHT_CYAN)
@@ -254,13 +255,13 @@ Examples:
         if args.input_file:
             if args.verbose:
                 OutputPrinter.print_progress(f"Loading initial prompt from file {Colors.CYAN}{args.input_file}{Colors.RESET}")
-            text_prompt = FileHelper.read_file(args.input_file, args.verbose)
+            text_prompt = FileHelper.read_file(args.input_file)
         else:
             text_prompt = args.text_prompt
         # Load refinement prompt
         if args.verbose:
             OutputPrinter.print_progress(f"Loading refinement prompt from file {Colors.CYAN}{refinement_prompt_file}{Colors.RESET}")
-        refinement_prompt = FileHelper.read_file(refinement_prompt_file, args.verbose)
+        refinement_prompt = FileHelper.read_file(refinement_prompt_file)
         
         # Combine prompts
         if args.verbose:
@@ -300,7 +301,7 @@ Examples:
                 new_file_name = f"{f_name}-{model_name_escaped}.{f_extension}"
                 
                 OutputPrinter.print_progress(f"Saving response to file: {Colors.CYAN}{new_file_name}{Colors.RESET}")
-                FileHelper.write_to_file(file_path=new_file_name, content=markdown_output, verbose=args.verbose)
+                FileHelper.write_to_file(file_path=new_file_name, content=markdown_output)
                 created_files.append(new_file_name)
                 OutputPrinter.print_file_created(new_file_name)
             

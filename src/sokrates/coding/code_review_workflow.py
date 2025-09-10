@@ -109,7 +109,7 @@ class CodeReviewWorkflow:
         for file_path in file_paths:
             try:
                 # Read full file content using FileHelper
-                file_content = FileHelper.read_file(file_path, verbose=self.verbose)
+                file_content = FileHelper.read_file(file_path)
                 
                 # Extract the raw AST data for more detailed analysis if needed
                 classes, functions = PythonAnalyzer._get_class_and_function_definitions(file_path)
@@ -257,7 +257,7 @@ class CodeReviewWorkflow:
         Returns:
             str: Content of the prompt template
         """
-        return FileHelper.read_file(self.PROMPT_TEMPLATES[review_type], verbose=self.verbose)
+        return FileHelper.read_file(self.PROMPT_TEMPLATES[review_type])
 
     def _prepare_review_prompt(self, prompt_template: str, contextual_file_listing: str,
                                file_path: str, file_content: str) -> str:
@@ -333,7 +333,7 @@ class CodeReviewWorkflow:
             md_content = self._generate_markdown_content(base_name, file_reviews)
             
             # Write to file using FileHelper with enhanced error handling
-            FileHelper.write_to_file(output_file, md_content, verbose=self.verbose)
+            FileHelper.write_to_file(output_file, md_content)
             
             return output_file
             

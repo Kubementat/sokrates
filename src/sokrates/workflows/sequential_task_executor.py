@@ -125,7 +125,7 @@ class SequentialTaskExecutor:
 
         # Load tasks from JSON file
         try:
-            tasks = FileHelper.read_json_file(task_file_path, verbose=self.verbose)
+            tasks = FileHelper.read_json_file(task_file_path)
         except Exception as e:
             raise ValueError(f"Failed to load task file: {e}")
 
@@ -221,13 +221,13 @@ Handle the sub-task in the context of the main objective.
         # Step 2: Refine the prompt using existing refinement workflow
         if self.verbose:
             OutputPrinter.print(f"Refining and executing prompt for task {task_id} ...")
-        
-        # read refinement prompt path
-        refinement_prompt = FileHelper.read_file(self.refinement_prompt_path, verbose=self.verbose)
 
         execution_result = ""
         
         if self.refinement_enabled:
+            # read refinement prompt path
+            refinement_prompt = FileHelper.read_file(self.refinement_prompt_path)
+            
             OutputPrinter.print(f"Refinement is enabled. Refining and then executing the prompt ...")
             # Refine and execute prompt using LLM API
             execution_result = self.workflow.refine_and_send_prompt(
@@ -258,7 +258,7 @@ Handle the sub-task in the context of the main objective.
             output_file_before = output_file
             output_file = FileHelper.generate_postfixed_file_path(output_file)
             OutputPrinter.print(f"File: {output_file_before} already exists. Generated postfixed file name for output file: {output_file}")
-        FileHelper.write_to_file(output_file, execution_result, verbose=self.verbose)
+        FileHelper.write_to_file(output_file, execution_result)
 
         if self.verbose:
             OutputPrinter.print(f"Result saved to {output_file}")

@@ -14,7 +14,6 @@
 
 # Parameters:
 # - All methods are static and don't require class instantiation
-# - Methods accept file paths as strings and optional verbose flags
 # - Some methods accept lists of file paths for batch operations
 
 # Usage Example:
@@ -25,11 +24,11 @@
 import os
 import json
 from typing import List
-from .colors import Colors
 from datetime import datetime
 import shutil
 from pathlib import Path
 import re
+import logging
 
 class FileHelper:
     """
@@ -56,6 +55,8 @@ class FileHelper:
         - combine_files(): Combine multiple files into single string
         - combine_files_in_directories(): Combine all files from directories
     """
+
+    _log = logging.getLogger(__name__) 
     
     @staticmethod
     def clean_name(name: str) -> str:
@@ -77,11 +78,13 @@ class FileHelper:
         """
         result = name.replace('/', '_').replace(':', '-').replace('*', '-').replace('?', '').replace('"', '').replace(' ', '-')
         if len(result) < 1 or bool(re.match(r'^[_-]*$', result)):
-            raise ValueError(f"The provided name: {name} can't be resolved to a clean name." )
+            error = f"The provided name: {name} can't be resolved to a clean name."
+            FileHelper._log.error(error)
+            raise ValueError(error)
         return result
 
     @staticmethod
-    def list_files_in_directory(directory_path: str, verbose: bool = False) -> List[str]:
+    def list_files_in_directory(directory_path: str | Path) -> List[str]:
         """
         Lists all files directly within a specified directory (non-recursive).
 
@@ -91,7 +94,6 @@ class FileHelper:
 
         Args:
             directory_path (str): Directory path to scan
-            verbose (bool, optional): If True, enables verbose output
 
         Returns:
             List[str]: List of full file paths found in the directory
@@ -99,14 +101,11 @@ class FileHelper:
         Side Effects:
             - None (pure function)
         """
-        file_paths = []
-        for file_path in os.scandir(directory_path):
-            if os.path.isfile(file_path.path):
-                file_paths.append(file_path.path)
-        return file_paths
+        dir_path = Path(directory_path)
+        return [str(p.resolve()) for p in dir_path.iterdir() if p.is_file()]
     
     @staticmethod
-    def read_json_file(file_path: str, verbose: bool = False) -> dict:
+    def read_json_file(file_path: str | Path) -> dict:
         """
         Reads and parses a JSON file.
 
@@ -115,8 +114,7 @@ class FileHelper:
             - Parses the JSON content into a Python dictionary
 
         Args:
-            file_path (str): Path to the JSON file to read
-            verbose (bool, optional): If True, prints loading messages
+            file_path (str | Path): Path to the JSON file to read
 
         Returns:
             dict: Parsed JSON content
@@ -124,13 +122,12 @@ class FileHelper:
         Side Effects:
             - None (pure function)
         """
-        if verbose:
-            print(f"{Colors.CYAN}Loading json file from {file_path} ...{Colors.RESET}")
-        with open(file_path, 'r', encoding='utf-8') as f:
+        path_obj = Path(file_path)
+        with open(path_obj, "r", encoding="utf-8") as f:
             return json.load(f)
 
     @staticmethod
-    def read_file(file_path: str, verbose: bool = False) -> str:
+    def read_file(file_path: str | Path) -> str:
         """
         Reads and returns the entire content of a specified file.
 
@@ -141,7 +138,6 @@ class FileHelper:
 
         Args:
             file_path (str): Path to the file to read
-            verbose (bool, optional): If True, prints loading messages
 
         Returns:
             str: Stripped file content
@@ -150,17 +146,18 @@ class FileHelper:
             - None (pure function)
         """
         try:
-            if verbose:
-                print(f"{Colors.CYAN}Loading file from {file_path} ...{Colors.RESET}")
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return f.read().strip()
+            return Path(file_path).read_text(encoding='utf-8', errors='replace')
         except FileNotFoundError:
-            raise FileNotFoundError(f"File not found: {file_path}")
+            error = f"File not found: {file_path}"
+            FileHelper._log.error(error)
+            raise
         except IOError as e:
-            raise IOError(f"Error reading file {file_path}: {e}")
+            error = f"Error reading file {file_path}: {e}"
+            FileHelper._log.error(error)
+            raise
     
     @staticmethod
-    def read_multiple_files(file_paths: List[str], verbose: bool = False) -> List[str]:
+    def read_multiple_files(file_paths: List[str] | List[Path]) -> List[str]:
         """
         Reads content from multiple files.
 
@@ -171,7 +168,6 @@ class FileHelper:
 
         Args:
             file_paths (List[str]): List of file paths to read
-            verbose (bool, optional): If True, enables verbose output
 
         Returns:
             List[str]: List of stripped file contents
@@ -181,11 +177,11 @@ class FileHelper:
         """
         contents = []
         for file_path in file_paths:
-            contents.append(FileHelper.read_file(file_path, verbose=verbose))
+            contents.append(FileHelper.read_file(file_path))
         return contents
     
     @staticmethod
-    def read_multiple_files_from_directories(directory_paths: List[str], verbose: bool = False) -> List[str]:
+    def read_multiple_files_from_directories(directory_paths: List[str]| List[Path]) -> List[str]:
         """
         Reads all files from multiple directories.
 
@@ -196,7 +192,6 @@ class FileHelper:
 
         Args:
             directory_paths (List[str]): List of directory paths to scan
-            verbose (bool, optional): If True, enables verbose output
 
         Returns:
             List[str]: Combined content of all found files
@@ -206,48 +201,49 @@ class FileHelper:
         """
         contents=[]
         for directory_path in directory_paths:
-            file_list = FileHelper.list_files_in_directory(directory_path, verbose=verbose)
-            file_contents = FileHelper.read_multiple_files(file_list, verbose=verbose)
+            file_list = FileHelper.list_files_in_directory(directory_path)
+            file_contents = FileHelper.read_multiple_files(file_list)
             for fc in file_contents:
                 contents.append(fc)
         return contents
 
     @staticmethod
-    def write_to_file(file_path: str, content: str, verbose: bool = False) -> None:
+    def write_to_file(file_path: str | Path, content: str) -> None:
         """
-        Writes content to a file, creating parent directories as needed.
+        Writes *content* to the file specified by *file_path*, creating any missing
+        parent directories along the way.
 
-        Main Functionality:
-            - Creates parent directories if they don't exist
-            - Writes content to the specified file
-            - Handles directory creation and file writing errors
+        Parameters
+        ----------
+        file_path : str | pathlib.Path
+            Destination path. Can be a plain string or a `Path` instance.
+        content : str
+            Text to write into the file.
 
-        Args:
-            file_path (str): Destination file path
-            content (str): Content to write
-            verbose (bool, optional): If True, prints success message
-
-        Returns:
-            None
-
-        Side Effects:
-            - Creates parent directories if they don't exist
-            - Writes content to the specified file
+        Raises
+        ------
+        IOError
+            If an I/O error occurs while creating directories or writing the file.
         """
         try:
-            dirname = os.path.dirname(file_path)
+            # Ensure we have a native OS‑path string; this works for both str and Path.
+            path = os.fspath(file_path)
+
+            # Create parent directory(ies) if they don't exist.
+            dirname = os.path.dirname(path)
             if dirname:
                 os.makedirs(dirname, exist_ok=True)
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
 
-            if verbose:
-                print(f"{Colors.GREEN}Content successfully written to {file_path}{Colors.RESET}")
+            # Write the content to the file
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(content)
         except IOError as e:
-            raise IOError(f"Error writing to file {file_path}: {e}")
+            error_msg = f"Error writing to file {file_path!s}: {e}"
+            FileHelper._log.error(error_msg)
+            raise
 
     @staticmethod
-    def copy_file(source_filepath, target_filepath, verbose:bool = False):
+    def copy_file(source_filepath: str | Path, target_filepath: str | Path):
         """
         Copies a file from source to target path.
 
@@ -259,7 +255,6 @@ class FileHelper:
         Args:
             source_filepath (str): Path to the source file to copy
             target_filepath (str): Destination path for the copied file
-            verbose (bool, optional): If True, prints success/failure messages
 
         Returns:
             None
@@ -276,28 +271,15 @@ class FileHelper:
         Example:
             FileHelper.copy_file('/path/to/source.txt', '/path/to/target.txt')
         """
-        try:
-            shutil.copy2(source_filepath, target_filepath, follow_symlinks=True)
-            if verbose:
-                print(f"{Colors.GREEN}File copied successfully from {source_filepath} to {target_filepath}{Colors.RESET}")
-        
-        except FileNotFoundError:
-            print(f"{Colors.RED}Error: Source file not found at {source_filepath}{Colors.RESET}")
-            raise 
-        except PermissionError:
-            print(f"{Colors.RED}Error: Permission denied.{Colors.RESET}")
-        except Exception as e:
-            print(f"{Colors.RED}An error occurred: {e}{Colors.RESET}")
-            raise e
+        shutil.copy2(str(source_filepath), str(target_filepath), follow_symlinks=True)
 
     @staticmethod
-    def create_new_file(file_path: str, verbose: bool = False) -> None:
+    def create_new_file(file_path: str) -> None:
         """
         Creates empty file with parent directories.
 
         Args:
             file_path (str): Path to create
-            verbose (bool, optional): Print success message
 
         Raises:
             IOError: For creation errors
@@ -308,10 +290,21 @@ class FileHelper:
                 os.makedirs(dirname, exist_ok=True)
             with open(file_path, 'a', encoding='utf-8') as f:
                 f.write("")
-            if verbose:
-                print(f"{Colors.GREEN}File successfully created at {file_path}{Colors.RESET}")
         except IOError as e:
-            raise IOError(f"Error creating file {file_path}: {e}")
+            error = f"Error creating file {file_path}: {e}"
+            FileHelper._log.error(error)
+            raise
+
+    @staticmethod
+    def delete_file(file_path: str | Path) -> None:
+        """
+        Deletes a file at the given path.
+
+        Args:
+            file_path (str): Path to create
+
+        """
+        Path(file_path).unlink(missing_ok=True)
 
     @staticmethod
     def generate_postfixed_sub_directory_name(base_directory: str) -> str:
@@ -329,7 +322,7 @@ class FileHelper:
         return f"{base_directory}/{formatted_datetime}"
     
     @staticmethod
-    def generate_postfixed_file_path(file_path: str) -> str:
+    def generate_postfixed_file_path(file_path: str | Path) -> str:
         """
         Generates timestamped file path from a given file path.
 
@@ -346,13 +339,12 @@ class FileHelper:
         return str(Path(f"{full_path_without_extension}_{formatted_datetime}.{file_extension}"))
     
     @staticmethod
-    def combine_files(file_paths: List[str], verbose: bool = False) -> str:
+    def combine_files(file_paths: List[str] | List[Path]) -> str:
         """
         Combines multiple files into single string with '---' separators.
 
         Args:
             file_paths (List[str]): List of file paths to combine
-            verbose (bool, optional): Enable verbose output
 
         Returns:
             str: Combined content with separators
@@ -365,31 +357,30 @@ class FileHelper:
         
         combined_content = ""
         for file_path in file_paths:
-            combined_content = f"{combined_content}\n---\n{FileHelper.read_file(file_path, verbose=verbose)}"
+            combined_content = f"{combined_content}\n---\n{FileHelper.read_file(file_path)}"
         return combined_content
     
     @staticmethod
-    def combine_files_in_directories(directory_paths: List[str], verbose: bool = False) -> str:
+    def combine_files_in_directories(directory_paths: List[str]) -> str:
         """
         Combines all files from directories into single string with '---' separators.
 
         Args:
             directory_paths (List[str]): List of directories to scan
-            verbose (bool, optional): Enable verbose output
 
         Returns:
             str: Combined content from all directories
 
         Raises:
-            Exception: If no directories provided
+            ValueError: If no directories provided
         """
         if directory_paths is None:
-            raise Exception("No directory_paths provided")
+            raise ValueError("No directory_paths provided")
         
         file_list=[]
         for directory_path in directory_paths:
-            file_list += FileHelper.list_files_in_directory(directory_path, verbose=verbose)
-        return FileHelper.combine_files(file_list, verbose=verbose)
+            file_list += FileHelper.list_files_in_directory(directory_path)
+        return FileHelper.combine_files(file_list)
 
     @staticmethod
     def directory_tree(directory, exclude_patterns=None, sort=False, file_extensions=None):
@@ -471,9 +462,9 @@ class FileHelper:
                                 file_paths.append(abs_path)
                 
         except PermissionError as e:
-            print(f"Permission denied accessing some directories: {e}")
+            FileHelper._log.error(f"Permission denied accessing some directories: {e}")
         except Exception as e:
-            print(f"Error processing directory {directory}: {e}")
+            FileHelper._log.error(f"Error processing directory {directory}: {e}")
         
         # Sort if requested
         if sort:
