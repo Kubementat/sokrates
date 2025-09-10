@@ -1,4 +1,3 @@
-from typing import List
 from pathlib import Path
 from sokrates.llm_api import LLMApi
 from sokrates.prompt_refiner import PromptRefiner

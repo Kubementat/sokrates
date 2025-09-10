@@ -83,8 +83,7 @@ class CodeReviewWorkflow:
             
         # Get all Python files in directory using file system handler
         python_files = FileHelper.directory_tree(directory_path, file_extensions=['.py'])
-        python_files = [f for f in python_files if not '__init__.py' in f]
-        python_files = [f for f in python_files if not '__init__.py' in f]
+        python_files = [f for f in python_files if '__init__.py' not in f]
         
         return self.analyze_files(python_files)
     

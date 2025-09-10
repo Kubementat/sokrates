@@ -95,7 +95,6 @@ class TaskProcessor:
         
         # TODO: Refactor Config dependency
         # remove tight coupling with Config class and pass along the parameters directly
-        refinement_prompt_path = f"{self.config.prompts_directory}/refine-prompt.md"
         
         executor = SequentialTaskExecutor(
                 api_endpoint=self.config.api_endpoint,
@@ -125,7 +124,7 @@ class TaskProcessor:
             current_attempt = 1
 
             while True:
-                error_info = self.error_handler.log_error(task_id, str(e), current_attempt)
+                self.error_handler.log_error(task_id, str(e), current_attempt)
 
                 next_action = self.error_handler.handle_failure(
                     self.manager,

@@ -115,7 +115,7 @@ class IdeaGenerationWorkflow:
         Returns:
             list: A list of randomly selected topic categories.
         """
-        topic_categories_json_path = str(Path(f"{Constants.DEFAULT_PROMPTS_DIRECTORY}/context/topic_categories.json").resolve())
+        topic_categories_json_path = Path(f"{Constants.DEFAULT_PROMPTS_DIRECTORY}/context/topic_categories.json").resolve()
         categories_object = FileHelper.read_json_file(topic_categories_json_path)
         all_categories = categories_object["topic_categories"]
         number_of_categories_to_pick = Utils.generate_random_int(min_value=1, max_value=self.MAXIMUM_CATEGORIES_TO_PICK)
@@ -141,11 +141,10 @@ class IdeaGenerationWorkflow:
         Returns:
             str: A complete prompt combining the original instructions with category information.
         """
-        ret = topic_generation_instructions
         
         categories = self.pick_topic_categories_from_json()
         if self.verbose:
-            OutputPrinter.print_info("Random categories picked:", categories)    
+            OutputPrinter.print_info("Random categories picked", categories)    
         
         if len(categories) == 1:
             return f"{topic_generation_instructions}\n\n# Thematic field to use for topic generation\nGenerate a topic from the thematic field of {categories[0]}"

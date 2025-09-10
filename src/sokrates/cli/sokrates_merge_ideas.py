@@ -21,7 +21,7 @@ TODO
     parser.add_argument(
         '--model', '-m',
         default=None,
-        help=f"The identifier of the model to use."
+        help="The identifier of the model to use."
     )
     
     parser.add_argument(
@@ -47,7 +47,7 @@ TODO
         '--temperature', '-t',
         type=float,
         default=None,
-        help=f"Temperature for response generation for all LLM calls"
+        help="Temperature for response generation for all LLM calls"
     )
     
     parser.add_argument(
@@ -65,7 +65,7 @@ TODO
     parser.add_argument(
         '--source-documents', '-sd',
         required=True,
-        help=f"Comma separated list of document paths to use for the merge."
+        help="Comma separated list of document paths to use for the merge."
     )
 
     return parser.parse_args()

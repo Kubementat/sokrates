@@ -51,7 +51,7 @@ from typing import Tuple, List, Dict, Any
 
 class PythonAnalyzer:
     @staticmethod
-    def create_markdown_documentation_for_directory(directory_path: str, target_file: str, verbose: bool = False) -> str:
+    def create_markdown_documentation_for_directory(directory_path: str, target_file: str) -> str:
         """
         Creates markdown documentation for all Python files in a directory.
 
@@ -62,8 +62,7 @@ class PythonAnalyzer:
 
         Args:
             directory_path (str): Path to the directory containing Python files
-            target_file (str): Output file path where documentation will be written  
-            verbose (bool, optional): If True, prints detailed output. Defaults to False
+            target_file (str): Output file path where documentation will be written
             
         Returns:
             str: The complete markdown analysis as a string
@@ -73,12 +72,7 @@ class PythonAnalyzer:
             - Prints directory contents if verbose is True
         """
         file_paths = FileHelper.directory_tree(directory_path, sort=True, file_extensions=['.py'])
-        file_paths = list(filter(lambda s: not "__init__.py" in s, file_paths))
-        
-        if verbose:
-            print(f"Python files to summarize:")
-            for file_path in file_paths:
-                print(file_path)
+        file_paths = list(filter(lambda s: "__init__.py" not in s, file_paths))
         
         full_analysis = ""
         for file_path in file_paths:

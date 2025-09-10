@@ -15,7 +15,6 @@ from datetime import datetime
 from sokrates.file_helper import FileHelper
 from sokrates.prompt_refiner import PromptRefiner
 from sokrates.llm_api import LLMApi
-from sokrates.workflows.refinement_workflow import RefinementWorkflow
 
 
 class FileProcessor:
@@ -318,7 +317,7 @@ Refined prompt:"""
         # Safely extract values with defaults to avoid None formatting issues
         file_path = result.get('file_path') or 'Unknown'
         file_size = result.get('file_size', 0) or 0
-        status = result.get('status') or 'Unknown'
+        result.get('status') or 'Unknown'
         
         # Handle processing duration which could be None
         processing_duration_str = f"{result.get('processing_duration'):.2f}"

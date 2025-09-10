@@ -89,7 +89,7 @@ def main():
     
     try:
         # Run the code review workflow
-        reviews = run_code_review(
+        run_code_review(
             directory_path=directory_path,
             file_paths=file_paths,
             output_dir=args.output_dir,
@@ -111,12 +111,11 @@ def main():
         print(f"   Review type: {args.review_type}")
         
         return 0
-        
     except Exception as e:
         print(f"\n❌ Error during code review: {e}")
         import traceback
         traceback.print_exc()
-        sys.exit(1) 
+        sys.exit(1)
 
 
 if __name__ == "__main__":

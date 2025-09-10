@@ -151,7 +151,7 @@ class SequentialTaskExecutor:
                 continue
 
             try:
-                result = self._process_single_task_file(task_desc=task_desc, 
+                self._process_single_task_file(task_desc=task_desc, 
                                                         task_id=task_id, main_task=main_task)
                 results["successful_tasks"] += 1
                 status = "completed"
@@ -168,7 +168,7 @@ class SequentialTaskExecutor:
             })
 
         if self.verbose:
-            OutputPrinter.print(f"Task execution summary:")
+            OutputPrinter.print("Task execution summary:")
             OutputPrinter.print(f"- Total tasks: {results['total_tasks']}")
             OutputPrinter.print(f"- Successful: {results['successful_tasks']}")
             OutputPrinter.print(f"- Failed: {results['failed_tasks']}")
@@ -228,7 +228,7 @@ Handle the sub-task in the context of the main objective.
             # read refinement prompt path
             refinement_prompt = FileHelper.read_file(self.refinement_prompt_path)
             
-            OutputPrinter.print(f"Refinement is enabled. Refining and then executing the prompt ...")
+            OutputPrinter.print("Refinement is enabled. Refining and then executing the prompt ...")
             # Refine and execute prompt using LLM API
             execution_result = self.workflow.refine_and_send_prompt(
                 input_prompt=task_prompt,
@@ -239,7 +239,7 @@ Handle the sub-task in the context of the main objective.
                 max_tokens=self.max_tokens
             )
         else:
-            OutputPrinter.print(f"Refinement is disabled. Executing the prompt directly ...")
+            OutputPrinter.print("Refinement is disabled. Executing the prompt directly ...")
             llmapi = LLMApi(api_endpoint=self.api_endpoint, 
                             api_key=self.api_key)
             execution_result = llmapi.send(task_prompt, 

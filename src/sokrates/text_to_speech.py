@@ -5,7 +5,6 @@ Text-to-Speech implementation using Coqui TTS library.
 import re
 
 from pathlib import Path
-from typing import Optional, Union
 import time
 from .output_printer import OutputPrinter
 from .colors import Colors
@@ -235,7 +234,7 @@ class TextToSpeech:
         
         try:
             # Convert text to speech and save to file
-            audio_data = self.tts_to_file(text, file_path)
+            self.tts_to_file(text, file_path)
             
             # Ensure the file exists before playing
             if not Path(file_path).exists():

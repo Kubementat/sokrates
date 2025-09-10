@@ -10,7 +10,6 @@ import os
 import tempfile
 from pathlib import Path
 import pytest
-from unittest.mock import Mock, patch
 
 from sokrates.workflows.idea_generation_workflow import IdeaGenerationWorkflow
 

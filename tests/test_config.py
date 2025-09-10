@@ -7,8 +7,6 @@ loading, directory initialization, and configuration value retrieval.
 """
 
 import os
-import tempfile
-from pathlib import Path
 from unittest.mock import patch
 import pytest
 
@@ -94,7 +92,7 @@ class TestConfig:
         home_dir.mkdir()
         
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config()
+            Config()
             
             # Check that directories were created
             assert (home_dir / ".sokrates").exists()
@@ -120,7 +118,7 @@ class TestConfig:
         
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
-                config = Config()
+                Config()
                 
                 # Test getting a value from environment
                 test_var = Config.get('SOKRATES_TEST_VAR')
@@ -132,7 +130,7 @@ class TestConfig:
         home_dir.mkdir()
         
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config()
+            Config()
             
             # Test getting a non-existent value with default
             result = Config.get('non_existent_var', 'default_value')
@@ -144,7 +142,7 @@ class TestConfig:
         home_dir.mkdir()
         
         with patch('src.sokrates.config.Path.home', return_value=home_dir):
-            config = Config()
+            Config()
             
             # Test getting a non-existent value with None default
             result = Config.get('non_existent_var')
@@ -297,7 +295,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
                 try:
-                    config = Config()
+                    Config()
                     assert False, "Should have raised ValueError"
                 except ValueError:
                     pass  # Expected behavior
@@ -314,7 +312,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
                 with pytest.raises(BaseException):
-                    config = Config() 
+                    Config() 
 
     def test_config_with_zero_temperature(self, tmp_path):
         """Test configuration with zero temperature value. -> should raise an exception"""
@@ -328,7 +326,7 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
                 with pytest.raises(BaseException):
-                    config = Config()
+                    Config()
 
     def test_config_with_too_high_temperature(self, tmp_path):
         """Test configuration with too high temperature values. -> should raise an exception"""
@@ -342,4 +340,4 @@ SOKRATES_DEFAULT_MODEL=gpt-4-turbo
         with patch.dict(os.environ, env_vars):
             with patch('src.sokrates.config.Path.home', return_value=home_dir):
                 with pytest.raises(BaseException):
-                    config = Config()
+                    Config()

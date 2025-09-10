@@ -6,8 +6,6 @@ This module provides a background daemon process for processing tasks
 from the task queue using TaskProcessor, with comprehensive status tracking.
 """
 
-import signal
-import sys
 import time
 import logging
 from logging.handlers import RotatingFileHandler

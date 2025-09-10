@@ -58,7 +58,7 @@ def main():
     parser.add_argument(
         '--api-endpoint',
         default=None,
-        help=f"LLM server API endpoint."
+        help="LLM server API endpoint."
     )
 
     parser.add_argument(
@@ -71,14 +71,14 @@ def main():
     parser.add_argument(
         '--model', '-m',
         default=None,
-        help=f'The model to use for task execution'
+        help='The model to use for task execution'
     )
     
     parser.add_argument(
         '--temperature', '-t',
         default=None,
         type=float,
-        help=f'The temperature to use for task execution'
+        help='The temperature to use for task execution'
     )
 
     parser.add_argument(
@@ -165,7 +165,6 @@ def main():
         if args.verbose:
             print("\nDetailed results:")
             for detail in result['details']:
-                status_color = Colors.GREEN if detail['status'] == 'completed' else Colors.RED
                 print(f"{detail['task_id']}: {detail['status']} - {detail['message']}")
 
     except Exception as e:

@@ -28,7 +28,7 @@ def main():
     )
     args = parser.parse_args()
     PythonAnalyzer.create_markdown_documentation_for_directory(directory_path=args.source_directory, 
-                                                               target_file=args.output, verbose=args.verbose)
+                                                               target_file=args.output)
     
 if __name__ == "__main__":
     try:

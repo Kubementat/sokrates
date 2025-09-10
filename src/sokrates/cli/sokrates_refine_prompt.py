@@ -106,7 +106,7 @@ Examples:
         required=False,
         type=str,
         default=None,
-        help=f"LLM server API endpoint."
+        help="LLM server API endpoint."
     )
     
     parser.add_argument(
@@ -120,7 +120,7 @@ Examples:
         '--models', '-m',
         default=None,
         type=str,
-        help=f"Comma separated list of models to use (For multiple models e.g: qwen/qwen3-14b,phi4)"
+        help="Comma separated list of models to use (For multiple models e.g: qwen/qwen3-14b,phi4)"
     )
     
     parser.add_argument(
@@ -134,7 +134,7 @@ Examples:
         '--temperature', '-t',
         type=float,
         default=None,
-        help=f"Temperature for response generation"
+        help="Temperature for response generation"
     )
     
     parser.add_argument(
@@ -294,7 +294,7 @@ Examples:
                 
                 try:
                     f_name, f_extension = args.output.rsplit('.', 1)
-                except:
+                except Exception:
                     pass
                 
                 model_name_escaped = model_name.replace('/', '-')

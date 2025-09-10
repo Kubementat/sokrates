@@ -7,7 +7,6 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from .colors import Colors
 from .constants import Constants
 from threading import Lock
 from typing import Any

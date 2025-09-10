@@ -1,6 +1,5 @@
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
 
 # Assuming the PythonAnalyzer class is in a module called python_analyzer
 from sokrates.coding.python_analyzer import PythonAnalyzer

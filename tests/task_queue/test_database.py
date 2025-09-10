@@ -1,6 +1,4 @@
 import pytest
-import sqlite3
-from datetime import datetime
 from sokrates.task_queue.database import TaskQueueDatabase
 
 # Test setup: Create a temporary in-memory database for all tests

@@ -26,7 +26,7 @@ Usage examples:
 """
 
 import os
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from pathlib import Path
 
 from .python_analyzer import PythonAnalyzer

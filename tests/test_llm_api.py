@@ -6,12 +6,10 @@ with OpenAI-compatible LLM APIs.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
+from unittest.mock import Mock, patch
 
 from sokrates.llm_api import LLMApi
 from sokrates.constants import Constants
-import pytest
 
 
 class TestLLMApi:
@@ -105,43 +103,6 @@ class TestLLMApi:
             api.list_models()
             
         assert "API Error" in str(exc_info.value)
-
-    @patch('sokrates.llm_api.OpenAI')
-    def test_send_with_context(self, mock_openai):
-        """Test sending prompt with context."""
-        # Setup mocks
-        mock_client_instance = Mock()
-        mock_openai.return_value = mock_client_instance
-        
-        # Create a mock streaming response
-        mock_chunk_1 = Mock()
-        mock_chunk_1.choices = [Mock()]
-        mock_chunk_1.choices[0].delta.content = "Hello"
-        
-        mock_chunk_2 = Mock()
-        mock_chunk_2.choices = [Mock()]
-        mock_chunk_2.choices[0].delta.content = " World"
-        
-        mock_stream_response = [mock_chunk_1, mock_chunk_2]
-        mock_client_instance.chat.completions.create.return_value = mock_stream_response
-        
-        api = LLMApi(
-            api_endpoint=self.api_endpoint,
-            api_key=self.api_key
-        )
-        
-        # Test sending with context array
-        result = api.send(
-            prompt="Test prompt",
-            model="test-model",
-            context=["context1", "context2"],
-            max_tokens=1000,
-            temperature=0.7
-        )
-        
-        # Verify the call was made correctly
-        mock_client_instance.chat.completions.create.assert_called_once()
-        assert result == "Hello World"
 
     @patch('sokrates.llm_api.OpenAI')
     def test_send_with_context(self, mock_openai):

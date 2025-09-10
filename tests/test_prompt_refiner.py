@@ -1,5 +1,4 @@
 import unittest
-import re
 from sokrates import PromptRefiner
 
 class TestPromptRefiner(unittest.TestCase):
@@ -10,7 +9,6 @@ class TestPromptRefiner(unittest.TestCase):
     def test_combine_refinement_prompt(self):
         input_prompt = "This is my original prompt."
         refinement_prompt = "Please refine the following prompt:"
-        expected_output = "Please refine the following prompt:\n <original_prompt>\nThis is my original prompt.\n</original_prompt>"
         refined = self.refiner.combine_refinement_prompt(input_prompt, refinement_prompt)
         self.assertTrue(input_prompt in refined)
         self.assertTrue(refinement_prompt in refined)
@@ -64,16 +62,17 @@ class TestPromptRefiner(unittest.TestCase):
         </response>
         """
         refined = self.refiner.clean_response(complex_response)
-        
-        self.assertTrue(not ("<meta>" in refined))
-        self.assertTrue(not ("</meta>" in refined))
-        self.assertTrue(not ("Some meta info" in refined))
-        self.assertTrue(not ("</response>" in refined))
-        self.assertTrue(not ("<thinking>" in refined))
-        self.assertTrue(not ("</thinking>" in refined))
-        self.assertTrue(not ("Initial thoughts" in refined))
-        self.assertTrue("This is the actual refined content." in refined)
-        self.assertTrue("And more content." in refined)
+        assert "And more content." in refined
+        assert "This is the actual refined content." in refined
+
+        assert "<meta>" not in refined
+        assert "</meta>" not in refined
+        assert "Some meta info" not in refined
+        assert "</response>" not in refined
+        assert "<thinking>" not in refined
+        assert "</thinking>" not in refined
+        assert "Initial thoughts" not in refined
+        assert "<meta>" not in refined
         
 
         # Test with no cleaning needed

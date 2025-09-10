@@ -10,9 +10,9 @@ import logging
 import threading
 import time
 from pathlib import Path
-from typing import List, Callable, Optional
+from typing import List, Callable
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileCreatedEvent, FileModifiedEvent
+from watchdog.events import FileSystemEventHandler
 
 class FileWatcherEventHandler(FileSystemEventHandler):
     """

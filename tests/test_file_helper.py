@@ -1,11 +1,8 @@
 # Test suite for FileHelper class using pytest
 
-import os
 import tempfile
-import shutil
 from pathlib import Path
 import json
-from unittest.mock import patch, mock_open
 
 from sokrates.file_helper import FileHelper
 
@@ -18,8 +15,8 @@ def test_clean_name():
     
     # Test removal of problematic characters
     res = FileHelper.clean_name('file?"name')
-    assert not '?' in res
-    assert not '"' in res
+    assert '?' not in res
+    assert '"' not in res
     assert FileHelper.clean_name("?test?") == "test"  # Question marks should be gone
     
     # Test with no special characters (should return unchanged)
@@ -262,7 +259,7 @@ def test_directory_tree():
 
 def test_create_and_return_task_execution_directory():
     """Test create_and_return_task_execution_directory method"""
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with tempfile.TemporaryDirectory():
         # Test default behavior (should return home dir structure)
         try:
             result = FileHelper.create_and_return_task_execution_directory()
@@ -271,7 +268,7 @@ def test_create_and_return_task_execution_directory():
             assert result is not None
             assert Path(result).is_dir()
             
-        except Exception as e:
+        except Exception:
             pass  # This might fail if permissions aren't right but that's acceptable for testing
 
 def test_copy_file():
@@ -314,7 +311,7 @@ def test_directory_tree_with_patterns():
 
 def test_write_to_file_with_exception():
     """Test write_to_file method exception handling"""
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with tempfile.TemporaryDirectory():
         # Try to write to a path that doesn't exist (invalid permissions)
         invalid_path = "/root/should_not_be_writable.txt"  # This should fail
         

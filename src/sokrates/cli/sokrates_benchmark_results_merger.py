@@ -4,7 +4,7 @@ This script merges benchmarking results from multiple JSON files, calculates ave
 import argparse
 import json
 from collections import defaultdict
-from colorama import Fore, Style
+from colorama import Fore
 from tabulate import tabulate
 
 # Initialize colorama

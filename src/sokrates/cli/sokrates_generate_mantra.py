@@ -33,7 +33,7 @@ def main():
         '--api-endpoint',
         required=False,
         default=None,
-        help=f"LLM server API endpoint."
+        help="LLM server API endpoint."
     )
     
     parser.add_argument(
@@ -45,7 +45,7 @@ def main():
     parser.add_argument(
         '--model', '-m',
         default=None,
-        help=f"A model name to use for the generation."
+        help="A model name to use for the generation."
     )
     
     parser.add_argument(
@@ -106,7 +106,7 @@ def main():
     if args.verbose:
         OutputPrinter.print_info("context_files", context_files)
 
-    OutputPrinter.print_section(f"✨ YOUR MANTRA FOR TODAY ✨\n", Colors.BRIGHT_MAGENTA, "═")
+    OutputPrinter.print_section("✨ YOUR MANTRA FOR TODAY ✨\n", Colors.BRIGHT_MAGENTA, "═")
     print(f"{Colors.WHITE}{generated}{Colors.RESET}")
     
     

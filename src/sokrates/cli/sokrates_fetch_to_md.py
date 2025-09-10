@@ -32,7 +32,7 @@ from typing import Optional
 import requests
 from bs4 import BeautifulSoup, Comment
 import html2text
-from colorama import init, Fore, Back, Style
+from colorama import init, Fore, Style
 
 # Initialize colorama for cross-platform colored output
 init(autoreset=True)
@@ -585,8 +585,8 @@ Examples:
     if not success:
         sys.exit(1)
     
-    logger.info(f"Successfully converted {args.url} to Markdown format")
-    logger.debug(f"Process completed successfully")
+    logger.info("Successfully converted {} to Markdown format".format(args.url))
+    logger.debug("Process completed successfully")
 
 
 if __name__ == "__main__":

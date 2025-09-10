@@ -6,9 +6,7 @@
 import os
 import time
 import re
-import asyncio
 import logging
-import sys
 import tempfile
 import traceback
 
@@ -231,7 +229,7 @@ def handle_talk_command(conversation_history: list, refiner):
                 temp_audio_file = Path("temp_response.wav")
                 
                 # Convert text to speech and save to file
-                audio_data = tts.tts_to_file(tts_text, str(temp_audio_file))
+                tts.tts_to_file(tts_text, str(temp_audio_file))
                 
                 # Play the audio file with interruptible functionality
                 play_audio_file_interruptible(str(temp_audio_file))
@@ -311,7 +309,7 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
                     temp_audio_file = Path("temp_response.wav")
                     
                     # Convert text to speech and save to file
-                    audio_data = tts.tts_to_file(tts_text, str(temp_audio_file))
+                    tts.tts_to_file(tts_text, str(temp_audio_file))
                     
                     # Play the audio file with interruptible functionality
                     play_audio_file_interruptible(str(temp_audio_file))

@@ -215,7 +215,7 @@ class LMStudioBenchmark:
             avg_cpu = sum(s.get('cpu_percent', 0) for s in stats) / len(stats)
             max_memory = max(s.get('memory_used_gb', 0) for s in stats)
             
-            print(f"\nSystem Resource Usage:")
+            print("\nSystem Resource Usage:")
             print(f"Average CPU: {avg_cpu:.1f}%")
             print(f"Peak Memory: {max_memory:.2f} GB")
             
@@ -280,7 +280,7 @@ class LMStudioBenchmark:
                     'memory_free_gb': memory_info.free / (1024**3)
                 })
             comprehensive_results['benchmark_metadata']['system_info']['gpu_info'] = gpu_info
-        except:
+        except Exception:
             comprehensive_results['benchmark_metadata']['system_info']['gpu_info'] = "Not available"
         
         individual = results['individual_results']
@@ -503,7 +503,7 @@ class LMStudioBenchmark:
         """
         all_results = []
         
-        print(f"\n=== Starting Multi-Model Benchmark ===")
+        print("\n=== Starting Multi-Model Benchmark ===")
         print(f"Models to test: {', '.join(model_names)}")
         print(f"Total models: {len(model_names)}")
         
@@ -547,7 +547,7 @@ class LMStudioBenchmark:
                 continue
             
             if i < len(model_names):
-                print(f"\nPausing 2 seconds before next model...")
+                print("\nPausing 2 seconds before next model...")
                 time.sleep(2)
         
         return all_results

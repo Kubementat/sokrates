@@ -36,7 +36,7 @@ Examples:
         '--api-endpoint',
         required=False,
         default=None,
-        help=f"LLM server API endpoint."
+        help="LLM server API endpoint."
     )
     
     parser.add_argument(

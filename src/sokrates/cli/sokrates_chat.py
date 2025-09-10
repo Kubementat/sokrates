@@ -225,7 +225,7 @@ def main():
                         break
                     elif action == "voice_disabled":
                         voice_mode = False
-                        OutputPrinter.print_info(f"Switched to 'text' mode.", "")
+                        OutputPrinter.print_info("Switched to 'text' mode.", "")
                         continue
                 else:
                     OutputPrinter.print_info("Starting text chat. Press CTRL+D or type 'exit' to quit.", "")

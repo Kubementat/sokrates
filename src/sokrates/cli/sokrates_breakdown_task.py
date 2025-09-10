@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import sys
-from pathlib import Path
+
 from sokrates.workflows.refinement_workflow import RefinementWorkflow
 from sokrates.colors import Colors
 from sokrates.file_helper import FileHelper
@@ -29,7 +29,7 @@ def main():
     parser.add_argument(
         '--api-endpoint',
         default=None,
-        help=f"LLM server API endpoint."
+        help="LLM server API endpoint."
     )
 
     parser.add_argument(
@@ -56,13 +56,13 @@ def main():
     parser.add_argument(
         '--model', '-m',
         default=None,
-        help=f"The model to use for the task breakdown"
+        help="The model to use for the task breakdown"
     )
     
     parser.add_argument(
         '--temperature',
         default=None,
-        help=f"The temperature to use for the task breakdown"
+        help="The temperature to use for the task breakdown"
     )
 
     parser.add_argument(

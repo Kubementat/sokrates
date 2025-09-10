@@ -70,9 +70,9 @@ def start_daemon():
     # check for already running daemons
     OutputPrinter.print("Checking for running daemon processes...")
     pid = find_daemon_pid()
-    if pid != None:
+    if pid is not None:
         OutputPrinter.print(f"Daemon is already started with PID: {pid} .")
-        OutputPrinter.print(f"Exiting gracefully.")
+        OutputPrinter.print("Exiting gracefully.")
         sys.exit(0)
     OutputPrinter.print("No running daemon process found.")
     
@@ -86,7 +86,7 @@ def start_daemon():
         try:
             # Write PID file for the child process
             if not write_pid_file(os.getpid()):
-                print(f"Error: Failed to write PID file", file=sys.__stderr__)
+                print("Error: Failed to write PID file", file=sys.__stderr__)
                 sys.exit(1)
             
             # Redirect stdout and stderr to log file

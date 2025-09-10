@@ -14,8 +14,7 @@ class PromptConstructor:
 
         see for example in: src/sokrates/prompts/coding/analyze_repository.md
         """
-        if type(template_file_path) == str:
-            template_file_path = Path(template_file_path)
+        template_file_path = Path(template_file_path)
 
         if not data:
             raise ValueError(f"The provided data for filling out the template file: {template_file_path} is invalid")

@@ -197,8 +197,8 @@ def main():
                 return
         models_to_test = [model_name]
     
-    print(f"\nBenchmarking configuration:")
-    print(f"\nBenchmarking configuration:")
+    print("\nBenchmarking configuration:")
+    print("\nBenchmarking configuration:")
     print(f"  Models: {', '.join(models_to_test)}")
     print(f"  Max tokens: {args.max_tokens}")
     print(f"  Temperatures: {temperatures_to_test}")
@@ -230,13 +230,13 @@ def main():
                 comparison_table, comparison_data = benchmark.create_comparison_table(all_results)
                 
                 if comparison_table:
-                    print(f"\n{'='*80}")
+                    print("\n" + "="*80)
                     print(f"MODEL COMPARISON RESULTS (Temperature: {current_temperature})")
-                    print(f"{'='*80}")
+                    print("="*80)
                     print(comparison_table)
                     
                     # Print performance insights
-                    print(f"\n🏆 PERFORMANCE INSIGHTS:")
+                    print("\n🏆 PERFORMANCE INSIGHTS:")
                     if comparison_data and comparison_data.get('performance_ranking'):
                         ranking = comparison_data['performance_ranking']
                         best_model = ranking[0]

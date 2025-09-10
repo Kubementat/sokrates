@@ -418,7 +418,7 @@ class FileHelper:
                             dirs_to_exclude.append(i)
                 
                 # Filter out excluded directories
-                filtered_dirs = [d for i, d in enumerate(dirs) if i not in dirs_to_exclude]
+                [d for i, d in enumerate(dirs) if i not in dirs_to_exclude]
                 
                 # Update dirs to filtered list (this affects the actual walk)
                 dirs[:] = [d for i, d in enumerate(dirs) if i not in dirs_to_exclude]

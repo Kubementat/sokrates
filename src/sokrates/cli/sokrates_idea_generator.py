@@ -94,7 +94,7 @@ Example usage:
         '--temperature', '-t',
         type=float,
         default=None,
-        help=f"Temperature for response generation for all LLM calls)"
+        help="Temperature for response generation for all LLM calls)"
     )
     
     parser.add_argument(

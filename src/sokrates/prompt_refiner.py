@@ -164,8 +164,6 @@ class PromptRefiner:
         Returns:
             str: The content with Markdown code block formatting removed.
         """
-        original_length = len(content)
-        
         pattern = r'```(?:\n|(?:json|yml|yaml|javascript|html)\n)'
         cleaned = re.sub(pattern, '', content, flags=re.DOTALL)
         cleaned = re.sub('```', '', cleaned)

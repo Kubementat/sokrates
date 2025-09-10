@@ -300,14 +300,12 @@ class TestFileWatcherIntegration:
                 
                 # Wait for processing
                 time.sleep(2)
-                
                 # Check if output file was created
                 output_files = list(Path(output_dir).glob("file_watcher_results/*.md"))
                 
                 # File processing may succeed or fail depending on API availability
                 # We just verify the system responded to the file creation
-                assert test_file.exists()
-                assert test_file.read_text() == test_content
+                assert len(output_files) > 1    
                 
             finally:
                 watcher.stop()

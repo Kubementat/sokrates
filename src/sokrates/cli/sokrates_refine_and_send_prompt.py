@@ -11,8 +11,7 @@ import argparse
 import sys
 from pathlib import Path
 from .helper import Helper
-from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config, OutputPrinter
-from sokrates.cli.helper import Helper
+from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -47,21 +46,21 @@ Example usage:
         '--refinement-model', '-rm',
         required=False,
         default=None,
-        help=f"Name of the model to use for prompt refinement."
+        help="Name of the model to use for prompt refinement."
     )
     
     parser.add_argument(
         '--output-model', '-om',
         required=False,
         default=None,
-        help=f"Name of the model to receive the refined prompt and to generate the final output."
+        help="Name of the model to receive the refined prompt and to generate the final output."
     )
     
     parser.add_argument(
         '--refinement-temperature', '-rt',
         type=float,
         default=0.7,
-        help=f"Temperature for the refinement model (Default: 0.7)."
+        help="Temperature for the refinement model (Default: 0.7)."
     )
     
     parser.add_argument(

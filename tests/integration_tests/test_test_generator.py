@@ -1,15 +1,11 @@
 import os
 import tempfile
 import shutil
-from pathlib import Path
 
 import pytest
-from unittest.mock import patch, MagicMock
 
 # Import the actual class to test (assuming it's in a package structure)
 from sokrates.coding.test_generator import TestGenerator  # Replace 'your_package' with actual module path
-from sokrates.coding.python_analyzer import PythonAnalyzer
-from sokrates.file_helper import FileHelper
 
 
 class TestTestGenerator:
