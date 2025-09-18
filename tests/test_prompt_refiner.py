@@ -3,8 +3,7 @@ from sokrates import PromptRefiner
 
 class TestPromptRefiner(unittest.TestCase):
     def setUp(self):
-        self.refiner = PromptRefiner(verbose=False)
-        self.verbose_refiner = PromptRefiner(verbose=True)
+        self.refiner = PromptRefiner()
 
     def test_combine_refinement_prompt(self):
         input_prompt = "This is my original prompt."

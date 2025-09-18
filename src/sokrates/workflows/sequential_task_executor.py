@@ -9,14 +9,13 @@ Parameters:
   - model (str): Model identifier to use.
   - temperature (float): Controls randomness in prompt refinement. 
   - output_dir (str, optional): Directory path for saving results.
-  - verbose (bool, optional): Enables detailed logging if True.
 """
 
 import os
+import logging
 from typing import Dict
 from .refinement_workflow import RefinementWorkflow
 from sokrates.file_helper import FileHelper
-from sokrates.output_printer import OutputPrinter
 from sokrates.llm_api import LLMApi
 
 class SequentialTaskExecutor:
@@ -38,7 +37,6 @@ class SequentialTaskExecutor:
         api_key (str): Authentication key for API access
         model (str): LLM model identifier
         output_dir (str): Directory path for saving results
-        verbose (bool): Verbose output flag
         workflow (RefinementWorkflow): Workflow instance for prompt refinement
         refinement_enabled (bool): Should prompts be refined before execution first
 
@@ -55,7 +53,6 @@ class SequentialTaskExecutor:
                  refinement_prompt_path: str,
                  temperature: float,
                  output_dir: str = None,
-                 verbose: bool = False,
                  refinement_enabled: bool = True,
                  max_tokens = DEFAULT_MAX_TOKENS
                  ):
@@ -68,19 +65,18 @@ class SequentialTaskExecutor:
             model (str): LLM model to use. 
             output_dir (str, optional): Directory where task results will be saved.
                 If None, defaults to "$HOME/.sokrates/tasks/results".
-            verbose (bool, optional): If True, enables verbose output. Defaults to False.
 
         Side Effects:
             - Creates output directory if it doesn't exist
             - Initializes refinement workflow instance
         """
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.api_endpoint = api_endpoint
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.output_dir = FileHelper.create_and_return_task_execution_directory(output_dir)
-        self.verbose = verbose
         self.refinement_enabled = refinement_enabled
         self.refinement_prompt_path = refinement_prompt_path
 
@@ -92,12 +88,11 @@ class SequentialTaskExecutor:
             api_endpoint=self.api_endpoint,
             api_key=self.api_key,
             model=self.model,
-            verbose=self.verbose,
             temperature=self.temperature,
             max_tokens=self.max_tokens
         )
 
-    def execute_tasks_from_file(self, task_file_path: str) -> Dict[str, any]:
+    def execute_tasks_from_file(self, task_file_path: str) -> Dict[str, object]:
         """
         Executes all tasks from a JSON file sequentially.
 
@@ -120,8 +115,7 @@ class SequentialTaskExecutor:
             - Modifies internal state with task execution results
             - Creates output files in the specified directory
         """
-        if self.verbose:
-            OutputPrinter.print(f"Loading tasks from {task_file_path}...")
+        self.logger.info(f"Loading tasks from {task_file_path}...")
 
         # Load tasks from JSON file
         try:
@@ -167,15 +161,14 @@ class SequentialTaskExecutor:
                 "message": message
             })
 
-        if self.verbose:
-            OutputPrinter.print("Task execution summary:")
-            OutputPrinter.print(f"- Total tasks: {results['total_tasks']}")
-            OutputPrinter.print(f"- Successful: {results['successful_tasks']}")
-            OutputPrinter.print(f"- Failed: {results['failed_tasks']}")
+        self.logger.info("Task execution summary:")
+        self.logger.info(f"- Total tasks: {results['total_tasks']}")
+        self.logger.info(f"- Successful: {results['successful_tasks']}")
+        self.logger.info(f"- Failed: {results['failed_tasks']}")
 
         return results
 
-    def _process_single_task_file(self, task_desc: str, task_id: int, main_task: str = None) -> str:
+    def _process_single_task_file(self, task_desc: str, task_id: int, main_task: str = "") -> str:
         """
         Processes a single task file through the complete workflow:
         1. Generate initial prompt from task description
@@ -197,11 +190,9 @@ class SequentialTaskExecutor:
         Side Effects:
             - Modifies conversation history with refined prompts and results
             - Creates output files in the specified directory
-            - May produce verbose output if enabled
         """
-        if self.verbose:
-            OutputPrinter.print(f"\nProcessing task {task_id}: {task_desc}")
-
+        self.logger.info(f" Processing task {task_id} ...")
+        self.logger.debug(f"Task description: {task_desc}")
         # Step 1: Generate initial prompt from main task and sub-task description
         sub_task_prompt = f"Sub-Task {task_id}: {task_desc}" 
         main_task_context = ""
@@ -219,8 +210,7 @@ Handle the sub-task in the context of the main objective.
         task_prompt = f"{main_task_context} {sub_task_prompt}"
         
         # Step 2: Refine the prompt using existing refinement workflow
-        if self.verbose:
-            OutputPrinter.print(f"Refining and executing prompt for task {task_id} ...")
+        self.logger.debug(f"Refining and executing prompt for task {task_id} ...")
 
         execution_result = ""
         
@@ -228,7 +218,7 @@ Handle the sub-task in the context of the main objective.
             # read refinement prompt path
             refinement_prompt = FileHelper.read_file(self.refinement_prompt_path)
             
-            OutputPrinter.print("Refinement is enabled. Refining and then executing the prompt ...")
+            self.logger.info("Refinement is enabled. Refining and then executing the prompt ...")
             # Refine and execute prompt using LLM API
             execution_result = self.workflow.refine_and_send_prompt(
                 input_prompt=task_prompt,
@@ -239,7 +229,7 @@ Handle the sub-task in the context of the main objective.
                 max_tokens=self.max_tokens
             )
         else:
-            OutputPrinter.print("Refinement is disabled. Executing the prompt directly ...")
+            self.logger.info("Refinement is disabled. Executing the prompt directly ...")
             llmapi = LLMApi(api_endpoint=self.api_endpoint, 
                             api_key=self.api_key)
             execution_result = llmapi.send(task_prompt, 
@@ -247,8 +237,7 @@ Handle the sub-task in the context of the main objective.
                             max_tokens=self.max_tokens, 
                             temperature=self.temperature)
 
-        if self.verbose:
-            OutputPrinter.print(f"Execution result for task {task_id}:\n{execution_result}")
+        self.logger.debug(f"Execution result for task {task_id}: {execution_result}")
 
         # Step 4: Save the result to output directory
         output_file = f"{self.output_dir}/task_{task_id}_result.md"
@@ -257,10 +246,9 @@ Handle the sub-task in the context of the main objective.
         if os.path.exists(output_file):
             output_file_before = output_file
             output_file = FileHelper.generate_postfixed_file_path(output_file)
-            OutputPrinter.print(f"File: {output_file_before} already exists. Generated postfixed file name for output file: {output_file}")
+            self.logger.info(f"File: {output_file_before} already exists. Generated postfixed file name for output file: {output_file}")
         FileHelper.write_to_file(output_file, execution_result)
 
-        if self.verbose:
-            OutputPrinter.print(f"Result saved to {output_file}")
+        self.logger.info(f"Result saved to {output_file}")
 
         return execution_result

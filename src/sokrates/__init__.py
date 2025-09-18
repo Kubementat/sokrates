@@ -1,12 +1,12 @@
 __author__ = "Julian Weber"
 __email__ = "julianweberdev@gmail.com"
 
-from .colors import Colors
+from .cli.colors import Colors
+from .cli.output_printer import OutputPrinter
 from .config import Config
 from .constants import Constants
 from .file_helper import FileHelper
 from .llm_api import LLMApi
-from .output_printer import OutputPrinter
 from .prompt_refiner import PromptRefiner
 from .prompt_constructor import PromptConstructor
 from .system_monitor import SystemMonitor

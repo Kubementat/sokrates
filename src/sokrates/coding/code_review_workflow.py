@@ -6,14 +6,16 @@ automated code reviews using LLMs. It leverages the existing PythonAnalyzer infr
 to extract structured code information, then applies appropriate prompt templates based on
 the review type to generate comprehensive feedback.
 """
+import os
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+import logging
 
 from sokrates.coding.python_analyzer import PythonAnalyzer
 from sokrates.llm_api import LLMApi
 from sokrates.file_helper import FileHelper
 from sokrates.prompt_refiner import PromptRefiner
-import os
-from pathlib import Path
-from typing import List, Dict, Any
+
 
 # Maximum tokens for LLM responses - balances detail with performance
 DEFAULT_MAX_TOKENS = 30000
@@ -45,28 +47,25 @@ class CodeReviewWorkflow:
         "quality": str(DEFAULT_CODING_PROMPT_PATH / "code_quality_review.md")
     }
 
-    def __init__(self, verbose: bool = False, api_endpoint: str = None, api_key: str = None,
-                 prompt_templates: Dict[str, str] = None):
+    def __init__(self, api_endpoint: str, api_key: str,
+                 prompt_templates: Optional[Dict[str, str]] = None):
         """
         Initialize the CodeReviewWorkflow.
         
         Args:
-            verbose (bool): Enable verbose output
             api_endpoint (str): Custom API endpoint for LLM calls
             api_key (str): API key for authentication with LLM service
             prompt_templates (Dict[str, str]): Dictionary mapping review types to prompt template file paths.
                                             If None, uses default templates.
         """
-        self.verbose = verbose
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
-        self.prompt_refiner = PromptRefiner(verbose=verbose)
+        self.prompt_refiner = PromptRefiner()
         
         # Use provided templates or fall back to defaults
         if prompt_templates:
             self.PROMPT_TEMPLATES = prompt_templates
-            
-        if self.verbose:
-            print(f"Prompt template paths: {self.PROMPT_TEMPLATES}")
+            self.logger.debug(f"Prompt template paths: {self.PROMPT_TEMPLATES}")
         
     def analyze_directory(self, directory_path: str) -> Dict[str, Any]:
         """
@@ -78,8 +77,7 @@ class CodeReviewWorkflow:
         Returns:
             Dict[str, Any]: Dictionary containing analysis results for each file
         """
-        if self.verbose:
-            print(f"Analyzing directory: {directory_path}")
+        self.logger.debug(f"Analyzing directory: {directory_path}")
             
         # Get all Python files in directory using file system handler
         python_files = FileHelper.directory_tree(directory_path, file_extensions=['.py'])
@@ -100,8 +98,7 @@ class CodeReviewWorkflow:
                             Each entry includes 'filepath', 'file_content', 'classes', and 'functions' keys.
                             If an error occurs during analysis, the entry will contain an 'error' key instead.
         """
-        if self.verbose:
-            print(f"Analyzing {len(file_paths)} files")
+        self.logger.debug(f"Analyzing {len(file_paths)} files")
             
         analysis_results = {}
         
@@ -150,8 +147,7 @@ class CodeReviewWorkflow:
         Returns:
             Dict[str, Any]: Dictionary containing the generated reviews
         """
-        if self.verbose:
-            print(f"Generating {review_type} review")
+        self.logger.info(f"Generating {review_type} review")
         
         # Prepare contextual file listing for multi-file reviews
         all_file_paths = code_analysis.keys()
@@ -170,8 +166,7 @@ class CodeReviewWorkflow:
         reviews = {}
         
         for file_path, analysis in code_analysis.items():
-            if self.verbose:
-                print(f"Processing {file_path}")
+            self.logger.debug(f"Processing {file_path}")
                 
             # Generate individual reviews for this file
             file_reviews = self._generate_file_reviews(
@@ -316,8 +311,7 @@ class CodeReviewWorkflow:
             OSError: If there are issues with directory creation or file writing
             PermissionError: If lacking write permissions for the target location
         """
-        if self.verbose:
-            print(f"Generating and saving review for {file_path} to directory: {output_dir}")
+        self.logger.info(f"Generating and saving review for {file_path} to directory: {output_dir}")
             
         try:
             # Create output directory - this will be handled by write_to_file
@@ -369,9 +363,9 @@ class CodeReviewWorkflow:
 
 # For backward compatibility and direct usage
 def run_code_review(api_endpoint: str, api_key: str, model: str, 
-                directory_path: str, file_paths: List[str] = None,
+                directory_path: Optional[str], file_paths: Optional[List[str]] = None,
                 output_dir: str = "reviews", review_type: str = CODE_REVIEW_TYPE_ALL,
-                max_tokens: int = DEFAULT_MAX_TOKENS, verbose: bool = False) -> Dict[str, Any]:
+                max_tokens: int = DEFAULT_MAX_TOKENS) -> Dict[str, Any]:
     """
     Convenience function to run a code review workflow.
     
@@ -384,12 +378,11 @@ def run_code_review(api_endpoint: str, api_key: str, model: str,
         api_endpoint (str): Custom API endpoint
         api_key (str): API key for authentication
         max_tokens (int): Maximum number of tokens for the review
-        verbose (bool): Enable verbose output
         
     Returns:
         Dict[str, Any]: Review results
     """
-    workflow = CodeReviewWorkflow(verbose=verbose, 
+    workflow = CodeReviewWorkflow( 
                         api_endpoint=api_endpoint, 
                         api_key=api_key)
     
@@ -406,8 +399,8 @@ def run_code_review(api_endpoint: str, api_key: str, model: str,
     return reviews
 
 def _analyze_code_for_review(workflow: CodeReviewWorkflow, 
-                directory_path: str = None,
-                file_paths: List[str] = None) -> Dict[str, Any]:
+                directory_path: Optional[str] = None,
+                file_paths: Optional[List[str]] = None) -> Dict[str, Any]:
     """
     Analyze code for review based on input parameters.
     

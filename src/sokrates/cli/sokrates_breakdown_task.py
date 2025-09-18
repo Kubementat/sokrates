@@ -3,9 +3,9 @@ import argparse
 import sys
 
 from sokrates.workflows.refinement_workflow import RefinementWorkflow
-from sokrates.colors import Colors
+from sokrates.cli.colors import Colors
 from sokrates.file_helper import FileHelper
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates.config import Config
 from .helper import Helper
 
@@ -141,8 +141,7 @@ def main():
     workflow = RefinementWorkflow(api_endpoint=api_endpoint, 
         api_key=api_key, model=model, 
         max_tokens=args.max_tokens, 
-        temperature=temperature,
-        verbose=args.verbose
+        temperature=temperature
     )
     result = workflow.breakdown_task(task=task, context=context)
 

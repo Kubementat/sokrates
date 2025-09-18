@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 import argparse
 from datetime import datetime
-from src.sokrates.colors import Colors
+from sokrates.cli.colors import Colors
 
 # prepare output directory
 def prepare_output_directory():

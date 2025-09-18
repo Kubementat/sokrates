@@ -23,8 +23,8 @@ Example:
 import argparse
 import sys
 from sokrates.workflows.sequential_task_executor import SequentialTaskExecutor
-from sokrates.colors import Colors
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.colors import Colors
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates.file_helper import FileHelper
 from sokrates.config import Config
 from sokrates.cli.helper import Helper
@@ -147,7 +147,6 @@ def main():
         refinement_prompt_path=refinement_prompt_path,
         temperature=temperature,
         output_dir=target_directory,
-        verbose=args.verbose,
         refinement_enabled=refinement_enabled
     )
 

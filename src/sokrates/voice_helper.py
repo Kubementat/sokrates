@@ -14,8 +14,8 @@ import traceback
 import threading
 
 from enum import Enum
-from .colors import Colors
-from .output_printer import OutputPrinter
+from .cli.colors import Colors
+from .cli.output_printer import OutputPrinter
 from pathlib import Path
 
 # Configure logging

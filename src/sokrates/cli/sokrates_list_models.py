@@ -3,7 +3,7 @@
 import argparse
 from sokrates.llm_api import LLMApi
 from sokrates.config import Config
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates.cli.helper import Helper
 
 def main():

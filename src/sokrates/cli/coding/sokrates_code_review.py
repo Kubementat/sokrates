@@ -10,8 +10,8 @@ import argparse
 import os
 import sys
 from sokrates.coding.code_review_workflow import run_code_review
-from sokrates.output_printer import OutputPrinter
-from sokrates.colors import Colors
+from sokrates.cli.output_printer import OutputPrinter
+from sokrates.cli.colors import Colors
 from sokrates.config import Config
 from sokrates.cli.helper import Helper
 
@@ -97,8 +97,7 @@ def main():
             model=model,
             api_endpoint=api_endpoint,
             api_key=api_key,
-            max_tokens=args.max_tokens,
-            verbose=args.verbose
+            max_tokens=args.max_tokens
         )
         
         # Print summary of results

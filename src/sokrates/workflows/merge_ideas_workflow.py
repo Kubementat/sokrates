@@ -1,7 +1,6 @@
 from pathlib import Path
 from sokrates.llm_api import LLMApi
 from sokrates.prompt_refiner import PromptRefiner
-from sokrates.colors import Colors
 from sokrates.constants import Constants
 from sokrates.file_helper import FileHelper
 
@@ -20,8 +19,8 @@ class MergeIdeasWorkflow:
         api_key: str = Constants.DEFAULT_API_KEY,
         model: str = Constants.DEFAULT_MODEL,
         max_tokens: int = DEFAULT_MAX_TOKENS,
-        temperature: float = DEFAULT_TEMPERATURE,
-        verbose: bool = False) -> None:
+        temperature: float = DEFAULT_TEMPERATURE
+        ) -> None:
       """
       Initialize the MergeIdeasWorkflow with configuration parameters.
       
@@ -31,14 +30,12 @@ class MergeIdeasWorkflow:
           model (str): The model identifier to use for merging
           max_tokens (int): Maximum tokens for the LLM response
           temperature (float): Sampling temperature for response generation
-          verbose (bool): Enable verbose output for debugging
       """
       self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
-      self.refiner = PromptRefiner(verbose=verbose)
+      self.refiner = PromptRefiner()
       self.model = model
       self.max_tokens = max_tokens
       self.temperature = temperature
-      self.verbose = verbose
       # Path to the prompt template used for merging ideas
       self.idea_merger_prompt_file = str(Path(f"{Constants.DEFAULT_PROMPTS_DIRECTORY}/merge-ideas-v1.md").resolve())
 
@@ -70,7 +67,4 @@ class MergeIdeasWorkflow:
 
       # Format the processed content as markdown for better readability
       markdown_output = self.refiner.format_as_markdown(processed_content)
-      if self.verbose:
-        print(f"{Colors.MAGENTA}Processed response:\n{Colors.RESET}")
-        print(f"{Colors.MAGENTA}{markdown_output}\n{Colors.RESET}")
       return markdown_output

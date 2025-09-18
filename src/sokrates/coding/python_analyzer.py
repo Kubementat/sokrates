@@ -26,7 +26,6 @@ Parameters:
 - directory_path: Path to the directory containing Python files
 - target_file: Output file path for documentation  
 - filepath: Path to the specific Python file to analyze
-- verbose: Boolean flag for detailed output
 
 Functions:
 1. create_markdown_documentation_for_directory - Creates documentation for all Python files in a directory
@@ -43,11 +42,12 @@ Functions:
 This script is designed to be used in code documentation workflows and can 
 generate comprehensive technical documentation for Python projects.
 """
-from sokrates import FileHelper
-from sokrates import OutputPrinter
 import ast
 import os
 from typing import Tuple, List, Dict, Any
+from pathlib import Path
+
+from sokrates import FileHelper
 
 class PythonAnalyzer:
     @staticmethod
@@ -69,7 +69,6 @@ class PythonAnalyzer:
             
         Side Effects:
             - Writes documentation to the target file specified
-            - Prints directory contents if verbose is True
         """
         file_paths = FileHelper.directory_tree(directory_path, sort=True, file_extensions=['.py'])
         file_paths = list(filter(lambda s: "__init__.py" not in s, file_paths))
@@ -79,7 +78,6 @@ class PythonAnalyzer:
             full_analysis = f"{full_analysis}\n{PythonAnalyzer.get_definitions_markdown_for_file(file_path)}"
             
         FileHelper.write_to_file(target_file,full_analysis)
-        OutputPrinter.print_file_created(target_file)
         return full_analysis
     
     @staticmethod
@@ -123,7 +121,7 @@ class PythonAnalyzer:
     # private helpers 
     # ----------------------------------------------------------
     @staticmethod
-    def _parse_ast(filepath: str) -> ast.AST:
+    def _parse_ast(filepath: str|Path) -> ast.AST:
         """
         Parses a Python file into an Abstract Syntax Tree (AST).
         
@@ -145,10 +143,11 @@ class PythonAnalyzer:
             - Reads and parses a Python file from disk
             - Raises exceptions for invalid files or syntax errors
         """
-        if not os.path.exists(filepath):
+        filepath = Path(filepath)
+        if not filepath.is_file():
             raise FileNotFoundError(f"File not found: {filepath}")
         
-        if not filepath.endswith('.py'):
+        if not filepath.suffix == '.py':
             raise ValueError("File must be a Python file (.py)")
         
         with open(filepath, 'r', encoding='utf-8') as f:
@@ -349,7 +348,7 @@ class PythonAnalyzer:
         return classes, functions
 
     @staticmethod
-    def get_test_file_context(test_filepath: str) -> Dict[str, Any]:
+    def get_test_file_context(test_filepath: str|Path) -> Dict[str, Any]:
         """
         Extract test-related information from existing test files.
         

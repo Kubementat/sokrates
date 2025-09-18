@@ -9,8 +9,8 @@ unit tests for Python functions using LLM analysis.
 import argparse
 import os
 from sokrates.coding.test_generator import TestGenerator
-from sokrates.output_printer import OutputPrinter
-from sokrates.colors import Colors
+from sokrates.cli.output_printer import OutputPrinter
+from sokrates.cli.colors import Colors
 from sokrates.config import Config
 from sokrates.cli.helper import Helper
 
@@ -116,8 +116,7 @@ Examples:
             api_endpoint=api_endpoint,
             api_key=api_key,
             temperature=args.temperature,
-            max_tokens=args.max_tokens,
-            verbose=args.verbose
+            max_tokens=args.max_tokens
         )
         
         results = generator.generate_tests(

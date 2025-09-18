@@ -6,7 +6,7 @@ import argparse
 import sys
 
 from sokrates.workflows.idea_generation_workflow import IdeaGenerationWorkflow
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates import Colors, Config, FileHelper
 from sokrates.cli.helper import Helper
 
@@ -169,7 +169,6 @@ def main():
     workflow = IdeaGenerationWorkflow(
         api_endpoint=api_endpoint,
         api_key=api_key,
-        verbose=args.verbose,
         topic=args.topic,
         topic_input_file=args.topic_input_file,
         refinement_prompt_file=args.refinement_prompt_file,

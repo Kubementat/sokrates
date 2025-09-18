@@ -38,7 +38,7 @@ class FileProcessor:
         self.logger = logger or logging.getLogger(__name__)
         
         # Initialize components
-        self.refiner = PromptRefiner(verbose=False)
+        self.refiner = PromptRefiner()
         self.llm_api = LLMApi(
             api_endpoint=config.api_endpoint,
             api_key=config.api_key

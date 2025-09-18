@@ -1,4 +1,11 @@
 ## Changelog
+**version 0.11.1**
+- refactoring:
+  - removes verbose parameter for all non cli files
+  - moves OutputPrinter and Colors to cli module
+  - various improvements and fixes
+  - still ongoing
+
 **version 0.11.0**
 - feature - adds file watcher for executing tasks in the background 
 - refactoring:

@@ -22,11 +22,9 @@ class TestMergeIdeasWorkflow:
         assert hasattr(workflow, 'model')
         assert hasattr(workflow, 'max_tokens')
         assert hasattr(workflow, 'temperature')
-        assert hasattr(workflow, 'verbose')
         assert workflow.model == Constants.DEFAULT_MODEL
         assert workflow.max_tokens == 50000
         assert workflow.temperature == MergeIdeasWorkflow.DEFAULT_TEMPERATURE
-        assert workflow.verbose is False
 
     def test_init_with_custom_values(self):
         """Test initialization with custom values."""
@@ -35,14 +33,12 @@ class TestMergeIdeasWorkflow:
             api_key="custom_api_key", 
             model="gpt-4",
             max_tokens=10000,
-            temperature=0.9,
-            verbose=True
+            temperature=0.9
         )
         
         assert workflow.model == "gpt-4"
         assert workflow.max_tokens == 10000
         assert workflow.temperature == 0.9
-        assert workflow.verbose is True
 
     def test_merge_ideas_with_documents(self):
         """Test merging ideas with multiple documents."""

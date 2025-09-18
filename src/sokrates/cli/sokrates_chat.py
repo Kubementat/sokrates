@@ -32,9 +32,9 @@ import argparse
 
 from sokrates.llm_api import LLMApi
 from sokrates.config import Config
-from sokrates.colors import Colors
+from sokrates.cli.colors import Colors
 from sokrates.file_helper import FileHelper
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates.prompt_refiner import PromptRefiner
 from sokrates.cli.helper import Helper
 import re
@@ -123,7 +123,7 @@ def main():
     if args.temperature:
         temperature = args.temperature
     
-    refiner = PromptRefiner(verbose=args.verbose)
+    refiner = PromptRefiner()
 
     if not api_endpoint or not api_key or not model:
         OutputPrinter.print_error("API endpoint, API key, and model must be configured or provided.")

@@ -215,7 +215,7 @@ def main():
 
     # Initialize LLMApi, PromptRefiner
     llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
-    prompt_refiner = PromptRefiner(verbose=args.verbose)
+    prompt_refiner = PromptRefiner()
 
     # Step 1: Read input files
     print(f"\n{Colors.BLUE}{'='*60}")

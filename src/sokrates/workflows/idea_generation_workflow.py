@@ -5,17 +5,17 @@
 # and managing the output. This workflow is designed to automate and enhance
 # the prompt engineering process.
 
-from pathlib import Path
-from sokrates import LLMApi
-from sokrates import PromptRefiner
-from sokrates import Colors
-from sokrates import FileHelper
-from sokrates import Constants
-from sokrates import Utils
-from sokrates import OutputPrinter
 import os
 import json
 import time
+import logging
+
+from pathlib import Path
+from sokrates import LLMApi
+from sokrates import PromptRefiner
+from sokrates import FileHelper
+from sokrates import Constants
+from sokrates import Utils
 
 class IdeaGenerationWorkflow:
     """
@@ -39,7 +39,7 @@ class IdeaGenerationWorkflow:
         execution_llm_model: str = None,
         topic_generation_llm_model: str = None,
         idea_count: int = 2,
-        max_tokens: int = 20000, temperature: float = 0.7, verbose: bool = False):
+        max_tokens: int = 20000, temperature: float = 0.7):
         """
         Initializes the IdeaGenerationWorkflow.
 
@@ -63,39 +63,38 @@ class IdeaGenerationWorkflow:
                                             Defaults to Constants.DEFAULT_MODEL.
             max_tokens (int): Maximum tokens for LLM responses. Defaults to 20000.
             temperature (float): Temperature for LLM responses. Defaults to 0.7.
-            verbose (bool): If True, enables verbose output. Defaults to False.
         """
         if topic_input_file is not None and topic is not None:
             raise Exception("A topic input file and a topic was provided. Only provide one of both. Failing workflow.")
         
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.api_endpoint = api_endpoint
         self.api_key = api_key
         self.llm_api = LLMApi(api_endpoint=api_endpoint,
                                api_key=api_key)
-        self.prompt_refiner = PromptRefiner(verbose=verbose)
+        self.prompt_refiner = PromptRefiner()
         self.topic = topic
         self.topic_input_file = topic_input_file
         
         topic_generation_instructions_file = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_TOPIC_GENERATOR_PATH ).resolve() )
-        OutputPrinter.print_info(f"No topic_generator_file, topic_input_file or topic specified. Using the default topic generation instructions in {topic_generation_instructions_file}", Colors.BRIGHT_MAGENTA)
+        self.logger.info(f"No topic_generator_file, topic_input_file or topic specified. Using the default topic generation instructions in {topic_generation_instructions_file}")
         self.topic_generator_file = topic_generation_instructions_file
         
         self.refinement_prompt_file = refinement_prompt_file
         if self.refinement_prompt_file is None:
             full_refinement_filepath = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_REFINEMENT_FILENAME ).resolve() )
-            OutputPrinter.print_info(f"No refinement_prompt_file specified. Using the default refinement prompt instructions in {full_refinement_filepath}", Colors.BRIGHT_MAGENTA)
+            self.logger.info(f"No refinement_prompt_file specified. Using the default refinement prompt instructions in {full_refinement_filepath}")
             self.refinement_prompt_file = full_refinement_filepath
         
         self.prompt_generator_file = prompt_generator_file
         if self.prompt_generator_file is None:
             full_pg_filepath = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_PROMPT_GENERATOR_PATH ).resolve())
-            OutputPrinter.print_info(f"No prompt_generator_file specified. Using the default prompt generator instructions in {full_pg_filepath}", Colors.BRIGHT_MAGENTA)
+            self.logger.info(f"No prompt_generator_file specified. Using the default prompt generator instructions in {full_pg_filepath}")
             self.prompt_generator_file = full_pg_filepath
         
         self.output_directory = output_directory
         self.max_tokens = max_tokens
         self.temperature = temperature
-        self.verbose = verbose
         
         self.idea_count = idea_count
         
@@ -143,8 +142,6 @@ class IdeaGenerationWorkflow:
         """
         
         categories = self.pick_topic_categories_from_json()
-        if self.verbose:
-            OutputPrinter.print_info("Random categories picked", categories)    
         
         if len(categories) == 1:
             return f"{topic_generation_instructions}\n\n# Thematic field to use for topic generation\nGenerate a topic from the thematic field of {categories[0]}"
@@ -180,7 +177,7 @@ class IdeaGenerationWorkflow:
                 temperature=self.temperature
             )
             cleaned_response = self.prompt_refiner.clean_response(response)
-            OutputPrinter.print_info("Generated Topic", cleaned_response, Colors.BRIGHT_MAGENTA, Colors.GREEN)
+            self.logger.debug(f"Generated Topic: {cleaned_response}")
             return cleaned_response
     
     def execute_prompt_generation(self) -> list[str]:
@@ -208,9 +205,8 @@ class IdeaGenerationWorkflow:
         if self.output_directory:
             json_path = os.path.join(self.output_directory, "generated_prompts.json")
             FileHelper.write_to_file(json_path, cleaned_json)
-            OutputPrinter.print_file_created(json_path)
         
-        OutputPrinter.print_info("Generated prompts", cleaned_json, Colors.BRIGHT_MAGENTA, Colors.GREEN)
+        self.logger.info("Generated prompts: {cleaned_json}")
         return json.loads(cleaned_json)["prompts"]
     
     def refine_and_execute_prompt(self, execution_prompt: str, index: int) -> str:
@@ -259,8 +255,6 @@ class IdeaGenerationWorkflow:
             self.output_directory = FileHelper.generate_postfixed_sub_directory_name(self.output_directory)
         start_time = time.time()
         
-        OutputPrinter.print_header("🚀 Idea Generator 🚀", Colors.BRIGHT_CYAN, 60)
-        
         self.topic = self.generate_or_set_topic()
         
         execution_prompts = self.execute_prompt_generation()
@@ -280,13 +274,12 @@ class IdeaGenerationWorkflow:
                     FileHelper.write_to_file(output_filename, result)
                     created_files.append(output_filename)
             except Exception as e:
-                OutputPrinter.print_error(f"Issue processing prompt {idx}: {str(e)}")
+                self.logger.error(f"Issue processing prompt {idx}: {str(e)}")
         
         end_time = time.time()
         total_seconds = round(end_time - start_time, 2)
-        OutputPrinter.print_header("🎉 Workflow Completed! 🎉", Colors.BRIGHT_GREEN, 60)
-        OutputPrinter.print_info("Total execution time", f"{total_seconds} seconds", Colors.BRIGHT_MAGENTA, Colors.GREEN)
+        self.logger.info(f"Total execution time: {total_seconds} seconds")
         
-        for f in created_files:
-            OutputPrinter.print_file_created(f)
+        for file in created_files:
+            self.logger.info(f"Created file: {file}")
         return created_ideas

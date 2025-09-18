@@ -38,7 +38,6 @@ class TestIdeaGenerationWorkflowIntegration:
             api_endpoint=self.api_endpoint,
             api_key=self.api_key,
             topic="The beauty of planet Earth as seen from space.",
-            verbose=True,
             idea_count=3
         )
       list = workflow.run()
@@ -50,8 +49,7 @@ class TestIdeaGenerationWorkflowIntegration:
         workflow = IdeaGenerationWorkflow(
             api_endpoint=self.api_endpoint,
             api_key=self.api_key,
-            topic_input_file="tests/fixtures/topics/science_fiction_games_topic.md",
-            verbose=False
+            topic_input_file="tests/fixtures/topics/science_fiction_games_topic.md"
         )
         
         content = None
@@ -66,8 +64,7 @@ class TestIdeaGenerationWorkflowIntegration:
         """Test that the workflow initializes correctly with default parameters."""
         workflow = IdeaGenerationWorkflow(
             api_endpoint=self.api_endpoint,
-            api_key=self.api_key,
-            verbose=False
+            api_key=self.api_key
         )
         
         # Check that all attributes are properly set
@@ -80,7 +77,6 @@ class TestIdeaGenerationWorkflowIntegration:
         assert hasattr(workflow, 'output_directory')
         assert hasattr(workflow, 'max_tokens')
         assert hasattr(workflow, 'temperature')
-        assert hasattr(workflow, 'verbose')
         
         # Check default values
         assert workflow.api_endpoint == self.api_endpoint
@@ -97,8 +93,7 @@ class TestIdeaGenerationWorkflowIntegration:
             topic="Custom Topic",
             idea_count=5,
             max_tokens=10000,
-            temperature=0.9,
-            verbose=True
+            temperature=0.9
         )
         
         # Check that custom values are properly set
@@ -106,15 +101,13 @@ class TestIdeaGenerationWorkflowIntegration:
         assert workflow.idea_count == 5
         assert workflow.max_tokens == 10000
         assert workflow.temperature == 0.9
-        assert workflow.verbose is True
 
     def test_workflow_with_output_directory(self):
         """Test that output directory handling works correctly."""
         workflow = IdeaGenerationWorkflow(
             api_endpoint=self.api_endpoint,
             api_key=self.api_key,
-            output_directory=self.temp_dir,
-            verbose=False
+            output_directory=self.temp_dir
         )
         
         # Check that the output directory is set properly

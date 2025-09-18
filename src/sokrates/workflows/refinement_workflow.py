@@ -5,11 +5,11 @@
 # for refining input prompts, sending them to LLMs for execution, and
 # generating specific content like "mantras" based on provided context.
 
-from typing import List
+from typing import List, Optional
 from pathlib import Path
+import logging
 from sokrates.llm_api import LLMApi
 from sokrates.prompt_refiner import PromptRefiner
-from sokrates.colors import Colors
 from sokrates.file_helper import FileHelper
 
 class RefinementWorkflow:
@@ -19,12 +19,17 @@ class RefinementWorkflow:
     This class integrates with LLM API for model interaction and
     PromptRefiner for prompt processing and response cleaning.
     """
+
+    DEFAULT_CONTEXT_FILES = [
+      Path(__file__).parent / "prompts" / "context" / "self-improvement-principles-v1.md"
+    ]
+    DEFAULT_TASK_FILEPATH = Path(__file__).parent / "prompts" / "generate-mantra-v1.md"
+
     def __init__(self, api_endpoint: str, 
         api_key: str, 
         model: str, 
         max_tokens: int = 20000,
-        temperature: float = 0.7,
-        verbose: bool = False) -> None:
+        temperature: float = 0.7) -> None:
       """
       Initializes the RefinementWorkflow.
 
@@ -34,14 +39,13 @@ class RefinementWorkflow:
           model (str): The default LLM model to use.
           max_tokens (int): The maximum number of tokens for LLM responses. Defaults to 20000.
           temperature (float): The sampling temperature for LLM responses. Defaults to 0.7.
-          verbose (bool): If True, enables verbose output. Defaults to False.
       """
+      self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
       self.llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
-      self.refiner = PromptRefiner(verbose=verbose)
+      self.refiner = PromptRefiner()
       self.model = model
       self.max_tokens = max_tokens
       self.temperature = temperature
-      self.verbose = verbose
 
     def refine_prompt(self, input_prompt: str, refinement_prompt: str, context: List[str]=None) -> str:
       """
@@ -55,18 +59,15 @@ class RefinementWorkflow:
       Returns:
           str: The refined and formatted prompt as a Markdown string.
       """
-      if self.verbose:
-        print(f"{Colors.MAGENTA}Refining prompt:\n{Colors.RESET}")
-        print(f"{Colors.MAGENTA}{input_prompt}\n{Colors.RESET}")
+      self.logger.debug(f"Refining prompt: {input_prompt}")
+
       combined_prompt = self.refiner.combine_refinement_prompt(input_prompt, refinement_prompt)
       response_content = self.llm_api.send(combined_prompt, model=self.model, max_tokens=self.max_tokens, context=context)
       processed_content = self.refiner.clean_response(response_content)
 
       # Format as markdown
       markdown_output = self.refiner.format_as_markdown(processed_content)
-      if self.verbose:
-        print(f"{Colors.MAGENTA}Processed response:\n{Colors.RESET}")
-        print(f"{Colors.MAGENTA}{markdown_output}\n{Colors.RESET}")
+      self.logger.debug(f"Processed response: {markdown_output}")
       return markdown_output
     
     def refine_and_send_prompt(self, 
@@ -98,13 +99,10 @@ class RefinementWorkflow:
       if not max_tokens:
         max_tokens = self.max_tokens
       
-      if self.verbose:
-        print(f"{Colors.MAGENTA}Refining and sending prompt...\n{Colors.RESET}")
+      self.logger.info("Refining and sending prompt...")
       refined_prompt = self.refine_prompt(input_prompt=input_prompt, refinement_prompt=refinement_prompt)
       
-      if self.verbose:
-        print(f"{Colors.MAGENTA}Sending refined prompt to model: {execution_model}\n{Colors.RESET}")
-      
+      self.logger.info(f"Sending refined prompt to model: {execution_model}")
       
       response_content = self.llm_api.send(refined_prompt, model=execution_model, 
           temperature=refinement_temperature, max_tokens=max_tokens)
@@ -112,9 +110,7 @@ class RefinementWorkflow:
 
       # Format as markdown
       markdown_output = self.refiner.format_as_markdown(processed_content)
-      if self.verbose:
-        print(f"{Colors.MAGENTA}Execution response:\n{Colors.RESET}")
-        print(f"{Colors.MAGENTA}{markdown_output}\n{Colors.RESET}")
+      self.logger.debug(f"Execution response: {markdown_output}")
       return markdown_output
     
     def breakdown_task(self, task: str, context: List[str] = None):
@@ -135,7 +131,7 @@ class RefinementWorkflow:
       result = self.refine_prompt(input_prompt=task, refinement_prompt=breakdown_instructions, context=context)
       return result
     
-    def generate_mantra(self, context_files: List[str] = None, task_file_path: str = None) -> str:
+    def generate_mantra(self, context_files: Optional[List[str] | List[Path]] = None, task_file_path: Optional[str|Path] = None) -> str:
       """
       Generates a "mantra" based on provided context and a task file.
 
@@ -148,20 +144,12 @@ class RefinementWorkflow:
       Returns:
           str: The generated mantra as a Markdown string.
       """
-      if not context_files:
-        context_files = [
-          Path(f"{Path(__file__).parent.resolve()}/prompts/context/self-improvement-principles-v1.md").resolve()
-        ]
-      if not task_file_path:
-        task_file_path = Path(f"{Path(__file__).parent.resolve()}/prompts/generate-mantra-v1.md").resolve()
+      context_files = context_files or self.DEFAULT_CONTEXT_FILES
+      task_file_path = task_file_path or self.DEFAULT_TASK_FILEPATH
       
       task = FileHelper.read_file(file_path=task_file_path)
       context = FileHelper.combine_files(file_paths=context_files)
-      if self.verbose:
-        print(f"{Colors.MAGENTA}Context:\n{Colors.RESET}")
-        print(f"{Colors.MAGENTA}{context}\n{Colors.RESET}")
-        
-      print(f"{Colors.MAGENTA}Generating mantra for today...\n{Colors.RESET}")
+      self.logger.debug(f"Context: {context}")
       
       combined_prompt = self.refiner.combine_refinement_prompt(task, context)
       response_content = self.llm_api.send(combined_prompt, model=self.model, max_tokens=self.max_tokens)
@@ -169,7 +157,5 @@ class RefinementWorkflow:
 
       # Format as markdown
       markdown_output = self.refiner.format_as_markdown(processed_content)
-      if self.verbose:
-        print(f"{Colors.MAGENTA}Processed response:\n{Colors.RESET}")
-        print(f"{Colors.MAGENTA}{markdown_output}\n{Colors.RESET}")
+      self.logger.debug(f"Processed response: {markdown_output}")
       return markdown_output

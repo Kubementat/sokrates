@@ -55,8 +55,7 @@ def test_sequential_task_executor():
             model=pytest.TESTING_MODEL,
             refinement_prompt_path=str(refinement_prompt_path),
             temperature=0.7,
-            output_dir="../tmp/test_results",
-            verbose=False
+            output_dir="../tmp/test_results"
         )
 
         # Execute tasks

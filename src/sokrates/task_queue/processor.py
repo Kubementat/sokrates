@@ -101,8 +101,7 @@ class TaskProcessor:
                 api_key=self.config.api_key,
                 model=self.config.default_model,
                 temperature=self.config.default_model_temperature,
-                refinement_prompt_path=str((Path(self.config.prompts_directory) / 'refine-prompt.md').resolve()),
-                verbose=True
+                refinement_prompt_path=str(Path(self.config.prompts_directory) / 'refine-prompt.md')
                 )
 
         try:

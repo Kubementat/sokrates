@@ -2,7 +2,7 @@
 import argparse
 import sys
 
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates import Colors, Config, FileHelper
 from sokrates.cli.helper import Helper
 from sokrates.workflows.merge_ideas_workflow import MergeIdeasWorkflow
@@ -105,7 +105,6 @@ def main():
         model=model,
         api_endpoint=api_endpoint,
         api_key=api_key,
-        verbose=args.verbose,
         max_tokens=args.max_tokens,
         temperature=temperature
     )

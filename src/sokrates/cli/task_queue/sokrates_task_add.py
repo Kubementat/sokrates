@@ -20,8 +20,8 @@ Example:
 import argparse
 import sys
 from sokrates.task_queue.manager import TaskQueueManager
-from sokrates.colors import Colors
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.colors import Colors
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates.config import Config
 
 def main():

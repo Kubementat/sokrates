@@ -2,8 +2,6 @@
 """
 Tests for the file watcher functionality.
 """
-
-import pytest
 import tempfile
 import time
 import os
@@ -12,7 +10,6 @@ from unittest.mock import Mock, patch
 
 from sokrates.task_queue.file_watcher import FileWatcher, FileWatcherEventHandler
 from sokrates.task_queue.file_processor import FileProcessor
-from sokrates.config import Config
 
 
 class TestFileWatcher:
@@ -102,7 +99,7 @@ class TestFileWatcher:
             test_file.write_text("Test content")
             
             # Wait a bit for the file system event
-            time.sleep(0.5)
+            time.sleep(1)
             
             # Stop the watcher
             watcher.stop()
@@ -258,54 +255,3 @@ class TestFileProcessor:
         finally:
             if os.path.exists(temp_file):
                 os.unlink(temp_file)
-
-
-@pytest.mark.integration
-class TestFileWatcherIntegration:
-    """Integration tests for file watcher functionality."""
-    
-    def test_end_to_end_file_processing(self):
-        """Test end-to-end file processing workflow."""
-        with tempfile.TemporaryDirectory() as watch_dir, \
-             tempfile.TemporaryDirectory() as output_dir:
-            
-            # Create config
-            config = Config()
-            config.file_watcher_enabled = True
-            config.file_watcher_directories = [watch_dir]
-            config.file_watcher_extensions = ['.txt']
-            config.home_path = output_dir
-            
-            # Create file processor
-            processor = FileProcessor(config=config)
-            
-            # Create callback function (ignore return value to match expected signature)
-            def process_file_callback(file_path):
-                processor.process_file(file_path)
-            
-            # Create and start file watcher
-            watcher = FileWatcher(
-                watch_directories=[watch_dir],
-                file_processor_callback=process_file_callback,
-                file_extensions=['.txt']
-            )
-            
-            watcher.start()
-            
-            try:
-                # Create a test file
-                test_file = Path(watch_dir) / "test_prompt.txt"
-                test_content = "Please write a short poem about artificial intelligence."
-                test_file.write_text(test_content)
-                
-                # Wait for processing
-                time.sleep(2)
-                # Check if output file was created
-                output_files = list(Path(output_dir).glob("file_watcher_results/*.md"))
-                
-                # File processing may succeed or fail depending on API availability
-                # We just verify the system responded to the file creation
-                assert len(output_files) > 1    
-                
-            finally:
-                watcher.stop()

@@ -237,6 +237,7 @@ class FileHelper:
             # Write the content to the file
             with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
+            FileHelper._log.debug("Written to file: {file_path}")
         except IOError as e:
             error_msg = f"Error writing to file {file_path!s}: {e}"
             FileHelper._log.error(error_msg)

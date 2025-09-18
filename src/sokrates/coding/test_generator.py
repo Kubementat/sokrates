@@ -25,17 +25,14 @@ Usage examples:
    results = generator.generate_tests(..., strategy="edge_cases")
 """
 
-import os
-from typing import List, Dict, Any
+import logging
+from typing import List, Dict, Any, Optional
 from pathlib import Path
 
 from .python_analyzer import PythonAnalyzer
 from sokrates.llm_api import LLMApi
 from sokrates.file_helper import FileHelper
-from sokrates.output_printer import OutputPrinter
 from sokrates.prompt_refiner import PromptRefiner
-from sokrates.colors import Colors
-
 
 class TestGenerator:
     """
@@ -55,26 +52,24 @@ class TestGenerator:
         "all": str(Path(__file__).parent.parent / "prompts/coding/test_generation_all.md")
     }
     
-    def __init__(self, model: str = None, api_endpoint: str = None, 
-                 api_key: str = 'notrequired', temperature: float = 0.7, 
-                 max_tokens: int = 2000, verbose: bool = False):
+    def __init__(self, model: str = None, api_endpoint: str = None,
+                 api_key: str = 'notrequired', temperature: float = 0.7,
+                 max_tokens: int = 2000):
         """
         Initialize the TestGenerator with LLM configuration.
         
         Args:
             model (str): LLM model name to use for test generation
             api_endpoint (str): Custom API endpoint for LLM calls
-            api_key (str): API key for authentication with LLM service  
+            api_key (str): API key for authentication with LLM service
             temperature (float): Sampling temperature for responses (default: 0.7)
             max_tokens (int): Maximum tokens for test generation (default: 2000)
-            verbose (bool): Enable verbose output during processing
         """
-        self.verbose = verbose
         self.llm_api = LLMApi(
-            api_endpoint=api_endpoint, 
+            api_endpoint=api_endpoint,
             api_key=api_key
         )
-        self.refiner = PromptRefiner(verbose=verbose)
+        self.refiner = PromptRefiner()
         
         # Use provided model or fall back to default from config
         self.model = model
@@ -86,11 +81,7 @@ class TestGenerator:
         # Prompt templates - can be customized per strategy
         self.prompt_templates = self.DEFAULT_PROMPT_TEMPLATES.copy()
         
-        if self.verbose:
-            print(f"{Colors.BLUE}{Colors.BOLD}TestGenerator initialized:{Colors.RESET}")
-            print(f"   Model: {self.model or 'default'}")
-            print(f"   Temperature: {temperature}")
-            print(f"   Max tokens: {max_tokens}")
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
     def set_prompt_template(self, strategy: str, template_path: str) -> None:
         """
@@ -101,11 +92,10 @@ class TestGenerator:
             template_path (str): Path to the custom prompt template file
         """
         self.prompt_templates[strategy] = template_path
-        if self.verbose:
-            print(f"Custom prompt template set for '{strategy}': {template_path}")
+        self.logger.debug(f"Custom prompt template set for '{strategy}': {template_path}")
 
-    def generate_tests(self, directory_path: str = None, file_paths: List[str] = None,
-                      output_dir: str = "tests", strategy: str = "all") -> Dict[str, Any]:
+    def generate_tests(self, directory_path: str = "", file_paths: Optional[List[str] | List[Path]] = None,
+                      output_dir: str|Path = "tests", strategy: str = "all") -> Dict[str, Any]:
         """
         Generate tests for Python files using the specified strategy.
         
@@ -122,8 +112,7 @@ class TestGenerator:
             ValueError: If neither directory_path nor file_paths is specified
             FileNotFoundError: If specified files or directories don't exist
         """
-        if self.verbose:
-            OutputPrinter.print_header("🚀 Smart Test Generation 🚀", Colors.BRIGHT_CYAN, 50)
+        self.logger.info("Generating tests ...")
         
         # Validate input parameters
         if not directory_path and not file_paths:
@@ -133,12 +122,11 @@ class TestGenerator:
         source_files = self._prepare_source_files(directory_path, file_paths)
         
         # Create output directory
-        os.makedirs(output_dir, exist_ok=True)
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
         
-        if self.verbose:
-            print(f"Processing {len(source_files)} source files...")
-            print(f"Output directory: {output_dir}")
-            print(f"Strategy: {strategy}")
+        self.logger.info(f"Processing {len(source_files)} source files...")
+        self.logger.info(f"Output directory: {output_dir}")
+        self.logger.info(f"Strategy: {strategy}")
 
         results = {
             'total_files_processed': len(source_files),
@@ -167,18 +155,15 @@ class TestGenerator:
                 error_msg = f"Error processing {source_file}: {str(e)}"
                 results['errors'].append({'file': source_file, 'error': error_msg})
                 
-                if self.verbose:
-                    print(f"{Colors.RED}Error: {error_msg}{Colors.RESET}")
+                self.logger.error(f"Error: {error_msg}")
 
-        # Print summary
-        if self.verbose:
-            OutputPrinter.print_success("Test generation completed!")
-            print(f"   Files processed: {results['total_files_processed']}")
-            print(f"   Tests generated: {results['tests_generated']}")
-            print(f"   Test files created: {results['files_created']}")
-            
-            if results['errors']:
-                print(f"{Colors.YELLOW}⚠️  Errors encountered: {len(results['errors'])}{Colors.RESET}")
+        self.logger.info("Test generation completed!")
+        self.logger.info(f"Files processed: {results['total_files_processed']}")
+        self.logger.info(f"Tests generated: {results['tests_generated']}")
+        self.logger.info(f"Test files created: {results['files_created']}")
+        
+        if results['errors']:
+            self.logger.warning(f"Errors encountered: {len(results['errors'])}")
 
         return results
 
@@ -208,8 +193,7 @@ class TestGenerator:
                 if not (f.endswith('_test.py') or f.endswith('test_*.py') or '__init__.py' in f)
             ]
             
-            if self.verbose:
-                print(f"Found {len(filtered_files)} Python files in directory: {directory_path}")
+            self.logger.info(f"Found {len(filtered_files)} Python files in directory: {directory_path}")
                 
             return filtered_files
             
@@ -217,14 +201,13 @@ class TestGenerator:
             # Validate specific files exist
             validated_files = []
             for file_path in file_paths:
-                if not os.path.exists(file_path):
+                if not Path(file_path).is_file():
                     raise FileNotFoundError(f"File not found: {file_path}")
                 if not file_path.endswith('.py'):
                     continue  # Skip non-Python files
-                validated_files.append(os.path.abspath(file_path))
+                validated_files.append(Path(file_path).absolute())
             
-            if self.verbose:
-                print(f"Processing {len(validated_files)} specified Python files")
+            self.logger.info(f"Processing {len(validated_files)} specified Python files")
                 
             return validated_files
 
@@ -250,29 +233,25 @@ class TestGenerator:
         
         try:
             # Check if test file already exists
-            test_filename = f"test_{os.path.basename(source_file)}"
-            test_filepath = os.path.join(output_dir, test_filename)
+            test_filename = f"test_{Path(source_file).name}"
+            test_filepath = Path(output_dir) / test_filename
             
             existing_test_context = None
-            if os.path.exists(test_filepath):
+            if Path(test_filepath).is_file():
                 existing_test_context = PythonAnalyzer.get_test_file_context(test_filepath)
+                self.logger.info(f"Existing test file found: {test_filepath}")
                 
-                if self.verbose:
-                    print(f"   Existing test file found: {test_filepath}")
-            
             source_file_content = FileHelper.read_file(source_file)
             
             # Prepare prompt based on strategy
             prompt_template_path = self.prompt_templates.get(strategy, self.prompt_templates["base"])
             prompt_template = FileHelper.read_file(prompt_template_path)
-            
+
             # Build context-rich prompt
             prompt = self._build_test_generation_prompt(
                 prompt_template, source_file, source_file_content, existing_test_context
             )
-            
-            if self.verbose:
-                print(f"   Generating tests using strategy: {strategy}")
+            self.logger.info(f"Generating tests using strategy: {strategy}")
             
             # Send to LLM for test generation
             generated_tests = self.llm_api.send(
@@ -295,13 +274,11 @@ class TestGenerator:
                 'generated_strategy': strategy
             })
             
-            if self.verbose:
-                OutputPrinter.print_file_created(test_filepath)
+            self.logger.info(f"File created: {test_filepath}")
                 
         except Exception as e:
             result['error'] = str(e)
-            if self.verbose:
-                print(f"{Colors.RED}Error generating tests for {source_file}: {e}{Colors.RESET}")
+            self.logger.error(f"Error generating tests for {source_file}: {e}")
 
         return result
 
@@ -322,8 +299,8 @@ class TestGenerator:
         # Simple template substitution - replace all placeholders with their values
         prompt = template
         
-        prompt = prompt.replace('{{source_file_path}}', source_file_path)
-        prompt = prompt.replace('{{source_file_content}}', source_file_content)
+        prompt = prompt.replace('{{source_file_path}}', str(source_file_path))
+        prompt = prompt.replace('{{source_file_content}}', str(source_file_content))
 
         return prompt
 
@@ -392,5 +369,4 @@ Do not edit this file manually - regenerate using sokrates-generate-tests
             template_path (str): Path to the custom prompt template file
         """
         self.prompt_templates[name] = template_path
-        if self.verbose:
-            print(f"Custom strategy '{name}' added using template: {template_path}")
+        self.logger.debug(f"Custom strategy '{name}' added using template: {template_path}")

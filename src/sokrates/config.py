@@ -9,7 +9,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from .constants import Constants
 from threading import Lock
-from typing import Any
 import logging
 
 class Config:
@@ -220,42 +219,3 @@ class Config:
         extensions.append(ext.lower())
     
     return extensions
-
-  @staticmethod
-  def _get_local_member_value(key):
-    """
-    Retrieves the value of a local member variable by key.
-
-    This static method is used internally to fetch configuration values
-    from the singleton instance of Config. It checks for specific keys and returns
-    their corresponding values or None if not found.
-
-    Args:
-        key (str): The configuration parameter name to retrieve.
-
-    Returns:
-        The value of the requested configuration parameter, or None if not found.
-    """
-    if hasattr(Config._instance, key):
-        return getattr(Config._instance, key)
-    return None
-  
-  @staticmethod
-  def get(key, default_value=None) -> Any:
-    """
-    Retrieves configuration value with precedence:
-    1. Config instance attribute
-    2. Environment variable
-    3. Provided default_value
-    
-    Args:
-        key (str): Configuration parameter name
-        default_value: Fallback if neither instance nor env var exists
-        
-    Returns:
-        str | None: Configuration value or default_value
-    """
-    lval = Config._get_local_member_value(key)
-    if lval is not None:
-      return lval
-    return os.environ.get(key, default_value)

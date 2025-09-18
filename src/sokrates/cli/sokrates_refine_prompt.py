@@ -25,7 +25,7 @@ import argparse
 from pathlib import Path
 import time
 from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.output_printer import OutputPrinter
 from .helper import Helper
 
 def validate_endpoint_url(url):
@@ -248,7 +248,7 @@ Examples:
         context_files=args.context_files)
     
     try:
-        refiner = PromptRefiner(verbose=args.verbose)
+        refiner = PromptRefiner()
         llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
         
         # Load initial prompt (either from command line or file)

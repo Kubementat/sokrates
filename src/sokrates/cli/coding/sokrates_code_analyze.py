@@ -10,8 +10,8 @@ import argparse
 import os
 import sys
 from sokrates.coding.analyze_repository_workflow import AnalyzeRepositoryWorkflow
-from sokrates.output_printer import OutputPrinter
-from sokrates.colors import Colors
+from sokrates.cli.output_printer import OutputPrinter
+from sokrates.cli.colors import Colors
 from sokrates.config import Config
 from sokrates.cli.helper import Helper
 from sokrates.file_helper import FileHelper

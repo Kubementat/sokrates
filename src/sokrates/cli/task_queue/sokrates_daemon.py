@@ -11,7 +11,7 @@ import signal
 import time
 import argparse
 from sokrates.task_queue.daemon import TaskQueueDaemon
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates.config import Config
 
 CONFIG = Config()

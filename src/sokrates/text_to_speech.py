@@ -6,8 +6,8 @@ import re
 
 from pathlib import Path
 import time
-from .output_printer import OutputPrinter
-from .colors import Colors
+from .cli.output_printer import OutputPrinter
+from .cli.colors import Colors
 
 # Try to import voice libs, but don't fail if they are not available
 try:

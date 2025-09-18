@@ -8,8 +8,8 @@ The result can be fed to a large language model as context for understanding how
 import argparse
 import sys
 from sokrates.coding.python_analyzer import PythonAnalyzer
-from sokrates.output_printer import OutputPrinter
-from sokrates.colors import Colors
+from sokrates.cli.output_printer import OutputPrinter
+from sokrates.cli.colors import Colors
 
 def main():
     """Main execution function"""

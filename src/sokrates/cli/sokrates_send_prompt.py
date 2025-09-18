@@ -9,8 +9,7 @@ The script supports:
 2. Multiple models (specified as comma-separated values)
 3. Configuration of response parameters like max tokens and temperature
 4. Input from file or command line
-5. Verbose output and error handling
-6. Output to markdown files for easy viewing/editing
+5. Output to markdown files for easy viewing/editing
 
 Call example:
 ./send-prompt.py --models "qwen2.5-coder-7b-instruct-mlx,josiefied-qwen3-30b-a3b-abliterated-v2" --input-directory tmp/input_prompts --max-tokens 10000 -o tmp/outputs --verbose
@@ -18,26 +17,13 @@ Call example:
 
 import argparse
 import sys
-import logging
 import os
 from pathlib import Path
 from sokrates import LLMApi, FileHelper, PromptRefiner, Config
 from sokrates.cli.helper import Helper
+from sokrates.cli.output_printer import OutputPrinter
 
-# ANSI escape codes for colors
-COLOR_RESET = "\033[0m"
-COLOR_RED = "\033[91m"
-COLOR_GREEN = "\033[92m"
-COLOR_YELLOW = "\033[93m"
-COLOR_BLUE = "\033[94m"
-COLOR_MAGENTA = "\033[95m"
-COLOR_CYAN = "\033[96m"
-COLOR_BOLD = "\033[1m"
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def write_output_file(content, model, source_prompt_file, output_directory, verbose=False):
+def write_output_file(content, model, source_prompt_file, output_directory):
     """
     Writes the content to a markdown file with appropriate naming.
 
@@ -48,7 +34,6 @@ def write_output_file(content, model, source_prompt_file, output_directory, verb
             Used for naming if provided.
         output_directory (str, optional): Directory where the markdown file should be written.
             If None, no file is written.
-        verbose (bool): If True, prints additional information about the operation.
 
     Returns:
         None
@@ -65,7 +50,7 @@ def write_output_file(content, model, source_prompt_file, output_directory, verb
         FileHelper.write_to_file(file_path=output_file, content=content)
 
 def prompt_model(llm_api, prompt, model, max_tokens, temperature, 
-    output_directory, source_prompt_file=None, verbose=False, post_process_results=False,
+    output_directory, source_prompt_file=None, post_process_results=False,
     context_text=None, context_directories=None, context_files=None, system_prompt=None):
     """Process a prompt with a specific LLM model and handle the response.
 
@@ -80,7 +65,6 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
         temperature (float): Controls randomness in response generation.
         output_directory (str, optional): Directory where markdown files should be written.
         source_prompt_file (str, optional): Path to the original prompt file for naming.
-        verbose (bool): If True, prints additional information about operations.
         post_process_results (bool): Enable response post-processing (e.g. strip out  blocks).
         context_text (str, optional): Additional text to prepend to the prompt.
         context_directories (list, optional): List of directories containing files with context.
@@ -91,8 +75,7 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
         None
     """
     try:
-        logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nQuerying {model} ... \n{COLOR_RESET}")
+        OutputPrinter.print_section(f"Querying {model} ...")
             
         context = Helper.construct_context_from_arguments(
             context_text=context_text,
@@ -106,24 +89,20 @@ def prompt_model(llm_api, prompt, model, max_tokens, temperature,
             context=context,
             system_prompt=system_prompt
         )
-        logging.info(f"{COLOR_MAGENTA}{'-'*20}{COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nOutput for model {model} :\n{COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}{'-'*20}\n{COLOR_RESET}")
-        logging.info(response)
-        logging.info(f"{COLOR_MAGENTA}{'-'*20}\n{COLOR_RESET}")
+        OutputPrinter.print_section(f"Output for model {model}")
+        OutputPrinter.print(response)
         
         if post_process_results:
-            refiner = PromptRefiner({}, verbose=verbose)
-            logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nPost processing is enabled\n{COLOR_RESET}")
+            refiner = PromptRefiner()
+            OutputPrinter.print_section("Post processing is enabled")
             response = refiner.clean_response(response)
-            logging.info(f"{COLOR_MAGENTA}{COLOR_BOLD}\nPost processed response for model {model} :\n{COLOR_RESET}")
-            logging.info(response)
-            logging.info(f"{COLOR_MAGENTA}{'-'*20}\n{COLOR_RESET}")
+            OutputPrinter.print_section(f"Post processed response for model {model}")
+            OutputPrinter.print(response)
 
         # Write response to markdown file if output directory is set
-        write_output_file(response, model, source_prompt_file, output_directory, verbose)
+        write_output_file(response, model, source_prompt_file, output_directory)
     except Exception as e:
-        logging.error(f"{COLOR_RED}{COLOR_BOLD}An error occurred: {e}{COLOR_RESET}")
+        OutputPrinter.print_error(f"An error occurred: {e}")
         raise(e)
 
 def main():
@@ -161,26 +140,18 @@ Call example:
     args = parser.parse_args()
     config = Config()
     
-    api_endpoint = config.api_endpoint
-    if args.api_endpoint:
-        api_endpoint = args.api_endpoint
-    api_key = config.api_key
-    if args.api_key:
-        api_key = args.api_key
-    models = config.default_model
-    if args.models:
-        models = args.models
-    temperature = config.default_model_temperature
-    if args.temperature:
-        temperature = args.temperature
+    api_endpoint = args.api_endpoint or config.api_endpoint
+    api_key = args.api_key or config.api_key    
+    models = args.models or config.default_model
+    temperature = args.temperature or config.default_model_temperature
     
     # Validate input requirements
     if (args.prompt is None and args.input_file is None and args.input_directory is None):
-        logging.error(f"{COLOR_RED}{COLOR_BOLD}Either a text prompt or an --input-file or an --input-directory needs to be provided. Exiting.{COLOR_RESET}")
+        OutputPrinter.print_error("Either a text prompt or an --input-file or an --input-directory needs to be provided. Exiting.")
         sys.exit(1)
     
     if (args.input_file and args.input_directory):
-        logging.error(f"{COLOR_RED}{COLOR_BOLD}Both --input-file and --input-directory are provided. Choose one or the other. Exiting.{COLOR_RESET}")
+        OutputPrinter.print_error("Both --input-file and --input-directory are provided. Choose one or the other. Exiting.")
         sys.exit(1)
     
     Helper.print_configuration_section(config=config, args=args)
@@ -195,26 +166,26 @@ Call example:
     prompt_files = []
     if args.input_directory:
         prompt_files = FileHelper.list_files_in_directory(args.input_directory)
-        logging.info(f"{COLOR_MAGENTA}Input Directory: {args.input_directory}{COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}Prompt Files: {COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}{prompt_files}{COLOR_RESET}")
+        OutputPrinter.print_info("Input Directory", args.input_directory)
+        OutputPrinter.print_section("Input Directory contents")
+        for f in prompt_files:
+            OutputPrinter.print(f"  {f}")
     
     # Handle input file
     if args.input_file:
         prompt_files = [args.input_file]
     
     # Show context information
-    if args.verbose:
-        logging.info(f"{COLOR_MAGENTA}context-text: {args.context_text}{COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}context-directories: {args.context_directories}{COLOR_RESET}")
-        logging.info(f"{COLOR_MAGENTA}context-files: {args.context_files}{COLOR_RESET}")
+    OutputPrinter.print_info("context-text", args.context_text)
+    OutputPrinter.print_info("context-directories", args.context_directories)
+    OutputPrinter.print_info("context-files", args.context_files)
     
     # Process single prompt (no directory or file specified)
     if args.prompt is not None:
         for model in models:
             prompt_model(llm_api, prompt=args.prompt, model=model, max_tokens=args.max_tokens, 
                 temperature=temperature, output_directory=args.output_directory, source_prompt_file=None, 
-                verbose=args.verbose, post_process_results=args.post_process_results,
+                post_process_results=args.post_process_results,
                 context_text=args.context_text, context_directories=args.context_directories, 
                 context_files=args.context_files, system_prompt=args.system_prompt)
             sys.exit(0)
@@ -225,14 +196,14 @@ Call example:
             try:
                 prompt = FileHelper.read_file(filepath)
             except Exception as e:
-                logging.error(f"{COLOR_RED}{COLOR_BOLD}Error reading input file: {e}{COLOR_RESET}")
-                logging.info(f"{COLOR_MAGENTA}Skipping {filepath}{COLOR_RESET}")
+                OutputPrinter.print_error(f"Error reading input file: {e}")
+                OutputPrinter.print_info("Skipping", filepath)
                 continue
 
             for model in models:
                 prompt_model(llm_api, prompt=prompt, model=model, max_tokens=args.max_tokens, 
                     temperature=temperature, output_directory=args.output_directory, 
-                    source_prompt_file=filepath, verbose=args.verbose, 
+                    source_prompt_file=filepath,
                     post_process_results=args.post_process_results,
                     context_text=args.context_text, context_directories=args.context_directories, 
                     context_files=args.context_files)

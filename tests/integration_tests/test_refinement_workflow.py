@@ -10,8 +10,7 @@ class TestRefinementWorkflow(unittest.TestCase):
                     api_key="not-required",
                     model=pytest.TESTING_MODEL,
                     max_tokens=10000,
-                    temperature=0.7,
-                    verbose=True)
+                    temperature=0.7)
 
     def test_refine_prompt(self):
         input_prompt = "This is my original prompt."

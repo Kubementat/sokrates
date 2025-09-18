@@ -5,10 +5,10 @@ Python Script to generate a daily mantra and practical call to action utilizing 
 import argparse
 from pathlib import Path
 
-from sokrates.colors import Colors
+from sokrates.cli.colors import Colors
 from sokrates.config import Config
 from sokrates.workflows.refinement_workflow import RefinementWorkflow
-from sokrates.output_printer import OutputPrinter
+from sokrates.cli.output_printer import OutputPrinter
 from sokrates.cli.helper import Helper
 
 def main():
@@ -96,8 +96,8 @@ def main():
     Helper.print_configuration_section(config=config, args=args)
     
     workflow = RefinementWorkflow(api_endpoint=api_endpoint, api_key=api_key, 
-        verbose=args.verbose, model=model,
-        temperature=temperature, max_tokens=args.max_tokens)
+        model=model, temperature=temperature, max_tokens=args.max_tokens
+    )
     
     context_files = [
         Path(f"{Path(__file__).parent.parent.resolve()}/prompts/context/self-improvement-principles-v1.md").resolve()

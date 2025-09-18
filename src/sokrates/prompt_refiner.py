@@ -4,7 +4,7 @@
 # and removing extraneous meta-elements or code block formatting that LLMs might
 # include in their responses. This helps in preparing LLM outputs for further use.
 
-from .colors import Colors
+import logging
 import re
 from markdownify import markdownify as md
 
@@ -14,16 +14,15 @@ class PromptRefiner:
     Provides methods to combine prompts, format content, and remove unwanted
     meta-elements or markdown formatting from responses.
     """
-    def __init__(self, config: dict = {}, verbose: bool = False):
+    def __init__(self, config: dict = {}):
         """
         Initializes the PromptRefiner.
 
         Args:
             config (dict): Configuration dictionary (currently not used). Defaults to {}.
-            verbose (bool): If True, enables verbose output for cleaning operations. Defaults to False.
         """
         self.config = config
-        self.verbose = verbose
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
     def combine_refinement_prompt(self, input_prompt: str, refinement_prompt: str) -> str:
         """
@@ -43,14 +42,6 @@ class PromptRefiner:
         """
         if len(input_prompt) == 0:
             raise ValueError("Input prompt cannot be empty")
-        if self.verbose:
-            print("-"*50)
-            print("📝 INPUT PROMPT", Colors.BRIGHT_MAGENTA, "═")
-            print(f"{Colors.DIM}{input_prompt}{Colors.RESET}\n")
-            print("-"*50)
-            print("🔧 REFINEMENT PROMPT", Colors.BRIGHT_YELLOW, "═")
-            print(f"{Colors.DIM}{refinement_prompt}{Colors.RESET}\n")
-            print("-"*50)
         return f"{refinement_prompt}\n\n{input_prompt}"
       
     def format_as_markdown(self, content: str) -> str:
@@ -100,14 +91,14 @@ class PromptRefiner:
         Returns:
             str: The cleaned response string.
         """
-        if self.verbose:
-            print(f"{Colors.MAGENTA}Cleaning refined response...{Colors.RESET}")
+        self.logger.debug("Cleaning refined response...")
         
         original_length = len(response)
         cleaned = response
         
         patterns_to_remove = [
             r'<think>.*?</think>',  # Think blocks
+            r'\[THINK\].*?\[/THINK\]', # Think blocks magistral format
             r'<thinking>.*?</thinking>',  # Thinking blocks
             r'<reasoning>.*?</reasoning>',  # Reasoning blocks
             r'<meta>.*?</meta>',  # Meta blocks
@@ -117,8 +108,7 @@ class PromptRefiner:
         for pattern in patterns_to_remove:
             matches = re.findall(pattern, cleaned, re.DOTALL | re.IGNORECASE)
             if matches:
-                if self.verbose:
-                    print(f"{Colors.BLUE}Removing {len(matches)} instances of pattern: {pattern}{Colors.RESET}")
+                self.logger.debug(f"Removing {len(matches)} instances of pattern: {pattern}")
                 cleaned = re.sub(pattern, '', cleaned, flags=re.DOTALL | re.IGNORECASE)
         
         prefixes_to_remove = [
@@ -132,26 +122,21 @@ class PromptRefiner:
         for prefix in prefixes_to_remove:
             if re.match(prefix, cleaned, re.IGNORECASE):
                 cleaned = re.sub(prefix, '', cleaned, flags=re.IGNORECASE)
-                if self.verbose:
-                    print(f"{Colors.BLUE}Removed prefix pattern: {prefix}{Colors.RESET}")
+                self.logger.debug(f"Removed prefix pattern: {prefix}")
         
         # cleanup unneeded tags
         cleaned = re.sub(r'\n\s*\n\s*\n', '\n\n', cleaned)
         
-        stray_tag_pattern = r'</?(think|tool_code|execute_result|response|answer)>'
+        stray_tag_pattern = r'</?(THINK|think|tool_code|execute_result|response|answer)>'
         cleaned = re.sub(stray_tag_pattern, '', cleaned, flags=re.DOTALL)
         cleaned = cleaned.strip()
         
         chars_removed = original_length - len(cleaned)
         if chars_removed > 0:
-            if self.verbose:
-                print(f"{Colors.GREEN}Cleaned response: removed {chars_removed} characters{Colors.RESET}")
+            self.logger.debug(f"Cleaned response: removed {chars_removed} characters")
         else:
-            if self.verbose:
-                print(f"{Colors.BLUE}No cleaning needed - response was already clean{Colors.RESET}")
-        
-        if self.verbose:
-            print(f"{Colors.BLUE}Final cleaned length: {len(cleaned)} characters{Colors.RESET}")
+            self.logger.debug("No cleaning needed - response was already clean")
+            self.logger.debug(f"Final cleaned length: {len(cleaned)} characters")
         return cleaned
     
     def clean_response_from_markdown(self, content: str) -> str:
@@ -167,7 +152,6 @@ class PromptRefiner:
         pattern = r'```(?:\n|(?:json|yml|yaml|javascript|html)\n)'
         cleaned = re.sub(pattern, '', content, flags=re.DOTALL)
         cleaned = re.sub('```', '', cleaned)
-        if self.verbose:
-            print(f"{Colors.BLUE}Final cleaned length: {len(cleaned)} characters{Colors.RESET}")
+        self.logger.debug(f"Final cleaned length: {len(cleaned)} characters")
         
         return cleaned
