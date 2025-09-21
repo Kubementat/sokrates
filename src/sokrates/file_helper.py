@@ -29,6 +29,7 @@ import shutil
 from pathlib import Path
 import re
 import logging
+from ruamel.yaml import YAML
 
 class FileHelper:
     """
@@ -103,6 +104,24 @@ class FileHelper:
         """
         dir_path = Path(directory_path)
         return [str(p.resolve()) for p in dir_path.iterdir() if p.is_file()]
+    
+    @staticmethod
+    def read_yaml_file(file_path: str | Path) -> dict:
+        """
+        Reads and parses a YAML file.
+        """
+        file_p = Path(file_path)
+        if not file_p.is_file():
+            error = f"File not found at {file_path} ."
+            FileHelper._log.error(error)
+            raise Exception(error)
+
+        try:
+            yaml=YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
+            return yaml.load(file_path)
+        except Exception as e:
+            FileHelper._log.error(f"Unexpected error reading config file {file_path}: {e}")
+        raise
     
     @staticmethod
     def read_json_file(file_path: str | Path) -> dict:

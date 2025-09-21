@@ -365,7 +365,7 @@ class CodeReviewWorkflow:
 def run_code_review(api_endpoint: str, api_key: str, model: str, 
                 directory_path: Optional[str], file_paths: Optional[List[str]] = None,
                 output_dir: str = "reviews", review_type: str = CODE_REVIEW_TYPE_ALL,
-                max_tokens: int = DEFAULT_MAX_TOKENS) -> Dict[str, Any]:
+                max_tokens: int = DEFAULT_MAX_TOKENS, temperature: float = DEFAULT_TEMPERATURE) -> Dict[str, Any]:
     """
     Convenience function to run a code review workflow.
     

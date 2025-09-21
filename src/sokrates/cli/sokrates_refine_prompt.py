@@ -17,7 +17,7 @@ MODELS="deepseek-r1-distill-qwen-7b,qwen3-4b"
 INPUT_FILE="input.md"
 REFINEMENT_INSTRUCTIONS_FILE="refinement.md"
 OUTPUT_FILE="improved.md"
-uv run python refine-prompt.py --api-endpoint "$ENDPOINT"  --models "$MODELS" --input-file $INPUT_FILE  "$REFINEMENT_INSTRUCTIONS_FILE" --verbose --max-tokens 10000 --output $OUTPUT_FILE
+uv run python refine-prompt.py --api-endpoint "$ENDPOINT"  --models "$MODELS" --input-file $INPUT_FILE  "$REFINEMENT_INSTRUCTIONS_FILE" --max-tokens 10000 --output $OUTPUT_FILE
 """
 
 import sys
@@ -27,19 +27,6 @@ import time
 from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config
 from sokrates.cli.output_printer import OutputPrinter
 from .helper import Helper
-
-def validate_endpoint_url(url):
-    """
-    Basic validation for API endpoint URL.
-    
-    Args:
-        url (str): API endpoint URL
-        
-    Returns:
-        bool: True if URL seems valid
-    """
-    return url.startswith(('http://', 'https://')) and len(url.strip()) > 8
-
 
 def main():
     """Main function to handle command line arguments and orchestrate the process."""
@@ -100,6 +87,14 @@ Examples:
         '--input-file', '-i',
         help='Path to file containing the initial text prompt (alternative to text_prompt argument)'
     )
+
+    parser.add_argument(
+        '--provider',
+        required=False,
+        type=str,
+        default=None,
+        help="The provider to use"
+    )
     
     parser.add_argument(
         '--api-endpoint',
@@ -138,12 +133,6 @@ Examples:
     )
     
     parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose output with debug information'
-    )
-    
-    parser.add_argument(
         '--output', '-o',
         type=str,
         help='Output filename to save the response (e.g., response.md)'
@@ -170,28 +159,16 @@ Examples:
     # Parse arguments
     args = parser.parse_args()
     
-    config = Config()
-    
-    api_endpoint = config.api_endpoint
-    if args.api_endpoint:
-        api_endpoint = args.api_endpoint
-        if not validate_endpoint_url(api_endpoint):
-            OutputPrinter.print_error(f"Invalid API endpoint URL: {api_endpoint}")
-            OutputPrinter.print_warning("URL should start with http:// or https:// (e.g., http://localhost:1234/v1)")
-            sys.exit(1)
-        
-    api_key = config.api_key
-    if args.api_key:
-        api_key = args.api_key
-    
-    models = [config.default_model]
-    if args.models:
-        models = [s.strip() for s in args.models.split(",")]
-        
-    temperature = config.default_model_temperature
-    if args.temperature:
-        temperature = args.temperature
-    
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
+    temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
+    models = Helper.get_provider_value('models', config, args, 'default_model')
+
+    # Convert models string to list if needed
+    if isinstance(models, str):
+        models = models.replace(" ","").split(',')
+
     # Validate that either text_prompt or input-file is provided
     if not args.text_prompt and not args.input_file:
         OutputPrinter.print_error("Either provide a text_prompt argument or use --input-file option")
@@ -225,21 +202,20 @@ Examples:
     Helper.print_configuration_section(config=config, args=args)
     OutputPrinter.print_info("Models", ', '.join(models), Colors.BRIGHT_CYAN)
     
-    if args.verbose:
-        OutputPrinter.print_info("API Endpoint", api_endpoint, Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("API Key", '[SET]' if api_key else '[EMPTY]', Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("Max Tokens", f"{args.max_tokens:,}", Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("Temperature", f"{temperature}", Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("Refinement prompt file", f"{refinement_prompt_file}", Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("context-text", args.context_text, Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("context-files", args.context_files, Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("context-directories", args.context_directories, Colors.BRIGHT_CYAN)
-        OutputPrinter.print_info("Input Method", 'File' if args.input_file else 'Command Line', Colors.BRIGHT_CYAN)
-        if args.input_file:
-            OutputPrinter.print_info("Input File", args.input_file, Colors.BRIGHT_CYAN)
-        if args.output:
-            OutputPrinter.print_info("Output File", args.output, Colors.BRIGHT_CYAN)
-        print()
+    OutputPrinter.print_info("API Endpoint", api_endpoint, Colors.BRIGHT_CYAN)
+    OutputPrinter.print_info("API Key", '[SET]' if api_key else '[EMPTY]', Colors.BRIGHT_CYAN)
+    OutputPrinter.print_info("Max Tokens", f"{args.max_tokens:,}", Colors.BRIGHT_CYAN)
+    OutputPrinter.print_info("Temperature", f"{temperature}", Colors.BRIGHT_CYAN)
+    OutputPrinter.print_info("Refinement prompt file", f"{refinement_prompt_file}", Colors.BRIGHT_CYAN)
+    OutputPrinter.print_info("context-text", args.context_text, Colors.BRIGHT_CYAN)
+    OutputPrinter.print_info("context-files", args.context_files, Colors.BRIGHT_CYAN)
+    OutputPrinter.print_info("context-directories", args.context_directories, Colors.BRIGHT_CYAN)
+    OutputPrinter.print_info("Input Method", 'File' if args.input_file else 'Command Line', Colors.BRIGHT_CYAN)
+    if args.input_file:
+        OutputPrinter.print_info("Input File", args.input_file, Colors.BRIGHT_CYAN)
+    if args.output:
+        OutputPrinter.print_info("Output File", args.output, Colors.BRIGHT_CYAN)
+    print()
         
     # context
     context = Helper.construct_context_from_arguments(
@@ -253,27 +229,23 @@ Examples:
         
         # Load initial prompt (either from command line or file)
         if args.input_file:
-            if args.verbose:
-                OutputPrinter.print_progress(f"Loading initial prompt from file {Colors.CYAN}{args.input_file}{Colors.RESET}")
+            OutputPrinter.print_progress(f"Loading initial prompt from file {Colors.CYAN}{args.input_file}{Colors.RESET}")
             text_prompt = FileHelper.read_file(args.input_file)
         else:
             text_prompt = args.text_prompt
+        
         # Load refinement prompt
-        if args.verbose:
-            OutputPrinter.print_progress(f"Loading refinement prompt from file {Colors.CYAN}{refinement_prompt_file}{Colors.RESET}")
+        OutputPrinter.print_progress(f"Loading refinement prompt from file {Colors.CYAN}{refinement_prompt_file}{Colors.RESET}")
         refinement_prompt = FileHelper.read_file(refinement_prompt_file)
         
         # Combine prompts
-        if args.verbose:
-            OutputPrinter.print_progress("Combining prompts...")
+        OutputPrinter.print_progress("Combining prompts...")
         combined_prompt = refiner.combine_refinement_prompt(text_prompt, refinement_prompt)
         
-        if args.verbose:
-            OutputPrinter.print_info("Combined prompt length", f"{len(combined_prompt):,} characters", Colors.BRIGHT_MAGENTA)
+        OutputPrinter.print_info("Combined prompt length", f"{len(combined_prompt):,} characters", Colors.BRIGHT_MAGENTA)
         
         # Send to LLM
-        if args.verbose:
-            OutputPrinter.print_progress(f"Sending request to LLM server at {Colors.CYAN}{api_endpoint}{Colors.RESET}")
+        OutputPrinter.print_progress(f"Sending request to LLM server at {Colors.CYAN}{api_endpoint}{Colors.RESET}")
         
         # send to llm
         created_files = []
@@ -332,10 +304,9 @@ Examples:
         sys.exit(1)
     except Exception as e:
         OutputPrinter.print_error(f"Error: {e}")
-        if args.verbose:
-            import traceback
-            OutputPrinter.print_section("🐛 FULL TRACEBACK", Colors.BRIGHT_RED, "═")
-            traceback.print_exc(file=sys.stderr)
+        import traceback
+        OutputPrinter.print_section("🐛 FULL TRACEBACK", Colors.BRIGHT_RED, "═")
+        traceback.print_exc(file=sys.stderr)
         sys.exit(1)
 
 

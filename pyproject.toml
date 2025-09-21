@@ -20,8 +20,9 @@ dependencies = [
     "tabulate",
     "colorama",
     "html2text",
-    "dotenv",
-    "watchdog"
+    "ruamel.yaml",
+    "watchdog",
+    "mergedeep"
 ]
 
 [project.optional-dependencies]

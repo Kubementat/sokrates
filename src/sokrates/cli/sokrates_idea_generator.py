@@ -16,23 +16,14 @@ def parse_arguments() -> argparse.Namespace:
         description="Idea generator workflow: Generate topic or set topic -> Prompt Generator -> Execution Prompts (with optional refinement)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Example usage:
-  idea-generator \\
-    --prompt-generator-file prompts/prompt_generators/prompt-generator-v1.md \\
-    --refinement-prompt-file prompts/refine-concept.md \\
-    --topic-generation-model unsloth-phi-4 \\
-    --generator-llm-model google/gemma-3-27b \\
-    --execution-llm-model qwen2.5-coder-7b-instruct-mlx \\
-    --refinement-llm-model unsloth-phi-4 \\
-    --api-endpoint http://localhost:1234/v1 \\
-    --api-key lmstudio \\
-    --output-directory tmp/multi_stage_outputs \\
-    --verbose
-    
-  idea-generator \\
-    --topic "How will AI affect the course of human civilization in 100 years?" \\
-    --output-directory tmp/multi_stage_outputs
         """
+    )
+
+    parser.add_argument(
+        '--provider',
+        required=False,
+        default=None,
+        help="The provider to list models for."
     )
     
     parser.add_argument(
@@ -98,12 +89,6 @@ Example usage:
     )
     
     parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose output'
-    )
-    
-    parser.add_argument(
         '--output-directory', '-o',
         required=True,
         help='Directory to save the final execution prompt outputs'
@@ -138,14 +123,14 @@ def main():
 
     args = parse_arguments()
 
-    config = Config()
-    api_endpoint = args.api_endpoint or config.api_endpoint
-    api_key = args.api_key or config.api_key
-    topic_generation_model = args.topic_generation_model or config.default_model
-    generator_llm_model = args.generator_llm_model or config.default_model
-    execution_llm_model = args.execution_llm_model or config.default_model
-    refinement_llm_model = args.refinement_llm_model or config.default_model
-    temperature = args.temperature or config.default_model_temperature
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
+    temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
+    topic_generation_model = Helper.get_provider_value('topic_generation_model', config, args, 'default_model')
+    generator_llm_model = Helper.get_provider_value('generator_llm_model', config, args, 'default_model')
+    execution_llm_model = Helper.get_provider_value('execution_llm_model', config, args, 'default_model')
+    refinement_llm_model = Helper.get_provider_value('refinement_llm_model', config, args, 'default_model')
 
     Helper.print_configuration_section(config=config, args=args)
 
@@ -162,7 +147,6 @@ def main():
     OutputPrinter.print_info("refinement-llm-model", refinement_llm_model)
     OutputPrinter.print_info("temperature", temperature)
     OutputPrinter.print_info("max-tokens", args.max_tokens)
-    OutputPrinter.print_info("verbose", args.verbose)
     output_directory = FileHelper.generate_postfixed_sub_directory_name(args.output_directory)
     OutputPrinter.print_info("output-directory", output_directory)
 

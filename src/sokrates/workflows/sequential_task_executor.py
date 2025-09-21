@@ -14,6 +14,7 @@ Parameters:
 import os
 import logging
 from typing import Dict
+from pathlib import Path
 from .refinement_workflow import RefinementWorkflow
 from sokrates.file_helper import FileHelper
 from sokrates.llm_api import LLMApi
@@ -50,9 +51,9 @@ class SequentialTaskExecutor:
     def __init__(self, api_endpoint: str,
                  api_key: str,
                  model: str,
-                 refinement_prompt_path: str,
+                 refinement_prompt_path: str | Path,
                  temperature: float,
-                 output_dir: str = None,
+                 output_dir: str | Path | None = None,
                  refinement_enabled: bool = True,
                  max_tokens = DEFAULT_MAX_TOKENS
                  ):
@@ -78,7 +79,7 @@ class SequentialTaskExecutor:
         self.max_tokens = max_tokens
         self.output_dir = FileHelper.create_and_return_task_execution_directory(output_dir)
         self.refinement_enabled = refinement_enabled
-        self.refinement_prompt_path = refinement_prompt_path
+        self.refinement_prompt_path = Path(refinement_prompt_path)
 
         # Create output directory if it doesn't exist
         os.makedirs(self.output_dir, exist_ok=True)

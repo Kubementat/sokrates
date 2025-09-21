@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 
 from sokrates.task_queue.file_watcher import FileWatcher, FileWatcherEventHandler
 from sokrates.task_queue.file_processor import FileProcessor
-
+from sokrates.config import Config
 
 class TestFileWatcher:
     """Test cases for FileWatcher class."""
@@ -99,7 +99,7 @@ class TestFileWatcher:
             test_file.write_text("Test content")
             
             # Wait a bit for the file system event
-            time.sleep(1)
+            time.sleep(3)
             
             # Stop the watcher
             watcher.stop()
@@ -160,14 +160,7 @@ class TestFileProcessor:
     @patch('sokrates.task_queue.file_processor.FileHelper')
     def test_file_processor_initialization(self, mock_file_helper, mock_llm_api):
         """Test FileProcessor initialization."""
-        config = Mock()
-        config.api_endpoint = "http://localhost:1234/v1"
-        config.api_key = "test_key"
-        config.default_model = "test_model"
-        config.default_model_temperature = 0.7
-        config.home_path = "/tmp/test"
-        config.prompts_directory = "/tmp/test/prompts"
-        
+        config = Config()
         processor = FileProcessor(config=config)
         
         assert processor.config == config

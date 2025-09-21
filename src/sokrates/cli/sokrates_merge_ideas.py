@@ -13,9 +13,15 @@ def parse_arguments() -> argparse.Namespace:
         description="Idea merger workflow: Merges ideas from multiple documents into one final result document",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Example usage:
-TODO
         """
+    )
+
+    parser.add_argument(
+        '--provider',
+        required=False,
+        type=str,
+        default=None,
+        help="The provider to use"
     )
     
     parser.add_argument(
@@ -51,12 +57,6 @@ TODO
     )
     
     parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose output'
-    )
-    
-    parser.add_argument(
         '--output-file', '-o',
         required=True,
         help='File path to save the final document to'
@@ -76,29 +76,20 @@ def main():
 
     args = parse_arguments()
 
-    config = Config()
-    api_endpoint = config.api_endpoint
-    api_key = config.api_key
-    model = config.default_model
-    temperature = config.default_model_temperature
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
+    model = Helper.get_provider_value('model', config, args, 'default_model')
+    temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
     
-    if args.api_key:
-        api_key = args.api_key
-    if args.api_endpoint:
-        api_endpoint = args.api_endpoint
-    if args.model:
-        model = args.model
-    if args.temperature:
-        temperature = args.temperature
-
     Helper.print_configuration_section(config=config, args=args)
 
     OutputPrinter.print_info("api-endpoint",api_endpoint)
     OutputPrinter.print_info("model", model)
-    OutputPrinter.print_info("source-documents", args.source_documents)
     OutputPrinter.print_info("temperature", temperature)
     OutputPrinter.print_info("max-tokens", args.max_tokens)
-    OutputPrinter.print_info("verbose", args.verbose)
+    print()
+    OutputPrinter.print_info("source-documents", args.source_documents)
     OutputPrinter.print_info("output-file", args.output_file)
 
     workflow = MergeIdeasWorkflow(

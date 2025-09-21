@@ -29,6 +29,13 @@ def main():
     
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Perform automated code analysis on source code. This is very handy to dive into an unknown code base')
+    parser.add_argument(
+        '--provider',
+        required=False,
+        type=str,
+        default=None,
+        help="The provider to use"
+    )
     parser.add_argument('--source-directory', '-sd', type=str,
                         help='Directory containing source files to review (usually the root directory of a git repository)', required=True)
     parser.add_argument('--output', '-o', type=str, required=False, default="docs/code_analysis.md",
@@ -50,10 +57,11 @@ def main():
     )
     
     args = parser.parse_args()
-    config = Config()
-    api_endpoint = args.api_endpoint or config.api_endpoint
-    api_key = args.api_key or config.api_key
-    model = args.model or config.default_model
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
+    temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
+    model = Helper.get_provider_value('model', config, args, 'default_model')
 
     directory_path = None
     
@@ -72,8 +80,8 @@ def main():
         analysis_result = workflow.analyze_repository(
             source_directory=str(directory_path), 
             model=str(model), 
-            temperature=args.temperature,
-            max_tokens=args.max_tokens 
+            temperature=temperature,
+            max_tokens=args.max_tokens
         )
         FileHelper.write_to_file(args.output, analysis_result)
         

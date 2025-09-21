@@ -27,6 +27,14 @@ def main():
         )
 
     parser.add_argument(
+        '--provider',
+        required=False,
+        type=str,
+        default=None,
+        help="The provider to use"
+    )
+
+    parser.add_argument(
         '--api-endpoint',
         default=None,
         help="LLM server API endpoint."
@@ -70,12 +78,6 @@ def main():
         help='Output filename to save the response (e.g., tasks.json)'
     )
     
-    parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose output with debug information'
-    )
-    
     # context
     parser.add_argument(
         '--context-text', '-ct',
@@ -100,15 +102,11 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
-    config = Config()
-    
-    api_key = args.api_key or config.api_key
-        
-    api_endpoint = args.api_endpoint or config.api_endpoint
-    
-    model = args.model or config.default_model
-        
-    temperature = args.temperature or config.default_model_temperature
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
+    temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
+    model = Helper.get_provider_value('model', config, args, 'default_model')
 
     if args.task and args.task_file:
         OutputPrinter.print_error("You cannot provide both a task-file and a task. Exiting.")

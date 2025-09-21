@@ -39,17 +39,19 @@ class FileProcessor:
         
         # Initialize components
         self.refiner = PromptRefiner()
+
+        default_provider = config.get_default_provider()
         self.llm_api = LLMApi(
-            api_endpoint=config.api_endpoint,
-            api_key=config.api_key
+            api_endpoint=default_provider.get('api_endpoint'),
+            api_key=default_provider.get('api_key')
         )
         
         # Output directory for file processing results
-        self.output_dir = Path(config.home_path) / "tasks" / "results"
+        self.output_dir = config.get('home_path') / "tasks" / "results"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         # Load refinement prompt
-        self.refinement_prompt_path = Path(config.prompts_directory) / "refine-prompt.md"
+        self.refinement_prompt_path = config.get('prompts_directory') / "refine-prompt.md"
         self.refinement_prompt = self._load_refinement_prompt()
         
     def _load_refinement_prompt(self) -> str:
@@ -190,7 +192,7 @@ Refined prompt:"""
                 return None
                 
             # Read file content
-            content = FileHelper.read_file(str(file_path_obj))
+            content = FileHelper.read_file(file_path_obj)
             
             if not content or not content.strip():
                 self.logger.warning(f"File is empty: {file_path}")
@@ -219,12 +221,13 @@ Refined prompt:"""
                 refinement_prompt=self.refinement_prompt
             )
             
+            provider = self.config.get_default_provider()
             # Send to LLM for refinement
             refined_response = self.llm_api.send(
                 prompt=combined_prompt,
-                model=self.config.default_model,
+                model=provider.get('default_model'),
                 max_tokens=4000,
-                temperature=0.7
+                temperature=provider.get('default_temperature')
             )
             
             # Clean the response
@@ -251,11 +254,14 @@ Refined prompt:"""
         """
         try:
             # Send refined prompt to LLM for execution
+
+            provider = self.config.get_default_provider()
+
             execution_result = self.llm_api.send(
                 prompt=refined_prompt,
-                model=self.config.default_model,
+                model=provider.get('default_model'),
                 max_tokens=8000,
-                temperature=self.config.default_model_temperature
+                temperature=provider.get('default_temperature')
             )
             
             # Clean and format the response

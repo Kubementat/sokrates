@@ -76,21 +76,18 @@ class IdeaGenerationWorkflow:
         self.topic = topic
         self.topic_input_file = topic_input_file
         
-        topic_generation_instructions_file = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_TOPIC_GENERATOR_PATH ).resolve() )
-        self.logger.info(f"No topic_generator_file, topic_input_file or topic specified. Using the default topic generation instructions in {topic_generation_instructions_file}")
-        self.topic_generator_file = topic_generation_instructions_file
+        self.topic_generator_file = (Constants.DEFAULT_PROMPTS_DIRECTORY / self.DEFAULT_TOPIC_GENERATOR_PATH).resolve()
+        self.logger.info(f"No topic_generator_file, topic_input_file or topic specified. Using the default topic generation instructions in {self.topic_generator_file}")
         
         self.refinement_prompt_file = refinement_prompt_file
         if self.refinement_prompt_file is None:
-            full_refinement_filepath = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_REFINEMENT_FILENAME ).resolve() )
-            self.logger.info(f"No refinement_prompt_file specified. Using the default refinement prompt instructions in {full_refinement_filepath}")
-            self.refinement_prompt_file = full_refinement_filepath
+            self.refinement_prompt_file = (Constants.DEFAULT_PROMPTS_DIRECTORY / self.DEFAULT_REFINEMENT_FILENAME).resolve()
+            self.logger.info(f"No refinement_prompt_file specified. Using the default refinement prompt instructions in {self.refinement_prompt_file}")
         
         self.prompt_generator_file = prompt_generator_file
         if self.prompt_generator_file is None:
-            full_pg_filepath = str((Path(Constants.DEFAULT_PROMPTS_DIRECTORY) / self.DEFAULT_PROMPT_GENERATOR_PATH ).resolve())
-            self.logger.info(f"No prompt_generator_file specified. Using the default prompt generator instructions in {full_pg_filepath}")
-            self.prompt_generator_file = full_pg_filepath
+            self.prompt_generator_file = (Constants.DEFAULT_PROMPTS_DIRECTORY / self.DEFAULT_PROMPT_GENERATOR_PATH).resolve()
+            self.logger.info(f"No prompt_generator_file specified. Using the default prompt generator instructions in {self.prompt_generator_file}")
         
         self.output_directory = output_directory
         self.max_tokens = max_tokens

@@ -34,8 +34,8 @@ class TaskQueueDaemon:
             config (Config): Config object for configuration loading attributes from
         """
         self.config = config
-        self.processing_interval = self.config.daemon_processing_interval
-        self.daemon_logfile_path = self.config.daemon_logfile_path
+        self.processing_interval = self.config.get('daemon.processing_interval')
+        self.daemon_logfile_path = self.config.get('daemon.logfile_path')
         self.running = False
 
         # Set up logging
@@ -69,7 +69,7 @@ class TaskQueueDaemon:
 
     def _setup_file_watcher(self):
         """Set up the file watcher components if enabled."""
-        if not self.config.file_watcher_enabled:
+        if not self.config.get("daemon.file_watcher.enabled"):
             self.logger.info("File watcher is disabled")
             return
             
@@ -77,16 +77,19 @@ class TaskQueueDaemon:
             # Initialize file processor
             self.file_processor = FileProcessor(config=self.config, logger=self.logger)
             
+            watched_directories = self.config.get("daemon.file_watcher.watched_directories")
+            file_extensions = self.config.get("daemon.file_watcher.file_extensions")
+
             # Initialize file watcher
             self.file_watcher = FileWatcher(
-                watch_directories=self.config.file_watcher_directories,
+                watch_directories=watched_directories,
                 file_processor_callback=self._process_watched_file,
-                file_extensions=self.config.file_watcher_extensions,
+                file_extensions=file_extensions,
                 logger=self.logger
             )
             
-            self.logger.info(f"File watcher configured for directories: {self.config.file_watcher_directories}")
-            self.logger.info(f"File watcher configured for extensions: {self.config.file_watcher_extensions}")
+            self.logger.info(f"File watcher configured for directories: {watched_directories}")
+            self.logger.info(f"File watcher configured for extensions: {file_extensions}")
             
         except Exception as e:
             self.logger.error(f"Failed to set up file watcher: {e}")

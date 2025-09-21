@@ -102,14 +102,14 @@ For a list of all dependencies view the [pyproject.toml](pyproject.toml) file.
 
 ## Configuration
 
-You can configure the library via a configuration file in $HOME/.sokrates/.env
+You can configure the library via a yml configuration file in $HOME/.sokrates/config.yml
 
 ```
 # Copy
-cp .env.example $HOME/.sokrates/.env
+cp config.yml.example $HOME/.sokrates/config.yml
 
 # adjust to your needs
-vim $HOME/.sokrates/.env
+vim $HOME/.sokrates/config.yml
 ```
 
 ## Usage
@@ -278,16 +278,16 @@ sokrates-task-list --status pending --priority high
 The file watcher automatically monitors specified directories for new files and processes them through the LLM refinement pipeline:
 
 ```bash
-# Enable file watcher in your .env file
-echo "SOKRATES_FILE_WATCHER_ENABLED=true" >> ~/.sokrates/.env
-echo "SOKRATES_FILE_WATCHER_DIRECTORIES=/home/user/prompts,/home/user/ideas" >> ~/.sokrates/.env
+# Enable file watcher in your config file
+# see daemon/file_watcher configuration
+vim $HOME/.sokrates/config.yml
 
 # Start the daemon with file watcher enabled
 sokrates-daemon start
 
 # Now just drop text files into the watched directories
 # and they will be automatically processed!
-echo "Write a Python function to calculate fibonacci numbers" > ~/prompts/my_request.txt
+echo "Write a Python function to calculate fibonacci numbers" > /your_configured_dir/my_request.txt
 # The daemon will detect the file, refine the prompt, and execute it via LLM
 ```
 

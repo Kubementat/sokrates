@@ -25,11 +25,14 @@ def main():
         description='Lists available models for an llm endpoint',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
- list_models.py --api-endpoint http://localhost:1234/v1 --api-key not-required
- list_models.py # for localhost:1234/v1
-  
         """
+    )
+
+    parser.add_argument(
+        '--provider',
+        required=False,
+        default=None,
+        help="The provider to list models for."
     )
 
     parser.add_argument(
@@ -46,24 +49,13 @@ Examples:
         help='API key for authentication (many local servers don\'t require this)'
     )
     
-    parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose output'
-    )
-    
     # Parse arguments
     args = parser.parse_args()
     
     try:
-        config = Config()
-        api_endpoint = config.api_endpoint
-        api_key = config.api_key
-        
-        if args.api_endpoint:
-            api_endpoint = args.api_endpoint
-        if args.api_key:
-            api_key = args.api_key
+        config = Helper.load_config()
+        api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+        api_key = Helper.get_provider_value('api_key', config, args)
         
         llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
         models = llm_api.list_models()

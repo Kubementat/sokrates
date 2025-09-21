@@ -39,12 +39,7 @@ class FileWatcherEventHandler(FileSystemEventHandler):
         """Handle file creation events."""
         if not event.is_directory:
             self._process_file_event(event.src_path, "created")
-            
-    def on_modified(self, event):
-        """Handle file modification events."""
-        if not event.is_directory:
-            self._process_file_event(event.src_path, "modified")
-            
+
     def _process_file_event(self, file_path: str, event_type: str):
         """
         Process a file system event.

@@ -22,6 +22,13 @@ def main():
         description='Generates a daily mantra with a matching practical call to action',
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+
+    parser.add_argument(
+        '--provider',
+        required=False,
+        default=None,
+        help="The provider to list models for."
+    )
     
     parser.add_argument(
         '--generation-prompt-file', '-g',
@@ -75,24 +82,12 @@ def main():
     
     # Parse arguments
     args = parser.parse_args()
-    config = Config()
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
+    temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
+    model = Helper.get_provider_value('model', config, args, 'default_model')
     
-    api_endpoint = config.api_endpoint
-    if args.api_endpoint:
-        api_endpoint = args.api_endpoint
-    
-    api_key = config.api_key
-    if args.api_key:
-        api_key = args.api_key
-        
-    model = config.default_model
-    if args.model:
-        model = args.model
-    
-    temperature = config.default_model_temperature
-    if args.temperature:
-        temperature = args.temperature
-
     Helper.print_configuration_section(config=config, args=args)
     
     workflow = RefinementWorkflow(api_endpoint=api_endpoint, api_key=api_key, 
@@ -100,7 +95,7 @@ def main():
     )
     
     context_files = [
-        Path(f"{Path(__file__).parent.parent.resolve()}/prompts/context/self-improvement-principles-v1.md").resolve()
+        (config.get('prompts_directory') / 'context' / 'self-improvement-principles-v1.md').resolve()
     ]
     generated = workflow.generate_mantra(context_files=context_files)
     if args.verbose:

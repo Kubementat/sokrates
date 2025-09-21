@@ -1,221 +1,252 @@
 # This script defines the `Config` class, which is responsible for managing
 # application-wide configuration settings. It loads environment variables
-# from a `.env` file, providing default values for API endpoints, API keys,
+# from a `config.yml` file, providing default values for API endpoints, API keys,
 # and the default LLM model. This centralizes configuration management
 # and allows for easy customization via environment variables.
 
 import os
-from pathlib import Path
-from dotenv import load_dotenv
-from .constants import Constants
-from threading import Lock
 import logging
+from typing import Any
+from pathlib import Path
+
+from mergedeep import merge
+
+from .constants import Constants
+from .file_helper import FileHelper
 
 class Config:
   """
   Manages configuration settings for the LLM tools application.
-  Loads environment variables from a .env file and provides default values
-  for various settings like API endpoint, API key, and default model.
+  Can load configuration from a yaml file.
   """
-  
-  _instance = None  # Class variable to hold the single instance
-  _lock = Lock()
 
-  def __new__(cls, *args, **kwargs):
-        """
-        Singleton pattern implementation to ensure only one instance of Config exists.
-        
-        Returns:
-            Config: The single instance of the Config class.
-        """
-        if not cls._instance:
-            # thread safe 
-            with cls._lock:
-                # Double-check to prevent race condition
-                if not cls._instance:
-                    cls._instance = super().__new__(cls)
-        return cls._instance
+  DEFAULT_CONFIGURATION = {
+    "home_path": Constants.DEFAULT_HOME_PATH,
+    "prompts_directory": Constants.DEFAULT_PROMPTS_DIRECTORY,
+    "default_provider": Constants.DEFAULT_PROVIDER_NAME,
+    "providers": [
+      # {
+      #   "name": Constants.DEFAULT_PROVIDER_NAME,
+      #   "type": Constants.DEFAULT_PROVIDER_TYPE,
+      #   "api_endpoint": Constants.DEFAULT_API_ENDPOINT,
+      #   "api_key": Constants.DEFAULT_API_KEY,
+      #   "default_model": Constants.DEFAULT_MODEL,
+      #   "default_temperature": Constants.DEFAULT_MODEL_TEMPERATURE
+      # }
+    ],
+    "daemon": {
+      "processing_interval": Constants.DEFAULT_DAEMON_PROCESSING_INTERVAL,
+      "file_watcher": {
+        "enabled": False
+      }
+    }
+  }
+
+  REQUIRED_CONFIG_KEYS = [
+    "home_path",
+    "config_path",
+    "logs_path",
+    "database_path",
+    "prompts_directory",
+    "default_provider",
+    "daemon.processing_interval",
+    "daemon.logfile_path",
+    "daemon.file_watcher.enabled"
+  ]
   
   def __init__(self) -> None:
     """
     Initializes the Config object.
+    
+    Sets up the initial configuration using defaults, and configures
+    basic paths needed for other operations like loading from files or setting up directories.
     """
-    if not hasattr(self, 'initialized'):
-      # initialization
-      self.initialized = True
+    self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+    self.config = self.DEFAULT_CONFIGURATION
 
-      self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
-      
-      # static settings
-      self.daemon_processing_interval = Constants.DEFAULT_DAEMON_PROCESSING_INTERVAL
-      
-      # Set up basic paths first (needed for other config)
-      self._setup_basic_paths()
-      
-      # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
-      home_base = Path.home()
-      self.home_path: str = os.environ.get(
-        'SOKRATES_HOME_PATH', 
-        str((home_base / ".sokrates").resolve())
-      )
-      self.config_path: str = os.environ.get(
-        'SOKRATES_CONFIG_FILEPATH', 
-        str((Path(self.home_path) / '.env').resolve())
-      )
-      
-      # log paths
-      self.logs_path: str = str((Path(self.home_path) / 'logs').resolve())
-      self.daemon_logfile_path: str = os.environ.get(
-        'SOKRATES_DAEMON_LOGFILE_PATH',
-        str((Path(self.logs_path) / 'daemon.log').resolve())
-      )
-      
-      # database path
-      self.database_path: str = os.environ.get(
-        'SOKRATES_DATABASE_PATH', 
-        str((Path(self.home_path) / 'sokrates_database.sqlite').resolve())
-      )
-      
-      self.prompts_directory: str = os.environ.get(
-        'SOKRATES_PROMPTS_PATH',
-        Constants.DEFAULT_PROMPTS_DIRECTORY
-      )
-      
-      self._load_env()
+    # Set up basic paths first (needed for other config)
+    self._configure_basic_paths()
 
-      # file watcher settings
-      self.file_watcher_enabled = os.environ.get('SOKRATES_FILE_WATCHER_ENABLED', 'false').lower() == 'true'
-      self.file_watcher_directories = self._parse_file_watcher_directories(
-          os.environ.get('SOKRATES_FILE_WATCHER_DIRECTORIES', '')
-      )
-      self.file_watcher_extensions = self._parse_file_watcher_extensions(
-          os.environ.get('SOKRATES_FILE_WATCHER_EXTENSIONS', '.txt,.md')
-      )
-      
-      self._setup_directories()
-    
-  def _load_env(self) -> None:
-      """
-      Loads environment variables from the specified .env file.
-      Sets API endpoint, API key, and default model, applying defaults if not found.
-      """
-      load_dotenv(self.config_path,override=True)
-      self.api_endpoint: str | None = os.environ.get('SOKRATES_API_ENDPOINT', Constants.DEFAULT_API_ENDPOINT)
-      self.api_key: str | None = os.environ.get('SOKRATES_API_KEY', Constants.DEFAULT_API_KEY)
-      self.default_model: str | None = os.environ.get('SOKRATES_DEFAULT_MODEL', Constants.DEFAULT_MODEL)
-      
-      temperature = float(os.environ.get('SOKRATES_DEFAULT_MODEL_TEMPERATURE', Constants.DEFAULT_MODEL_TEMPERATURE))
-      if not (0 < temperature < 1):
-        raise ValueError(f"Temperature must be between 0 and 1 (exclusive), got {temperature}")
-      self.default_model_temperature: float | None = temperature
-      
-  def _setup_basic_paths(self) -> None:
+  def _configure_basic_paths(self) -> None:
     """
-    Sets up basic path configuration.
+    Sets up basic path configuration including home, config, logs, and database paths.
     
-    This method sets up the basic path attributes that are needed
-    for other configuration steps.
-    
-    Returns:
-        None
+    Determines the configuration file path (prioritizing SOKRATES_HOME_PATH environment variable),
+    and sets up all required directory paths for the application's operation.
     """
-    # Determine the configuration file path. Prioritize SOKRATES_CONFIG_FILEPATH environment variable.
-    home_base = Path.home()
-    self.home_path: str = os.environ.get(
-      'SOKRATES_HOME_PATH',
-      str((home_base / ".sokrates").resolve())
-    )
-    self.config_path: str = os.environ.get(
-      'SOKRATES_CONFIG_FILEPATH',
-      str((Path(self.home_path) / '.env').resolve())
-    )
-    
+    # Determine the configuration file path. Prioritize SOKRATES_HOME_PATH environment variable.
+    env_home_path = os.environ.get('SOKRATES_HOME_PATH', None)
+    if env_home_path:
+      self.config["home_path"] = Path(env_home_path)
+
+    # config filepath
+    self.config['config_path'] = (self.get('home_path') / 'config.yml').resolve()
+
     # log paths
-    self.logs_path: str = str((Path(self.home_path) / 'logs').resolve())
-    self.daemon_logfile_path: str = os.environ.get(
-      'SOKRATES_DAEMON_LOGFILE_PATH',
-      str((Path(self.logs_path) / 'daemon.log').resolve())
-    )
-    
-    # database path
-    self.database_path: str = os.environ.get(
-      'SOKRATES_DATABASE_PATH',
-      str((Path(self.home_path) / 'sokrates_database.sqlite').resolve())
-    )
-    
-    self.prompts_directory: str = os.environ.get(
-      'SOKRATES_PROMPTS_PATH',
-      Constants.DEFAULT_PROMPTS_DIRECTORY
-    )
+    self.config['logs_path'] = (self.get('home_path') / 'logs').resolve()
+    self.config['daemon']['logfile_path'] = (self.get('logs_path') / 'daemon.log').resolve()
 
+    # database path
+    self.config['database_path'] = (self.get('home_path') / 'database.sqlite').resolve()
+    
   def _setup_directories(self) -> None:
     """
     Creates the necessary directory structure for the application.
     
-    This method ensures that the following directories exist:
-    - The main sokrates home directory (~/.sokrates)
-    - The logs subdirectory (~/.sokrates/logs)
+    Ensures that the main sokrates home directory and logs directory exist,
+    creating them if they don't already exist.
     
     Returns:
         None
+        
+    Raises:
+        RuntimeError: If creation of directories fails due to permissions or other OS errors
     """
-    self.logger.info(f"Creating sokrates home path: {self.home_path}")
+    home_path = self.get('home_path')
+    logs_path = self.get('logs_path')
+    self.logger.info(f"Creating sokrates home path: {home_path}")
+
+    try:
+      Path(home_path).mkdir(parents=True, exist_ok=True)
+    except (OSError, PermissionError) as e:
+      raise RuntimeError(f"Failed to create sokrates home directory at `{home_path}`: {e}")
+    
+    self.logger.info(f"Creating sokrates logs path at: {logs_path}")
     
     try:
-      Path(self.home_path).mkdir(parents=True, exist_ok=True)
+      Path(logs_path).mkdir(parents=True, exist_ok=True)
     except (OSError, PermissionError) as e:
-      raise RuntimeError(f"Failed to create sokrates home directory at `{self.home_path}`: {e}")
+      raise RuntimeError(f"Failed to create sokrates logs directory at `{logs_path}`: {e}")
+
+  def load_from_file(self, config_filepath) -> None:
+    """
+    Load configuration from a YAML file and initialize all values.
     
-    self.logger.info(f"Creating sokrates logs path at: {self.logs_path}")
+    Reads a YAML configuration file, merges it with the default configuration,
+    validates the merged result, and sets up required directories.
     
+    Args:
+        config_filepath: Path to the YAML configuration file
+        
+    Returns:
+        None
+        
+    Raises:
+        FileNotFoundError: If the specified configuration file does not exist
+        yaml.YAMLError: If the YAML file is malformed
+    """
+    config_dict = FileHelper.read_yaml_file(file_path=config_filepath)
+    self.config = self._deep_merge_config(first=self.config, second=config_dict)
+    self.validate()
+    self._setup_directories()
+
+  def load_from_dict(self, config_dict) -> None:
+    """
+    Load configuration from a dictionary and initialize all values.
+    
+    Merges the provided configuration dictionary with the default configuration,
+    validates the merged result, and sets up required directories.
+    
+    Args:
+        config_dict: Dictionary containing configuration values
+        
+    Returns:
+        None
+    """
+    self.config = self._deep_merge_config(first=self.config, second=config_dict)
+    self.validate()
+    self._setup_directories()
+
+  def validate(self) -> None:
+    """
+    Validates the config parameters in the config object.
+    
+    Checks that all required configuration keys are present and have non-None values.
+    If any required key is missing or None, a ValueError is raised.
+    
+    Returns:
+        None
+        
+    Raises:
+        ValueError: If any required configuration key is not set
+    """
+    for key in self.REQUIRED_CONFIG_KEYS:
+      val = self.get(key)
+      if val == None:
+        raise ValueError(f"The configuration setting: {key} is not configured!")
+
+  def get(self, key_path: str) -> Any:
+    """
+    Returns a configuration value under the provided key_path.
+    
+    Retrieves a configuration value by traversing the configuration dictionary 
+    using the key path. The key path is expected to be a string with components 
+    separated by dots (.).
+    
+    Args:
+        key_path: Path to the configuration value, e.g., "daemon.processing_interval"
+        
+    Returns:
+        The configuration value if found
+        
+    Raises:
+        ValueError: If the key path is invalid or the value cannot be found
+    """
+    if not key_path:
+      raise ValueError(f"Configuration key path is invalid: {key_path}")
+    
+    key_path_array = key_path.replace(" ", "").split('.')
+    value = self.config
+
+    not_found_error_message = f"Could not find a configuration value under the key: {key_path}"
+
     try:
-      Path(self.logs_path).mkdir(parents=True, exist_ok=True)
-    except (OSError, PermissionError) as e:
-      raise RuntimeError(f"Failed to create sokrates logs directory at `{self.logs_path}`: {e}")
+      for key in key_path_array:
+        value = value.get(key, None)
+    except:
+      raise ValueError(not_found_error_message)
 
-  def _parse_file_watcher_directories(self, directories_str: str) -> list:
+    if value == None:
+      raise ValueError(not_found_error_message)
+    return value
+  
+  def get_default_provider(self) -> dict[Any,Any]:
     """
-    Parse file watcher directories from environment variable string.
+    Returns the provider dict that is configured as default provider.
+    
+    Retrieves the configuration for the default provider by name.
+    Returns None if no provider with the configured name exists.
+    
+    Returns:
+        The provider configuration dictionary or None if not found
+    """
+    default_provider_name = self.config['default_provider']
+    return self.get_provider(default_provider_name)
+
+  def get_provider(self, provider_name) -> dict[Any, Any]:
+    """
+    Returns the configuration dict for the provider with the provided name.
+    
+    Searches through the configured providers and returns the dictionary 
+    for the provider matching the given name. If no matching provider is found,
+    it returns None.
     
     Args:
-        directories_str: Comma-separated directory paths
+        provider_name: The name of the provider to retrieve
         
     Returns:
-        List of directory paths
+        The provider configuration dictionary or None if not found
     """
-    if not directories_str.strip():
-      # Default to sokrates home directory/file_watcher
-      default_dir = str((Path(self.home_path) / 'file_watcher').resolve())
-      return [default_dir]
-    
-    directories = []
-    for dir_path in directories_str.split(','):
-      dir_path = dir_path.strip()
-      if dir_path:
-        directories.append(dir_path)
-    
-    return directories
+    providers = self.config['providers']
+    provider = next(
+    (d for d in providers if d.get("name") == provider_name),
+      None
+    )
+    return provider
 
-  def _parse_file_watcher_extensions(self, extensions_str: str) -> list:
+  def _deep_merge_config(self, first: dict, second: dict) -> dict:
     """
-    Parse file watcher extensions from environment variable string.
-    
-    Args:
-        extensions_str: Comma-separated file extensions
-        
-    Returns:
-        List of file extensions
+    Recursively merge two config dicts.
+    Values from `second` override those in `first`.
     """
-    if not extensions_str.strip():
-      return ['.txt', '.md']
-    
-    extensions = []
-    for ext in extensions_str.split(','):
-      ext = ext.strip()
-      if ext:
-        # Ensure extensions start with a dot
-        if not ext.startswith('.'):
-          ext = '.' + ext
-        extensions.append(ext.lower())
-    
-    return extensions
+    return merge(first, second)

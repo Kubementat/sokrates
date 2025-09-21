@@ -41,6 +41,14 @@ Examples:
   sokrates-generate-tests --source-directory ./src --api-endpoint http://localhost:1234/v1 --output-dir ./generated_tests
         """
     )
+
+    parser.add_argument(
+        '--provider',
+        required=False,
+        type=str,
+        default=None,
+        help="The provider to use"
+    )
     
     # Input arguments
     parser.add_argument('--source-directory', '-sd', type=str,
@@ -76,10 +84,11 @@ Examples:
     args = parser.parse_args()
     
     # Configuration setup
-    config = Config()
-    api_endpoint = args.api_endpoint or config.api_endpoint
-    api_key = args.api_key or config.api_key
-    model = args.model or config.default_model
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
+    temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
+    model = Helper.get_provider_value('model', config, args, 'default_model')
 
     Helper.print_configuration_section(config=config, args=args)
     
@@ -115,7 +124,7 @@ Examples:
             model=model,
             api_endpoint=api_endpoint,
             api_key=api_key,
-            temperature=args.temperature,
+            temperature=temperature,
             max_tokens=args.max_tokens
         )
         

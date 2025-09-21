@@ -37,7 +37,7 @@ class MergeIdeasWorkflow:
       self.max_tokens = max_tokens
       self.temperature = temperature
       # Path to the prompt template used for merging ideas
-      self.idea_merger_prompt_file = str(Path(f"{Constants.DEFAULT_PROMPTS_DIRECTORY}/merge-ideas-v1.md").resolve())
+      self.idea_merger_prompt_file : Path = (Constants.DEFAULT_PROMPTS_DIRECTORY / 'merge-ideas-v1.md').resolve()
 
     def merge_ideas(self, source_documents: dict) -> str:
       """

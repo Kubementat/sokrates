@@ -120,7 +120,7 @@ class LLMApi:
             self.logger.error(f"Error calling LLM API at {self.api_endpoint}: {str(e)}", exc_info=True)
             raise
 
-    def chat_completion(self, messages: List[dict], model: str = Constants.DEFAULT_MODEL, max_tokens: int = 2000, temperature: float = 0.7) -> str:
+    def chat_completion(self, messages: List[dict], model: str = Constants.DEFAULT_MODEL, max_tokens: int = 2000, temperature: float = 0.7, print_to_console = False) -> str:
         """
         Sends a list of messages (conversation history) to the LLM server for chat completion.
         The response is streamed back, and performance metrics are calculated.
@@ -152,7 +152,7 @@ class LLMApi:
             self.logger.debug("-" * 20)
             self.logger.debug("")
 
-            return self._stream_response(client, messages, model, max_tokens, temperature)
+            return self._stream_response(client, messages, model, max_tokens, temperature, print_to_console=print_to_console)
             
         except Exception as e:
             self.logger.error(f"Error calling LLM API at {self.api_endpoint}: {str(e)}", exc_info=True)
@@ -191,7 +191,7 @@ class LLMApi:
         
         return messages
 
-    def _stream_response(self, client: OpenAI, messages: List[dict], model: str, max_tokens: int = 2000, temperature: float = 0.7) -> str:
+    def _stream_response(self, client: OpenAI, messages: List[dict], model: str, max_tokens: int = 2000, temperature: float = 0.7, print_to_console = False) -> str:
         """
         Streams response from the LLM and calculates performance metrics.
         
@@ -223,7 +223,8 @@ class LLMApi:
             if content:
                 if first_token_time is None:
                     first_token_time = time.time()
-                print(content, end="", flush=True)
+                if print_to_console:
+                    print(content, end="", flush=True)
                 response_content += content
 
         end_time = time.time()

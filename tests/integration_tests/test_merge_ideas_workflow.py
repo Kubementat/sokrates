@@ -65,9 +65,9 @@ class TestMergeIdeasWorkflow:
         """Test that the correct prompt file is loaded."""
         
         workflow = MergeIdeasWorkflow()
-        
+
         # Verify that FileHelper.read_file was called with the expected path
-        assert 'merge-ideas' in workflow.idea_merger_prompt_file
+        assert 'merge-ideas' in str(workflow.idea_merger_prompt_file)
 
 if __name__ == "__main__":
     pytest.main([__file__])

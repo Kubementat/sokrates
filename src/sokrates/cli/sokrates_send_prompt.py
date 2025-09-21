@@ -10,9 +10,6 @@ The script supports:
 3. Configuration of response parameters like max tokens and temperature
 4. Input from file or command line
 5. Output to markdown files for easy viewing/editing
-
-Call example:
-./send-prompt.py --models "qwen2.5-coder-7b-instruct-mlx,josiefied-qwen3-30b-a3b-abliterated-v2" --input-directory tmp/input_prompts --max-tokens 10000 -o tmp/outputs --verbose
 """
 
 import argparse
@@ -109,104 +106,108 @@ def main():
     """Main function to send a prompt to one or more LLM servers and handle responses."""
     
     parser = argparse.ArgumentParser(
-        description="Send prompts to local LLM servers and save responses as markdown files",
+        description="Send prompts to LLM servers and saves responses as markdown files optionally",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Call example:
-./send-prompt.py --models "qwen2.5-coder-7b-instruct-mlx,josiefied-qwen3-30b-a3b-abliterated-v2" --input-directory tmp/input_prompts --max-tokens 10000 -o tmp/outputs --verbose
         """
     )
-    
-    # Positional arguments (prompt)
-    parser.add_argument('prompt', nargs='?', help='Text prompt to send to LLMs (optional)')
-    
-    # Required flags
-    parser.add_argument('--api-endpoint', '-ae', default=None, help='LLM server API endpoint')
-    parser.add_argument('--api-key', '-ak', default=None, help='API key for authentication (can be empty for local servers)')
-    parser.add_argument('--models', '-m', default=None, help='Comma separated model names to use (can be multiple)')
-    parser.add_argument('--system-prompt', '-sp', default=None, help='An optional system prompt to use for prompt processing by the LLM')
-    parser.add_argument('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')
-    parser.add_argument('--temperature', '-t', default=None, type=float, help='Temperature for response generation')
-    parser.add_argument('--verbose','-v', action='store_true', help='Enable verbose output')
-    parser.add_argument('--output-directory', '-o', default=None, help='Directory to write model outputs to as markdown files')
-    parser.add_argument('--input-file','-i', default=None, help='File containing the prompt to send')
-    parser.add_argument('--input-directory','-d', default=None, help='Directory containing text files which should be sent as a series of separate prompts')
-    parser.add_argument('--post-process-results', '-pp', action='store_true', help="Enable response post-processing (e.g. strip out  blocks)")
-    parser.add_argument('--context-text', '-ct', default=None, help="Optional additional context text to prepend before the prompt")
-    parser.add_argument('--context-files', '-ctf', default=None, help="Optional comma separated additional context text file paths with content that should be prepended before the prompt")
-    parser.add_argument('--context-directories', '-ctd', default=None, help="Optional comma separated additional directory paths with files with content that should be prepended before the prompt")
-    
-    # Parse arguments
-    args = parser.parse_args()
-    config = Config()
-    
-    api_endpoint = args.api_endpoint or config.api_endpoint
-    api_key = args.api_key or config.api_key    
-    models = args.models or config.default_model
-    temperature = args.temperature or config.default_model_temperature
-    
-    # Validate input requirements
-    if (args.prompt is None and args.input_file is None and args.input_directory is None):
-        OutputPrinter.print_error("Either a text prompt or an --input-file or an --input-directory needs to be provided. Exiting.")
-        sys.exit(1)
-    
-    if (args.input_file and args.input_directory):
-        OutputPrinter.print_error("Both --input-file and --input-directory are provided. Choose one or the other. Exiting.")
-        sys.exit(1)
-    
-    Helper.print_configuration_section(config=config, args=args)
-    # Initialize LLM API client
-    llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
-    
-    # Convert models string to list if needed
-    if isinstance(models, str):
-        models = models.split(',')
-    
-    # Handle input directory
-    prompt_files = []
-    if args.input_directory:
-        prompt_files = FileHelper.list_files_in_directory(args.input_directory)
-        OutputPrinter.print_info("Input Directory", args.input_directory)
-        OutputPrinter.print_section("Input Directory contents")
-        for f in prompt_files:
-            OutputPrinter.print(f"  {f}")
-    
-    # Handle input file
-    if args.input_file:
-        prompt_files = [args.input_file]
-    
-    # Show context information
-    OutputPrinter.print_info("context-text", args.context_text)
-    OutputPrinter.print_info("context-directories", args.context_directories)
-    OutputPrinter.print_info("context-files", args.context_files)
-    
-    # Process single prompt (no directory or file specified)
-    if args.prompt is not None:
-        for model in models:
-            prompt_model(llm_api, prompt=args.prompt, model=model, max_tokens=args.max_tokens, 
-                temperature=temperature, output_directory=args.output_directory, source_prompt_file=None, 
-                post_process_results=args.post_process_results,
-                context_text=args.context_text, context_directories=args.context_directories, 
-                context_files=args.context_files, system_prompt=args.system_prompt)
-            sys.exit(0)
 
-    # Process multiple prompt files from directory
-    for model in models:
-        for filepath in prompt_files:  
-            try:
-                prompt = FileHelper.read_file(filepath)
-            except Exception as e:
-                OutputPrinter.print_error(f"Error reading input file: {e}")
-                OutputPrinter.print_info("Skipping", filepath)
-                continue
+    try:
+    
+        # Positional arguments (prompt)
+        parser.add_argument('prompt', nargs='?', help='Text prompt to send to LLMs (optional)')
+        
+        parser.add_argument('--provider', default=None, help="The provider to use for the requests.")
+        parser.add_argument('--api-endpoint', '-ae', default=None, help='LLM server API endpoint')
+        parser.add_argument('--api-key', '-ak', default=None, help='API key for authentication (can be empty for local servers)')
+        parser.add_argument('--models', '-m', default=None, help='Comma separated model names to use (can be multiple)')
+        parser.add_argument('--temperature', '-t', default=None, type=float, help='Temperature for response generation')
 
+        parser.add_argument('--system-prompt', '-sp', default=None, help='An optional system prompt to use for prompt processing by the LLM')
+        parser.add_argument('--max-tokens', '-mt', default=20000, type=int, help='Maximum tokens in response (Default: 20000)')
+        
+        parser.add_argument('--output-directory', '-o', default=None, help='Directory to write model outputs to as markdown files')
+        parser.add_argument('--input-file','-i', default=None, help='File containing the prompt to send')
+        parser.add_argument('--input-directory','-d', default=None, help='Directory containing text files which should be sent as a series of separate prompts')
+        parser.add_argument('--post-process-results', '-pp', action='store_true', help="Enable response post-processing (e.g. strip out  blocks)")
+        parser.add_argument('--context-text', '-ct', default=None, help="Optional additional context text to prepend before the prompt")
+        parser.add_argument('--context-files', '-ctf', default=None, help="Optional comma separated additional context text file paths with content that should be prepended before the prompt")
+        parser.add_argument('--context-directories', '-ctd', default=None, help="Optional comma separated additional directory paths with files with content that should be prepended before the prompt")
+        
+        # Parse arguments
+        args = parser.parse_args()
+        config = Helper.load_config()
+        api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+        api_key = Helper.get_provider_value('api_key', config, args)
+        temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
+        models = Helper.get_provider_value('models', config, args, 'default_model')
+        
+        # Convert models string to list if needed
+        if isinstance(models, str):
+            models = models.replace(" ","").split(',')
+        
+        # Validate input requirements
+        if (args.prompt is None and args.input_file is None and args.input_directory is None):
+            OutputPrinter.print_error("Either a text prompt or an --input-file or an --input-directory needs to be provided. Exiting.")
+            sys.exit(1)
+        
+        if (args.input_file and args.input_directory):
+            OutputPrinter.print_error("Both --input-file and --input-directory are provided. Choose one or the other. Exiting.")
+            sys.exit(1)
+        
+        Helper.print_configuration_section(config=config, args=args)
+        # Initialize LLM API client
+        llm_api = LLMApi(api_endpoint=api_endpoint, api_key=api_key)
+        
+        # Handle input directory
+        prompt_files = []
+        if args.input_directory:
+            prompt_files = FileHelper.list_files_in_directory(args.input_directory)
+            OutputPrinter.print_info("Input Directory", args.input_directory)
+            OutputPrinter.print_section("Input Directory contents")
+            for f in prompt_files:
+                OutputPrinter.print(f"  {f}")
+        
+        # Handle input file
+        if args.input_file:
+            prompt_files = [args.input_file]
+        
+        # Show context information
+        OutputPrinter.print_info("context-text", args.context_text)
+        OutputPrinter.print_info("context-directories", args.context_directories)
+        OutputPrinter.print_info("context-files", args.context_files)
+        
+        # Process single prompt (no directory or file specified)
+        if args.prompt is not None:
             for model in models:
-                prompt_model(llm_api, prompt=prompt, model=model, max_tokens=args.max_tokens, 
-                    temperature=temperature, output_directory=args.output_directory, 
-                    source_prompt_file=filepath,
+                prompt_model(llm_api, prompt=args.prompt, model=model, max_tokens=args.max_tokens, 
+                    temperature=temperature, output_directory=args.output_directory, source_prompt_file=None, 
                     post_process_results=args.post_process_results,
                     context_text=args.context_text, context_directories=args.context_directories, 
-                    context_files=args.context_files)
+                    context_files=args.context_files, system_prompt=args.system_prompt)
+            sys.exit(0)
+
+        # Process multiple prompt files from directory
+        for model in models:
+            for filepath in prompt_files:  
+                try:
+                    prompt = FileHelper.read_file(filepath)
+                except Exception as e:
+                    OutputPrinter.print_error(f"Error reading input file: {e}")
+                    OutputPrinter.print_info("Skipping", filepath)
+                    continue
+
+                for model in models:
+                    prompt_model(llm_api, prompt=prompt, model=model, max_tokens=args.max_tokens, 
+                        temperature=temperature, output_directory=args.output_directory, 
+                        source_prompt_file=filepath,
+                        post_process_results=args.post_process_results,
+                        context_text=args.context_text, context_directories=args.context_directories, 
+                        context_files=args.context_files)
+    except Exception as e:
+        OutputPrinter.print_error("An error occured during script execution:")
+        OutputPrinter.print_error(str(e))
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()

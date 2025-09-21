@@ -20,7 +20,7 @@ import sys
 from sokrates.task_queue.manager import TaskQueueManager
 from sokrates.cli.colors import Colors
 from sokrates.cli.output_printer import OutputPrinter
-from sokrates.config import Config
+from sokrates.cli.helper import Helper
 
 def main():
     """
@@ -48,7 +48,7 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
-    config = Config()
+    config = Helper.load_config()
 
     if args.verbose:
         print(f"{Colors.BRIGHT_BLUE}Retrieving status for task {args.task_id}...{Colors.RESET}")

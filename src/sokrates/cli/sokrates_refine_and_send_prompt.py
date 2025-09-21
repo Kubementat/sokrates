@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 from .helper import Helper
 from sokrates import LLMApi, PromptRefiner, Colors, FileHelper, Config
+from sokrates.cli.output_printer import OutputPrinter
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
@@ -19,26 +20,6 @@ def parse_arguments() -> argparse.Namespace:
         description="Refine prompts using one LLM and send to another for execution",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Example usage:
-  python refine-and-send-prompt.py -p 'Write a tetris clone in HTML, CSS and javascript in one file.'
-
-  python refine-and-send-prompt.py \\
-    --refinement-model unsloth-phi-4 \\
-    --output-model google/gemma-3-27b \\
-    --refinement-temperature 0.7 \\
-    --output-temperature 0.2 \\
-    --refinement-prompt-file prompts/refine-coding-v3.md \\
-    --input-file user_prompt.txt \\
-    --api-endpoint http://localhost:1234/v1 \\
-    --api-key lmstudio \\
-    --output my_result_file.md 
-    
-  python refine-and-send-prompt.py --api-endpoint "$EVOBOX_LMSTUDIO_ENDPOINT" \\
-    --refinement-model "mlabonne_qwen3-14b-abliterated" \\
-    --output-model "mlabonne_qwen3-14b-abliterated" \\
-    --output my_result_file.md \\
-    --refinement-prompt-file prompts/refine-coding-v3.md \\
-    -p "Write a Tetris clone in html, css and javascript in one file."
 """
     )
     
@@ -59,14 +40,14 @@ Example usage:
     parser.add_argument(
         '--refinement-temperature', '-rt',
         type=float,
-        default=0.7,
+        default=None,
         help="Temperature for the refinement model (Default: 0.7)."
     )
     
     parser.add_argument(
         '--output-temperature', '-ot',
         type=float,
-        default=0.2,
+        default=None,
         help="Temperature for the output model (default: 0.2)"
     )
     
@@ -88,6 +69,14 @@ Example usage:
         help='Path to file containing the initial prompt to refine'
     )
     
+    parser.add_argument(
+        '--provider',
+        required=False,
+        type=str,
+        default=None,
+        help="The provider to use"
+    )
+
     parser.add_argument(
         '--api-endpoint',
         default=None,
@@ -114,12 +103,6 @@ Example usage:
         type=int,
         default=5000,
         help='the maximum number of tokens generated during the final output task. Default: 5000'
-    )
-
-    parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose output for LLM API and Prompt Refiner'
     )
     
     parser.add_argument(
@@ -158,30 +141,14 @@ def main():
     # Parse arguments
     args = parse_arguments()
     
-    config = Config()
-    api_endpoint = config.api_endpoint
-    if args.api_endpoint:
-        api_endpoint = args.api_endpoint
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
     
-    api_key = config.api_key
-    if args.api_key:
-        api_key = args.api_key
-        
-    output_model = config.default_model
-    if args.output_model:
-        output_model = args.output_model
-        
-    refinement_model = config.default_model
-    if args.refinement_model:
-        refinement_model = args.refinement_model
-    
-    refinement_temperature = config.default_model_temperature
-    if args.refinement_temperature:
-        refinement_temperature = args.refinement_temperature
-        
-    output_temperature = config.default_model_temperature
-    if args.output_temperature:
-        output_temperature = args.output_temperature
+    output_model = Helper.get_provider_value('output_model', config, args, 'default_model')
+    refinement_model = Helper.get_provider_value('refinement_model', config, args, 'default_model')
+    refinement_temperature = Helper.get_provider_value('refinement_temperature', config, args, 'default_temperature')
+    output_temperature = Helper.get_provider_value('output_temperature', config, args, 'default_temperature')
     
     # Validate temperature ranges
     if not (0.0 <= refinement_temperature <= 1.0):
@@ -194,7 +161,7 @@ def main():
 
     refinement_prompt_file = args.refinement_prompt_file
     if not args.refinement_prompt_file:
-        refinement_prompt_file = Path(f"{Path(__file__).parent.parent.resolve()}/prompts/refine-prompt.md").resolve()
+        refinement_prompt_file = (config.get('prompts_directory') / 'refine-prompt.md').resolve()
         print(f"{Colors.BLUE}No refinement prompt file provided. Using default: {refinement_prompt_file}{Colors.RESET}")
         
     if not Path(refinement_prompt_file).exists():
@@ -206,7 +173,11 @@ def main():
         sys.exit(1)
 
     Helper.print_configuration_section(config=config, args=args)
-        
+    OutputPrinter.print_info("Refinement Model", refinement_model)
+    OutputPrinter.print_info("Refinement Temperature", refinement_temperature)
+    OutputPrinter.print_info("Output Model", output_model)
+    OutputPrinter.print_info("Output Temperature", output_temperature)
+
     # context
     context = Helper.construct_context_from_arguments(
         context_text=args.context_text,

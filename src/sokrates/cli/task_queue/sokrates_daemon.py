@@ -13,12 +13,13 @@ import argparse
 from sokrates.task_queue.daemon import TaskQueueDaemon
 from sokrates.cli.output_printer import OutputPrinter
 from sokrates.config import Config
+from sokrates.cli.helper import Helper
 
-CONFIG = Config()
+CONFIG = Helper.load_config()
 
 def get_pid_file_path():
     """Get the path to the daemon PID file."""
-    return os.path.join(CONFIG.home_path, 'daemon.pid')
+    return os.path.join(CONFIG.get('home_path'), 'daemon.pid')
 
 def read_pid_file():
     """Read PID from the PID file if it exists."""
@@ -90,8 +91,9 @@ def start_daemon():
                 sys.exit(1)
             
             # Redirect stdout and stderr to log file
-            sys.stdout = open(CONFIG.daemon_logfile_path, 'a')
-            sys.stderr = open(CONFIG.daemon_logfile_path, 'a')
+            logfile_path = CONFIG.get('daemon.logfile_path')
+            sys.stdout = open(logfile_path, 'a')
+            sys.stderr = open(logfile_path, 'a')
 
             # Also redirect logging to the same file (it's already set up in TaskQueueDaemon)
             daemon = TaskQueueDaemon(config=CONFIG)

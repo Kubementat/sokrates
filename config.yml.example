@@ -1,0 +1,29 @@
+# ----------------------
+# Provider configuration
+# ----------------------
+default_provider: local
+providers:
+  - name: local
+    type: openai
+    api_endpoint: http://localhost:1234/v1
+    api_key: "not-required"
+    default_model: "qwen3-30b-a3b-thinking-2507"
+    default_temperature: 0.75
+  - name: remote
+    type: openai
+    api_endpoint: http://REPLACEME:1234/v1
+    api_key: not-required
+    default_model: "qwen3-coder-30b-a3b-instruct"
+    default_temperature: 0.7
+
+# --------------------
+# Daemon configuration
+# --------------------
+daemon:
+  file_watcher:
+    enabled: true
+    watched_directories: 
+      - REPLACEME_DIR
+    file_extensions: 
+      - ".txt"
+      - ".md"

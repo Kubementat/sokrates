@@ -280,6 +280,9 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
     # Main loop for voice chat
     while True:
         # Get user input
+        print()
+        print("-"*60)
+        print()
         user_input = input("Enter command (/talk, /voice, /add <filepath>, or press Enter to record): ").strip()
         
         # Check if we have a recent LLM response to play
@@ -376,7 +379,8 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
                     messages=conversation_history,
                     model=model,
                     temperature=temperature,
-                    max_tokens=max_tokens
+                    max_tokens=max_tokens,
+                    print_to_console=verbose
                 )
                 
                 if response_content_full:
@@ -388,17 +392,12 @@ async def run_voice_chat(llm_api, model: str, temperature: float, max_tokens: in
                     display_content = response_content_full
                     play_audio_file(recorder.acknowledge_signal_filepath)
                     
-                    # Extract and colorize  (^)( block for display if not hidden
-                    think_match = re.search(r'\(\)(.*?)\(\)', display_content, re.DOTALL)
-                    if think_match:
-                        think_content = think_match.group(1)
-                        colored_think_content = f"{Colors.DIM} (^)({think_content}) (^)({Colors.RESET}"
-                        display_content = display_content.replace(think_match.group(0), colored_think_content)
-                        
                     if hide_reasoning:
                         display_content = refiner.clean_response(display_content)
-                        
-                    OutputPrinter.print(f"{Colors.GREEN}LLM", f"{display_content}{Colors.RESET}")
+                    
+                    print("-"*60)
+                    print()
+                    OutputPrinter.print_info(f"{Colors.GREEN}LLM", f"\n{display_content}{Colors.RESET}")
                     conversation_history.append({"role": "assistant", "content": response_content_full})
                 else:
                     OutputPrinter.print_error("No response from LLM.")

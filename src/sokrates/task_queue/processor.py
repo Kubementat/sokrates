@@ -35,6 +35,9 @@ class TaskProcessor:
         execute_task(): Execute a single task using SequentialTaskExecutor
     """
 
+    DEFAULT_TEMPERATURE = 0.7
+
+
     def __init__(self, config: Config, logger = None):
         """
         Initializes the TaskProcessor with configured components.
@@ -96,12 +99,14 @@ class TaskProcessor:
         # TODO: Refactor Config dependency
         # remove tight coupling with Config class and pass along the parameters directly
         
+        default_provider = self.config.get_default_provider() 
+
         executor = SequentialTaskExecutor(
-                api_endpoint=self.config.api_endpoint,
-                api_key=self.config.api_key,
-                model=self.config.default_model,
-                temperature=self.config.default_model_temperature,
-                refinement_prompt_path=str(Path(self.config.prompts_directory) / 'refine-prompt.md')
+                api_endpoint=default_provider.get('api_endpoint'),
+                api_key=default_provider.get('api_key'),
+                model=default_provider.get('default_model'),
+                temperature=self.DEFAULT_TEMPERATURE,
+                refinement_prompt_path=self.config.get('prompts_directory') / 'refine-prompt.md'
                 )
 
         try:

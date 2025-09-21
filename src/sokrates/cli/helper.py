@@ -1,9 +1,37 @@
+from typing import Any
 from sokrates import FileHelper
 from sokrates import OutputPrinter
 from sokrates import Colors
 from sokrates.config import Config
 
 class Helper:
+
+    @staticmethod
+    def load_config() -> Config:
+        config = Config()
+        config.load_from_file(
+            config_filepath=config.get('config_path')
+        )
+        return config
+    
+    @staticmethod
+    def get_provider_value(key, config: Config, args, key_in_provider_config=None):
+        if key_in_provider_config == None:
+            key_in_provider_config = key
+
+        if getattr(args, key):
+            return getattr(args, key)
+        
+        # if a provider is specified -> load the config from that provider configuration
+        if args.provider:
+            provider = config.get_provider(args.provider)
+            if not provider:
+                raise ValueError(f"Could not find configuration for provider: {args.provider}")
+            return provider.get(key_in_provider_config)
+        
+        # if nothing is specified in the args -> return default provider config
+        provider = config.get_default_provider()
+        return provider.get(key_in_provider_config)
   
     @staticmethod
     def construct_context_from_arguments(context_text: str = None, context_directories: str = None, context_files: str = None):
@@ -23,28 +51,27 @@ class Helper:
 
     @staticmethod
     def print_configuration_section(config: Config, args=None):
-        api_endpoint_config_source = f"Configuration File: {config.config_path}"
-        api_endpoint = config.api_endpoint
-        
-        api_endpoint_config_source = "CLI Parameter: --api-endpoint"
-        
-        if args and args.api_endpoint:
-            api_endpoint = args.api_endpoint
-            api_endpoint_config_source = "CLI Parameter: --api-endpoint"
-
         OutputPrinter.print_section("Sokrates Configuration")
-        OutputPrinter.print_info("home directory", config.home_path)
-        OutputPrinter.print_info("configuration file", api_endpoint_config_source)
-        OutputPrinter.print_info("LLM API Endpoint", str(api_endpoint))
-        OutputPrinter.print_info("config_path", config.config_path)
+        OutputPrinter.print_info("home directory", config.get('home_path'))
+        OutputPrinter.print_info("config_path", config.get('config_path'))
+        OutputPrinter.print_info("database_path", config.get('database_path'))
+        OutputPrinter.print_info("daemon.logfile_path", config.get('daemon.logfile_path'))
+        OutputPrinter.print_info("daemon.processing_interval", config.get('daemon.processing_interval'))
+        OutputPrinter.print_info("daemon.file_watcher.enabled", config.get('daemon.file_watcher.enabled'))
+        OutputPrinter.print_info("daemon.file_watcher.watched_directories", config.get('daemon.file_watcher.watched_directories'))
+        OutputPrinter.print_info("daemon.file_watcher.file_extensions", config.get('daemon.file_watcher.file_extensions'))
         print("")
-        OutputPrinter.print_info("default_model", str(config.default_model))
-        OutputPrinter.print_info("default_model_temperature", str(config.default_model_temperature))
+        default_provider = config.get_default_provider()
+        if default_provider:
+            OutputPrinter.print_info("default_provider", default_provider.get("name"))
+            OutputPrinter.print_info("default_provider_endpoint", default_provider.get("api_endpoint"))
+            OutputPrinter.print_info("default_provider_model", default_provider.get("default_model"))
+            OutputPrinter.print_info("default_provider_model_temperature", default_provider.get("default_temperature"))
+        else:
+            OutputPrinter.print(f"No default provider configured. Consider checking your configuration file in {config.get('config_path')}", Colors.RED)
         print("")
-        OutputPrinter.print_info("database_path", config.database_path)
-        OutputPrinter.print_info("daemon_logfile_path", config.daemon_logfile_path)
-        OutputPrinter.print_info("daemon_processing_interval", str(config.daemon_processing_interval))
-        OutputPrinter.print_info("file_watcher_enabled", str(config.file_watcher_enabled))
-        OutputPrinter.print_info("file_watcher_directories", str(config.file_watcher_directories))
-        OutputPrinter.print_info("file_watcher_extensions", str(config.file_watcher_extensions))
         print("──────────────────────────────────────────────────")
+        OutputPrinter.print_section("Execution Configuration")
+        if args and args.provider:
+            OutputPrinter.print_info("provider", args.provider)
+        OutputPrinter.print_info("api_endpoint", Helper.get_provider_value('api_endpoint',config, args))

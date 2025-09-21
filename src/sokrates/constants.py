@@ -2,16 +2,18 @@ from pathlib import Path
 
 class Constants:  
   # Endpoint
+  DEFAULT_PROVIDER_NAME = "local"
+  DEFAULT_PROVIDER_TYPE = "openai"
   DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
   DEFAULT_API_KEY = "notrequired"
   
   # Model settings
-  DEFAULT_MODEL = "qwen3-4b-instruct-2507-mlx"
+  DEFAULT_MODEL = "qwen3-4b-instruct-2507"
   DEFAULT_MODEL_TEMPERATURE = 0.7
   
   # paths
-  # TODO: refactor this to be a Path and not a string object (see DEFAULT_CODING_PROMPTS_DIRECTORY below)
-  DEFAULT_PROMPTS_DIRECTORY = str((Path(__file__).parent / "prompts").resolve())
+  DEFAULT_HOME_PATH = (Path.home() / ".sokrates").resolve()
+  DEFAULT_PROMPTS_DIRECTORY = (Path(__file__).parent / "prompts").resolve()
   DEFAULT_CODING_PROMPTS_DIRECTORY = (Path(__file__).parent / "prompts" / "coding").resolve()
   
   # Task daemon

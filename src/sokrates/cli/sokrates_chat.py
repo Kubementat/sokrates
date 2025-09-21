@@ -50,78 +50,71 @@ def main():
         description='LLM Chat CLI - Interact with large language models through a command-line interface',
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    
+
+    parser.add_argument(
+        '--provider',
+        required=False,
+        type=str,
+        default=None,
+        help="The provider to use"
+    )
     parser.add_argument("--api-endpoint", "-ae", 
-                        default=None,
-                        type=str, 
-                        help="The API endpoint for the LLM.")
+        default=None,
+        type=str, 
+        help="The API endpoint for the LLM.")
     parser.add_argument("--api-key", "-ak", 
-                        default=None,
-                        type=str, 
-                        help="The API key for the LLM.")
+        default=None,
+        type=str, 
+        help="The API key for the LLM.")
     parser.add_argument("--model", "-m", 
-                        default=None,
-                        type=str, 
-                        help="The model to use for the LLM.")
+        default=None,
+        type=str, 
+        help="The model to use for the LLM.")
     parser.add_argument("--temperature", "-t", 
-                        default=None, 
-                        type=float, 
-                        help="The temperature for the LLM.")
+        default=None, 
+        type=float, 
+        help="The temperature for the LLM.")
     parser.add_argument("--max-tokens", "-mt", 
-                        default=6000, 
-                        type=float, 
-                        help="The maximum amount of tokens to generate for one answer.")
+        default=6000, 
+        type=float, 
+        help="The maximum amount of tokens to generate for one answer.")
     parser.add_argument("--verbose", "-v", 
-                        action='store_true', 
-                        help="Enable verbose output.")
+        action='store_true', 
+        help="Enable verbose output.")
     parser.add_argument("--context-text", "-ct", 
-                        default=None, 
-                        type=str,
-                        help="Additional context text for the LLM.")
+        default=None, 
+        type=str,
+        help="Additional context text for the LLM.")
     parser.add_argument("--context-files", "-cf", 
-                        nargs='*', 
-                        help="Paths to files containing additional context.")
+        nargs='*', 
+        help="Paths to files containing additional context.")
     parser.add_argument("--context-directories", "-cd", 
-                        nargs='*', 
-                        help="Paths to directories containing additional context files.")
+        nargs='*', 
+        help="Paths to directories containing additional context files.")
     parser.add_argument("--output-file", "-o", 
-                        type=str, 
-                        help="Path to a file to log the conversation.")
+        type=str, 
+        help="Path to a file to log the conversation.")
     parser.add_argument("--hide-reasoning", "-hr", 
-                        action='store_true', 
-                        help="Hide <tool_call> blocks from console output.")
+        action='store_true', 
+        help="Hide <tool_call> blocks from console output.")
     parser.add_argument("--voice", "-V", 
-                        action='store_true', 
-                        help="Enable voice chat mode.") # Add voice flag
+        action='store_true', 
+        help="Enable voice chat mode.") # Add voice flag
     parser.add_argument("--whisper-model-language", "-wl", 
-                        default="en",
-                        type=str,
-                        help="The language to use for whisper transcriptions (e.g. en, de) (Default: en).")
+        default="en",
+        type=str,
+        help="The language to use for whisper transcriptions (e.g. en, de) (Default: en).")
     
     # Parse arguments
     args = parser.parse_args()
-    
-    config = Config()
-    
-    api_endpoint = config.api_endpoint
-    if args.api_endpoint:
-        api_endpoint = args.api_endpoint
-        
-    api_key = config.api_key
-    if args.api_key:
-        api_key = args.api_key
-        
-    model = config.default_model
-    if args.model:
-        model = args.model
+    config = Helper.load_config()
+    api_endpoint = Helper.get_provider_value('api_endpoint', config, args)
+    api_key = Helper.get_provider_value('api_key', config, args)
+    temperature = Helper.get_provider_value('temperature', config, args, 'default_temperature')
+    model = Helper.get_provider_value('model', config, args, 'default_model')
 
     Helper.print_configuration_section(config=config, args=args)
-        
     OutputPrinter.print_info("You are chatting with the model:", model, Colors.BRIGHT_MAGENTA)
-    
-    temperature = config.default_model_temperature
-    if args.temperature:
-        temperature = args.temperature
     
     refiner = PromptRefiner()
 
@@ -228,6 +221,9 @@ def main():
                         OutputPrinter.print_info("Switched to 'text' mode.", "")
                         continue
                 else:
+                    print()
+                    print("-"*60)
+                    print()
                     OutputPrinter.print_info("Starting text chat. Press CTRL+D or type 'exit' to quit.", "")
                     OutputPrinter.print_info("Commands: /add <Filepath>, /voice, or /talk", "")
                     user_input = input(f"{Colors.BLUE}You:{Colors.RESET} ")
@@ -255,16 +251,26 @@ def main():
                         continue
 
                     conversation_history.append({"role": "user", "content": user_input})
+                    
+                    OutputPrinter.print("Sending request to LLM...")
 
                     if args.verbose:
-                        OutputPrinter.print_info("Sending request to LLM...", "")
+                        OutputPrinter.print("verbose mode - Streaming response ...")
+                        print("-"*60)
+                        print()
 
                     response_content_full = llm_api.chat_completion(
                         messages=conversation_history,
                         model=model,
                         temperature=temperature,
-                        max_tokens=args.max_tokens
+                        max_tokens=args.max_tokens,
+                        print_to_console=args.verbose
                     )
+
+                    if args.verbose:
+                        print()
+                        print("-"*60)
+                        print()
                     
                     if response_content_full:
                         # Always log the full response to all open log files
@@ -285,7 +291,8 @@ def main():
                         if args.hide_reasoning:
                             display_content = refiner.clean_response(display_content)
                             
-                        OutputPrinter.print_info(f"{Colors.GREEN}LLM", f"{display_content}{Colors.RESET}")
+                        print()
+                        OutputPrinter.print_info(f"{Colors.GREEN}LLM", f"\n{display_content}{Colors.RESET}")
                         conversation_history.append({"role": "assistant", "content": response_content_full})
                     else:
                         OutputPrinter.print_error("No response from LLM.")

@@ -43,7 +43,7 @@ class TaskQueueManager:
                 If None, uses the default from TaskQueueDatabase.
         """
         self.config = config
-        self.db = TaskQueueDatabase(self.config.database_path)
+        self.db = TaskQueueDatabase(self.config.get('database_path'))
 
     def add_task_from_file(self, task_file_path: str,
                           priority: str = "normal") -> str:
