@@ -6,7 +6,7 @@
 
 import os
 import logging
-from typing import Any
+from typing import Any, MutableMapping
 from pathlib import Path
 
 from mergedeep import merge
@@ -118,7 +118,7 @@ class Config:
     except (OSError, PermissionError) as e:
       raise RuntimeError(f"Failed to create sokrates logs directory at `{logs_path}`: {e}")
 
-  def load_from_file(self, config_filepath) -> None:
+  def load_from_file(self, config_filepath: str | Path) -> None:
     """
     Load configuration from a YAML file and initialize all values.
     
@@ -135,12 +135,12 @@ class Config:
         FileNotFoundError: If the specified configuration file does not exist
         yaml.YAMLError: If the YAML file is malformed
     """
-    config_dict = FileHelper.read_yaml_file(file_path=config_filepath)
+    config_dict = FileHelper.read_yaml_file(file_path=Path(config_filepath))
     self.config = self._deep_merge_config(first=self.config, second=config_dict)
     self.validate()
     self._setup_directories()
 
-  def load_from_dict(self, config_dict) -> None:
+  def load_from_dict(self, config_dict: dict[str, Any]) -> None:
     """
     Load configuration from a dictionary and initialize all values.
     
@@ -210,7 +210,7 @@ class Config:
       raise ValueError(not_found_error_message)
     return value
   
-  def get_default_provider(self) -> dict[Any,Any]:
+  def get_default_provider(self) -> dict:
     """
     Returns the provider dict that is configured as default provider.
     
@@ -221,9 +221,13 @@ class Config:
         The provider configuration dictionary or None if not found
     """
     default_provider_name = self.config['default_provider']
-    return self.get_provider(default_provider_name)
+    prov = self.get_provider(default_provider_name)
 
-  def get_provider(self, provider_name) -> dict[Any, Any]:
+    if not prov:
+      raise ValueError("Could not find configuration for the default provider!")
+    return prov
+
+  def get_provider(self, provider_name: str) -> dict:
     """
     Returns the configuration dict for the provider with the provided name.
     
@@ -242,9 +246,11 @@ class Config:
     (d for d in providers if d.get("name") == provider_name),
       None
     )
+    if not provider:
+      raise ValueError(f"Could not find configuration for provider: {provider_name}")
     return provider
 
-  def _deep_merge_config(self, first: dict, second: dict) -> dict:
+  def _deep_merge_config(self, first: MutableMapping, second: MutableMapping) -> MutableMapping:
     """
     Recursively merge two config dicts.
     Values from `second` override those in `first`.
