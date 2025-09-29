@@ -15,7 +15,6 @@ from datetime import datetime
 from sokrates.file_helper import FileHelper
 from sokrates.prompt_refiner import PromptRefiner
 from sokrates.llm_api import LLMApi
-import frontmatter
 
 
 class FileProcessor:
@@ -58,36 +57,6 @@ class FileProcessor:
         self.refinement_prompt_path = config.get('prompts_directory') / "refine-prompt.md"
         self.refinement_prompt = self._load_refinement_prompt()
         
-    def _extract_metadata_from_file(self, file_path: str) -> Dict[str, Any]:
-        """
-        Extract metadata from YAML frontmatter in a markdown file.
-        
-        Args:
-            file_path: Path to the file
-            
-        Returns:
-            Dictionary containing metadata fields or empty dict if no frontmatter
-        """
-        try:
-            # Read the file content
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # Parse frontmatter using python-frontmatter
-            parsed = frontmatter.loads(content)
-            
-            # Return metadata (the frontmatter data) and content without frontmatter
-            return {
-                'metadata': parsed.metadata,
-                'content': parsed.content
-            }
-        except Exception as e:
-            self.logger.warning(f"Error parsing frontmatter from {file_path}: {e}")
-            # Return empty metadata if parsing fails, but still return the content
-            return {
-                'metadata': {},
-                'content': content
-            }
     
     def _load_refinement_prompt(self) -> str:
         """Load the refinement prompt from file."""
@@ -145,7 +114,7 @@ Refined prompt:"""
         
         try:
             # Step 1: Extract metadata and content from file
-            metadata_result = self._extract_metadata_from_file(file_path)
+            metadata_result = FileHelper.read_file_with_frontmatter(file_path)
             file_content = metadata_result['content']
             metadata = metadata_result['metadata']
             

@@ -23,13 +23,14 @@
 
 import os
 import json
-from typing import List
+from typing import List, Dict, Any
 from datetime import datetime
 import shutil
 from pathlib import Path
 import re
 import logging
 from ruamel.yaml import YAML
+import frontmatter
 
 class FileHelper:
     """
@@ -492,6 +493,37 @@ class FileHelper:
         
         return file_paths
 
+    @staticmethod
+    def read_file_with_frontmatter(file_path: str | Path) -> Dict[str, Any]:
+        """
+        Read a file and extract YAML frontmatter metadata.
+        
+        Args:
+            file_path (str | Path): Path to the file to read
+            
+        Returns:
+            Dict[str, Any]: Dictionary containing 'metadata' and 'content' keys
+        """
+        # Read the file content first
+        content = FileHelper.read_file(file_path)
+        
+        try:
+            # Parse frontmatter using python-frontmatter
+            parsed = frontmatter.loads(content)
+            
+            # Return metadata (the frontmatter data) and content without frontmatter
+            return {
+                'metadata': parsed.metadata,
+                'content': parsed.content
+            }
+        except Exception as e:
+            FileHelper._log.warning(f"Error parsing frontmatter from {file_path}: {e}")
+            # Return empty metadata if parsing fails, but still return the content
+            return {
+                'metadata': {},
+                'content': content
+            }
+    
     @staticmethod
     def create_and_return_task_execution_directory(output_directory=None) -> str:
         """
