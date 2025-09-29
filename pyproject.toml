@@ -22,7 +22,8 @@ dependencies = [
     "html2text",
     "ruamel.yaml",
     "watchdog",
-    "mergedeep"
+    "mergedeep",
+    "python-frontmatter>=1.1.0",
 ]
 
 [project.optional-dependencies]

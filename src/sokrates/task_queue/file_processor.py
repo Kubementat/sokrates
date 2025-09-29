@@ -15,6 +15,7 @@ from datetime import datetime
 from sokrates.file_helper import FileHelper
 from sokrates.prompt_refiner import PromptRefiner
 from sokrates.llm_api import LLMApi
+import frontmatter
 
 
 class FileProcessor:
@@ -54,6 +55,37 @@ class FileProcessor:
         self.refinement_prompt_path = config.get('prompts_directory') / "refine-prompt.md"
         self.refinement_prompt = self._load_refinement_prompt()
         
+    def _extract_metadata_from_file(self, file_path: str) -> Dict[str, Any]:
+        """
+        Extract metadata from YAML frontmatter in a markdown file.
+        
+        Args:
+            file_path: Path to the file
+            
+        Returns:
+            Dictionary containing metadata fields or empty dict if no frontmatter
+        """
+        try:
+            # Read the file content
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Parse frontmatter using python-frontmatter
+            parsed = frontmatter.loads(content)
+            
+            # Return metadata (the frontmatter data) and content without frontmatter
+            return {
+                'metadata': parsed.metadata,
+                'content': parsed.content
+            }
+        except Exception as e:
+            self.logger.warning(f"Error parsing frontmatter from {file_path}: {e}")
+            # Return empty metadata if parsing fails, but still return the content
+            return {
+                'metadata': {},
+                'content': content
+            }
+    
     def _load_refinement_prompt(self) -> str:
         """Load the refinement prompt from file."""
         try:
@@ -109,8 +141,11 @@ Refined prompt:"""
         }
         
         try:
-            # Step 1: Read file content
-            file_content = self._read_file_content(file_path)
+            # Step 1: Extract metadata and content from file
+            metadata_result = self._extract_metadata_from_file(file_path)
+            file_content = metadata_result['content']
+            metadata = metadata_result['metadata']
+            
             if not file_content:
                 result["status"] = "failed"
                 result["error"] = "File is empty or could not be read"
@@ -118,9 +153,34 @@ Refined prompt:"""
                 
             self.logger.info(f"Read file content: {len(file_content)} characters")
             
-            # Step 2: Refine the prompt
-            self.logger.info(f"Refining the prompt for file: {file_path} ...")
-            refined_prompt = self._refine_prompt(file_content)
+            # Step 2: Determine configuration based on metadata
+            provider_name = metadata.get('provider', None)
+            model_name = metadata.get('model', None)
+            temperature = metadata.get('temperature', None)
+            refinement_enabled = metadata.get('refinement', False)  # Default to False as per feature spec
+            
+            self.logger.info(f"Read frontmatter configuration from file: provider={provider_name}, model={model_name}, temperature={temperature}, refinement={refinement_enabled}")
+            self.logger.info(f"Read file content length: {len(file_content)}")
+            
+            # Override default configuration with metadata values if provided
+            provider_config = self.config.get_default_provider()
+            if provider_name:
+                try:
+                    provider_config = self.config.get_provider(provider_name)
+                except ValueError:
+                    self.logger.warning(f"Invalid provider '{provider_name}' in metadata, using default provider")
+            
+            # Step 3: Refine the prompt (only if refinement is enabled in metadata)
+            
+            refined_prompt = None
+            if refinement_enabled:
+                self.logger.info(f"Refining the prompt for file: {file_path} ...")
+                refined_prompt = self._refine_prompt_with_config(file_content, provider_config, model_name, temperature)
+            else:
+                self.logger.info(f"Refinement disabled for the file: {file_path}. Skipping refinement!")
+                # If refinement is disabled, use content directly as prompt
+                refined_prompt = file_content
+            
             if not refined_prompt:
                 result["status"] = "failed"
                 result["error"] = "Prompt refinement failed"
@@ -129,9 +189,9 @@ Refined prompt:"""
             result["refined_prompt"] = refined_prompt
             self.logger.info(f"Refined prompt: {len(refined_prompt)} characters")
             
-            # Step 3: Execute the refined prompt
+            # Step 4: Execute the refined prompt
             self.logger.info(f"Executing the refined prompt for file: {file_path} ...")
-            execution_result = self._execute_prompt(refined_prompt)
+            execution_result = self._execute_prompt_with_provider_config(refined_prompt, provider_config, model_name, temperature)
             if not execution_result:
                 result["status"] = "failed"
                 result["error"] = "Prompt execution failed"
@@ -144,7 +204,7 @@ Refined prompt:"""
             processing_duration = time.time() - start_time
             result["processing_duration"] = processing_duration
 
-            # Step 4: Save results to file
+            # Step 5: Save results to file
             output_file = self._save_results(result)
             result["output_file"] = str(output_file)
             self.logger.info(f"Saved the results for file: {file_path} -> {output_file}")
@@ -169,47 +229,16 @@ Refined prompt:"""
             
         return result
     
-    def _read_file_content(self, file_path: str) -> Optional[str]:
-        """
-        Read content from a file.
-        
-        Args:
-            file_path: Path to the file
-            
-        Returns:
-            File content as string, or None if reading failed
-        """
-        try:
-            file_path_obj = Path(file_path)
-            
-            # Check if file exists and is readable
-            if not file_path_obj.exists():
-                self.logger.error(f"File does not exist: {file_path}")
-                return None
-                
-            if not file_path_obj.is_file():
-                self.logger.error(f"Path is not a file: {file_path}")
-                return None
-                
-            # Read file content
-            content = FileHelper.read_file(file_path_obj)
-            
-            if not content or not content.strip():
-                self.logger.warning(f"File is empty: {file_path}")
-                return None
-                
-            return content.strip()
-            
-        except Exception as e:
-            self.logger.error(f"Error reading file {file_path}: {e}")
-            return None
     
-    def _refine_prompt(self, input_prompt: str) -> Optional[str]:
+    def _refine_prompt_with_config(self, input_prompt: str, provider_config: Dict[str, Any], model_name: str = None, temperature: float = None) -> Optional[str]:
         """
-        Refine the input prompt using the existing refinement workflow.
+        Refine the input prompt using the existing refinement workflow with custom configuration.
         
         Args:
             input_prompt: The raw prompt from the file
+            provider_config: Provider configuration dictionary
+            model_name: Specific model name to use (optional)
+            temperature: Specific temperature to use (optional)
             
         Returns:
             Refined prompt, or None if refinement failed
@@ -221,13 +250,16 @@ Refined prompt:"""
                 refinement_prompt=self.refinement_prompt
             )
             
-            provider = self.config.get_default_provider()
-            # Send to LLM for refinement
+            # Send to LLM for refinement with custom configuration
+            model_to_use = model_name or provider_config.get('default_model')
+            temp_to_use = temperature if temperature is not None else provider_config.get('default_temperature')
+            
+            self.logger.info(f"Refinement configuration: model={model_to_use} , temperature={temp_to_use}")
             refined_response = self.llm_api.send(
                 prompt=combined_prompt,
-                model=provider.get('default_model'),
+                model=model_to_use,
                 max_tokens=4000,
-                temperature=provider.get('default_temperature')
+                temperature=temp_to_use
             )
             
             # Clean the response
@@ -242,37 +274,47 @@ Refined prompt:"""
             self.logger.error(f"Error refining prompt: {e}")
             return None
     
-    def _execute_prompt(self, refined_prompt: str) -> Optional[str]:
+    
+    def _execute_prompt_with_provider_config(self, refined_prompt: str, provider_config: Dict[str, Any], model_name: str = None, temperature: float = None) -> Optional[str]:
         """
-        Execute the refined prompt using the LLM API.
+        Execute the refined prompt using the LLM API with specific provider configuration.
         
         Args:
             refined_prompt: The refined prompt to execute
+            provider_config: Provider configuration dictionary
+            model_name: Specific model name to use (optional)
+            temperature: Specific temperature to use (optional)
             
         Returns:
             Execution result, or None if execution failed
         """
         try:
             # Send refined prompt to LLM for execution
-
-            provider = self.config.get_default_provider()
-
+            model_to_use = model_name or provider_config.get('default_model')
+            temp_to_use = temperature if temperature is not None else provider_config.get('default_temperature')
+            
+            self.logger.info(f"Execution configuration: model={model_to_use} , temperature={temp_to_use}")
             execution_result = self.llm_api.send(
                 prompt=refined_prompt,
-                model=provider.get('default_model'),
-                max_tokens=8000,
-                temperature=provider.get('default_temperature')
+                model=model_to_use,
+                max_tokens=16*1024,
+                temperature=temp_to_use
             )
+
+            self.logger.info(f"Execution result content length: {len(execution_result)}")
             
             # Clean and format the response
             cleaned_result = self.refiner.clean_response(execution_result)
             formatted_result = self.refiner.format_as_markdown(cleaned_result)
+            
+            self.logger.info(f"Execution result clean formatted content length: {len(formatted_result)}")
             
             return formatted_result
             
         except Exception as e:
             self.logger.error(f"Error executing prompt: {e}")
             return None
+    
     
     def _save_results(self, result: Dict[str, Any]) -> Path:
         """
@@ -323,7 +365,6 @@ Refined prompt:"""
         # Safely extract values with defaults to avoid None formatting issues
         file_path = result.get('file_path') or 'Unknown'
         file_size = result.get('file_size', 0) or 0
-        result.get('status') or 'Unknown'
         
         # Handle processing duration which could be None
         processing_duration_str = f"{result.get('processing_duration'):.2f}"
