@@ -26,6 +26,9 @@ class FileProcessor:
     and executes them via the LLM API, following the same workflow as the
     existing task processing system.
     """
+
+    DEFAULT_MAX_TOKENS_REFINEMENT = 6000
+    DEFAULT_MAX_TOKENS_EXECUTION = 16*1024
     
     def __init__(self, config, logger: logging.Logger = None):
         """
@@ -258,7 +261,7 @@ Refined prompt:"""
             refined_response = self.llm_api.send(
                 prompt=combined_prompt,
                 model=model_to_use,
-                max_tokens=4000,
+                max_tokens=self.DEFAULT_MAX_TOKENS_REFINEMENT,
                 temperature=temp_to_use
             )
             
@@ -297,7 +300,7 @@ Refined prompt:"""
             execution_result = self.llm_api.send(
                 prompt=refined_prompt,
                 model=model_to_use,
-                max_tokens=16*1024,
+                max_tokens=self.DEFAULT_MAX_TOKENS_EXECUTION,
                 temperature=temp_to_use
             )
 
