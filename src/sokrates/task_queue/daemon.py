@@ -126,10 +126,10 @@ class TaskQueueDaemon:
     def process_cycle(self):
         """Process a single cycle of tasks using TaskProcessor."""
         try:
-            self.logger.info(f"Starting processing cycle (processing_interval: {self.processing_interval}s)")
+            self.logger.debug(f"Starting processing cycle (processing_interval: {self.processing_interval}s)")
             
             self.processor.process_tasks()
-            self.logger.info("Processing cycle completed")
+            self.logger.debug("Processing cycle completed")
         except Exception as e:
             self.logger.error(f"Error during processing cycle: {e}")
 
