@@ -195,6 +195,85 @@ sokrates-daemon restart
 sokrates-daemon stop
 ```
 
+### Daemon - Background Prompt File Processing
+
+The sokrates daemon includes a background file processor that monitors specified directories for new files and automatically processes them through the LLM refinement pipeline. This feature allows you to submit prompts by simply dropping text or markdown files into designated directories.
+
+#### How It Works
+
+1. The daemon starts a file watcher that monitors configured directories for new files
+2. When a new file is detected, it's automatically processed through the LLM refinement pipeline
+3. The file content is used as input to generate a refined prompt (if enabled via: refinement: true)
+4. The refined prompt is executed via the configured LLM API
+5. Results are saved to an output directory with timestamped filenames
+
+#### Configuration
+
+File watcher functionality is controlled through the configuration file (`$HOME/.sokrates/config.yml`):
+
+```yaml
+daemon:
+  file_watcher:
+    enabled: true  # Set to false to disable file watching
+    watched_directories:
+      - /path/to/watched/directory  # Add directories to monitor
+    file_extensions:
+      - ".txt"
+      - ".md"
+```
+
+#### File Format and Metadata
+
+Files processed by the daemon should contain your prompt content. You can also include YAML frontmatter to customize processing behavior:
+
+```markdown
+---
+provider: local  # Use specific provider from config
+model: qwen3-4b-instruct-2507-mlx  # Override default model
+temperature: 0.7  # Set temperature for this prompt
+refinement: true  # Enable or disable prompt refinement (default: false)
+---
+
+Your prompt content goes here...
+```
+
+#### Usage
+
+To use this feature:
+
+1. Configure the file watcher in your config.yml as shown above
+2. Start the daemon: `sokrates-daemon start`
+3. Drop text or markdown files into the configured watched directories
+4. The daemon will automatically process each file and save results to the output directory
+
+#### Output
+
+Processed results are saved in the `$HOME/.sokrates/tasks/results` directory with timestamped filenames:
+
+```
+$HOME/.sokrates/tasks/results/
+├── 20250929_143022_my_prompt_processed.md
+└── 20250929_143105_another_request_processed.md
+```
+
+Each output file contains:
+- Original file information
+- The original content
+- The refined prompt (if refinement was enabled)
+- The execution result from the LLM
+- Processing duration and error information (if any)
+
+#### File Cleanup
+
+After successful processing, the original input files are automatically deleted to prevent reprocessing.
+
+#### Logs
+The daemon writes logs to `$HOME/.sokrates/logs/daemon.log` .
+Watch the log stream via:
+```bash
+tail -f $HOME/.sokrates/logs/daemon.log
+```
+
 ### Example Usage
 
 #### Basic LLM Operations
