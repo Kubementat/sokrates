@@ -64,30 +64,16 @@ def main():
         # Initialize TaskQueueManager
         manager = TaskQueueManager(config=config)
 
-        # Check if task exists first
-        all_tasks = manager.get_all_tasks()
-        task = next((t for t in all_tasks if t['task_id'] == args.task_id), None)
-
-        if not task:
-            OutputPrinter.print_error(f"Task {args.task_id} not found")
-            sys.exit(1)
-
         # Confirm removal
         if not args.force:
             confirmation = input(f"{Colors.YELLOW}Are you sure you want to remove task {args.task_id}? [y/N]: {Colors.RESET}")
             if confirmation.lower() != 'y':
-                OutputPrinter.print_info("Task removal cancelled")
+                OutputPrinter.print("Task removal cancelled")
                 sys.exit(0)
 
         # Remove task
         manager.remove_task(args.task_id)
         OutputPrinter.print_success(f"Task {args.task_id} removed successfully")
-
-        if args.verbose:
-            print(f"{Colors.GREEN}Details:{Colors.RESET}")
-            print(f"- Task ID: {task['task_id']}")
-            print(f"- Description: {task['description']}")
-            print(f"- Status was: {task['status']}")
 
     except Exception as e:
         OutputPrinter.print_error(f"Error removing task: {str(e)}")

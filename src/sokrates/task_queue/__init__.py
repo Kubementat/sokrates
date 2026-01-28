@@ -7,7 +7,7 @@
 # - Status tracking: Monitors task execution progress
 # - Error handling: Implements retry mechanisms and dead letter queue
 
-from .database import TaskQueueDatabase
+from .database import TaskQueueORMDatabase
 from .manager import TaskQueueManager
 from .processor import TaskProcessor
 from .status_tracker import StatusTracker
@@ -16,7 +16,7 @@ from .file_watcher import FileWatcher
 from .file_processor import FileProcessor
 
 __all__ = [
-    "TaskQueueDatabase",
+    "TaskQueueORMDatabase",
     "TaskQueueManager",
     "TaskProcessor",
     "StatusTracker",

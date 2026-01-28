@@ -8,7 +8,6 @@ from the task queue using TaskProcessor, with comprehensive status tracking.
 
 import time
 import logging
-from logging.handlers import RotatingFileHandler
 from sokrates.task_queue.processor import TaskProcessor
 from sokrates.task_queue.file_watcher import FileWatcher
 from sokrates.task_queue.file_processor import FileProcessor
@@ -49,23 +48,14 @@ class TaskQueueDaemon:
 
     def setup_logger(self):
         """Configure logging for the daemon."""
-        log_file = self.daemon_logfile_path
-        logger = logging.getLogger('TaskQueueDaemon')
-        logger.setLevel(logging.INFO)
 
-        # Create rotating file handler
-        handler = RotatingFileHandler(
-            log_file,
-            maxBytes=5*1024*1024,  # 5MB
-            backupCount=3
-        )
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+        # pipe all log outputs to daemon logfile path
+        log_level=self.config.get('log_level')
+        logging.basicConfig(filename=self.daemon_logfile_path, level=log_level,
+                    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
 
-        self.logger = logger
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        self.logger.info(f"log_level: {log_level}")
 
     def _setup_file_watcher(self):
         """Set up the file watcher components if enabled."""
@@ -168,8 +158,8 @@ class TaskQueueDaemon:
             # Update any in_progress tasks to failed on shutdown
             all_tasks = self.processor.manager.get_all_tasks()
             for task in all_tasks:
-                if task['status'] == 'in_progress':
-                    task_id = task['task_id']
+                if task.status == 'in_progress':
+                    task_id = task.task_id
                     error_msg = "Daemon terminated during processing"
                     self.processor.status_tracker.update_status(
                         task_id, "failed", error=error_msg

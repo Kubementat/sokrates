@@ -1,4 +1,11 @@
 ## Changelog
+**version 0.13.0**
+- features:
+  - sokrates daemon - Directory watcher and executor for tasks (see README.md)
+- refactoring:
+  - fully refactor configuration to yaml format (see config.yml.example)
+  - task queue database -> Migrated direct sql usage to Peewee ORM
+
 **version 0.11.1**
 - refactoring:
   - removes verbose parameter for all non cli files

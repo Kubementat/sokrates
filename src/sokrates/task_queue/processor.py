@@ -10,6 +10,7 @@ Classes:
 """
 
 import time
+import logging
 from pathlib import Path
 from typing import Optional
 from .manager import TaskQueueManager
@@ -49,17 +50,7 @@ class TaskProcessor:
         self.manager = TaskQueueManager(config)
         self.status_tracker = StatusTracker(self.manager)
         self.error_handler = ErrorHandler()
-        self.logger = logger
-        
-    def log_message(self, message):
-        """
-        Logs a message using the configured logger if available.
-
-        Args:
-            message (str): The message to log.
-        """
-        if self.logger:
-            self.logger.info(message)
+        self.logger = logger or logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
     def process_tasks(self, limit: Optional[int] = None):
         """
@@ -71,10 +62,10 @@ class TaskProcessor:
         try:
             # Get pending tasks
             pending_tasks = self.manager.get_pending_tasks(limit)
-            self.log_message(f"Number of pending tasks: {len(pending_tasks)}")
+            self.logger.info(f"Number of pending tasks: {len(pending_tasks)}")
 
             if not pending_tasks:
-                self.log_message("No pending tasks to process.")
+                self.logger.info("No pending tasks to process.")
                 return
 
             for task in pending_tasks:
@@ -82,7 +73,7 @@ class TaskProcessor:
                 time.sleep(1)  # Small delay between tasks
 
         except Exception as e:
-            self.log_message(f"Error processing tasks: {e}")
+            self.logger.info(f"Error processing tasks: {e}")
         finally:
             self.manager.close()
 
@@ -108,6 +99,8 @@ class TaskProcessor:
                 temperature=self.DEFAULT_TEMPERATURE,
                 refinement_prompt_path=self.config.get('prompts_directory') / 'refine-prompt.md'
                 )
+        
+        self.logger.debug(f"Task Execution output directory: {executor.output_dir}")
 
         try:
             # Update status to in_progress
@@ -116,11 +109,14 @@ class TaskProcessor:
             # Execute task using SequentialTaskExecutor
             result = executor.execute_tasks_from_file(file_path)
 
+            self.logger.debug(f"Updating status: task_id={task_id}, status=completed, output_directory={executor.output_dir}")
+
             # Update status to completed with result
             self.status_tracker.update_status(
-                task_id,
-                "completed",
-                result=f"Successfully executed: {result['successful_tasks']}/{result['total_tasks']} tasks"
+                task_id=task_id,
+                status="completed",
+                result=f"Successfully executed: {result['successful_tasks']}/{result['total_tasks']} tasks",
+                output_directory=executor.output_dir
             )
 
         except Exception as e:
@@ -138,7 +134,7 @@ class TaskProcessor:
                 )
 
                 if next_action == "retry":
-                    self.log_message(f"Retrying task {task_id} (attempt {current_attempt})...")
+                    self.logger.info(f"Retrying task {task_id} (attempt {current_attempt})...")
                     time.sleep(self.error_handler.get_retry_delay(current_attempt))
 
                     try:
@@ -146,9 +142,10 @@ class TaskProcessor:
                         result = executor.execute_tasks_from_file(file_path)
 
                         self.status_tracker.update_status(
-                            task_id,
-                            "completed",
-                            result=f"Successfully executed on retry {current_attempt}: {result['successful_tasks']}/{result['total_tasks']} tasks"
+                            task_id=task_id,
+                            status="completed",
+                            result=f"Successfully executed on retry {current_attempt}: {result['successful_tasks']}/{result['total_tasks']} tasks",
+                            output_directory=executor.output_dir
                         )
                         break  # Successful retry, exit the loop
 
@@ -157,9 +154,9 @@ class TaskProcessor:
                         e = retry_e  # Update error for next iteration
 
                 elif next_action == "dead_letter":
-                    self.log_message(f"Moving task {task_id} to dead letter queue after max retries")
+                    self.logger.info(f"Moving task {task_id} to dead letter queue after max retries")
                     break
 
                 else:  # fail
-                    self.log_message(f"Task {task_id} failed permanently: {e}")
+                    self.logger.info(f"Task {task_id} failed permanently: {e}")
                     break

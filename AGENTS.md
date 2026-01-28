@@ -41,14 +41,12 @@ The sokrates project is a comprehensive framework for Large Language Model (LLM)
    - Core LLM operations (list models, send prompts, chat)
    - Task management (breakdown tasks, execute tasks, task queue)
    - Idea generation and content creation
-   - Benchmarking and analysis tools
    - Python coding tools (summarize, review, generate tests)
 
 2. **Workflows** - Implements multi-stage processes:
    - Idea generation workflows
    - Refinement workflows
    - Sequential task execution
-   - Benchmarking workflows
 
 3. **Task Queue System** - Background processing with persistence:
    - Database management (SQLite)
@@ -83,7 +81,6 @@ The sokrates project is a comprehensive framework for Large Language Model (LLM)
 - Dynamic context switching during conversations
 - Real-time CPU, memory, and resource usage tracking
 - Performance metrics (token generation speed, response times)
-- Comprehensive model benchmarking tools
 - Structured logging infrastructure
 - Modular architecture with clean separation of concerns
 - Flexible environment-based configuration management

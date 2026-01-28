@@ -13,7 +13,6 @@ from .system_monitor import SystemMonitor
 from .utils import Utils
 
 # workflows
-from .workflows.lmstudio_benchmark import LMStudioBenchmark
 from .workflows.idea_generation_workflow import IdeaGenerationWorkflow
 from .workflows.merge_ideas_workflow import MergeIdeasWorkflow
 from .workflows.refinement_workflow import RefinementWorkflow
@@ -35,7 +34,6 @@ __all__ = [
   "PromptConstructor",
   "SystemMonitor",
   "Utils",
-  "LMStudioBenchmark",
   "IdeaGenerationWorkflow",
   "MergeIdeasWorkflow",
   "RefinementWorkflow",

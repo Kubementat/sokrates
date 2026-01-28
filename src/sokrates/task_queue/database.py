@@ -4,233 +4,143 @@ Task Queue Database Module
 
 This module provides database access functionality for the task queue system.
 It handles SQLite database operations including task management, status tracking,
-and history logging.
+and history logging using Peewee ORM.
 
 Classes:
-    TaskQueueDatabase: Manages database connections and CRUD operations for tasks
+    TaskQueueORMDatabase: Manages database connections and CRUD operations for tasks via ORM
 """
 
-import sqlite3
-import time
+from peewee import *
+import logging
 from typing import List, Dict, Optional
+from .orm import db, Task, TaskHistory
 
-class TaskQueueDatabase:
+class TaskQueueORMDatabase:
     """
-    Manages the SQLite database for task queue storage and retrieval.
+    Manages the SQLite database using Peewee ORM for task queue storage and retrieval.
 
     This class provides methods for adding tasks to the queue, retrieving 
-    tasks, updating task status, and logging history changes. It ensures data
-    integrity through transaction management and proper error handling.
+    tasks, updating task status, and logging history changes. It leverages
+    Peewee's ORM capabilities for type safety, security, and maintainability.
 
     Attributes:
         db_path (str): Path to the SQLite database file
-        conn: Database connection object
 
     Methods:
-        _connect(): Establish database connection with retry logic
-        add_task(): Add a new task to the queue
-        get_all_tasks(): Get all tasks from the db
+        __init__(db_path: str): Initializes the database connection and creates tables
+        add_task(): Add a new task to the queue using ORM
+        get_all_tasks(): Get all tasks using ORM queries
         get_pending_tasks(): Get pending tasks for processing
-        
-        update_task_status(): Update task status with optional result/error
-        close(): Close the database connection
+        update_task_status(): Update task status with ORM operations
+        close(): Close the database connection (handled by Peewee)
     """
 
     def __init__(self, db_path: str):
         """
-        Initializes the TaskQueueDatabase with configuration and database setup.
+        Initializes the TaskQueueORMDatabase with configuration and database setup.
 
         Args:
             db_path (str): Path to the SQLite database file.
-
+        
         Side Effects:
             - Creates database tables if they don't exist
             - Establishes initial database connection
         """
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        self.logger.info(f"DB Path: {db_path}")
         self.db_path = db_path
-        self.conn = None
-        self._connect()
-        self._initialize_tables()
+        # Initialize Peewee database instance
+        self.db = db
+        self.db.init(db_path)
+        # Create all required tables in the database
+        self.db.create_tables([Task, TaskHistory])
+        self.connection = self.db.connection
 
-    def connection(self):
-        """
-        Get a database connection, establishing one if needed.
-
-        Returns:
-            sqlite3.Connection: A database connection object.
-        """
-        if not self.conn:
-            self._connect()
-        return self.conn
-    
-    def _connect(self):
-        """
-        Establishes a connection to the SQLite database with retry logic.
-
-        This method attempts to connect to the SQLite database up to 3 times,
-        with increasing delays between retries in case of connection failures.
-
-        Returns:
-            None
-
-        Raises:
-            Exception: If all retry attempts fail to establish a database connection.
-        """
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                self.conn = sqlite3.connect(self.db_path)
-                self.conn.row_factory = sqlite3.Row
-                self.conn.execute("PRAGMA journal_mode=WAL")
-                return
-            except sqlite3.Error as e:
-                if attempt == max_retries - 1:
-                    print(f"Failed to connect to database: {e}")
-                    raise Exception(f"Failed to connect to database: {e}")
-                time.sleep(0.1 * (attempt + 1))
-
-    def _initialize_tables(self):
-        """
-        Initializes the database tables if they don't already exist.
-
-        This method creates two tables in the SQLite database:
-        1. 'tasks' table for storing task information
-        2. 'task_history' table for logging status changes
-
-        Returns:
-            None
-        """
-        with self.connection():
-            # Create tasks table
-            self.conn.execute("""
-            CREATE TABLE IF NOT EXISTS tasks (
-                task_id TEXT PRIMARY KEY,
-                description TEXT NOT NULL,
-                file_path TEXT NOT NULL,
-                priority TEXT DEFAULT 'normal',
-                status TEXT DEFAULT 'pending',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                result TEXT, -- for completed tasks
-                error_message TEXT -- for failed tasks
-            )
-            """)
-
-            # Create task history table
-            self.conn.execute("""
-            CREATE TABLE IF NOT EXISTS task_history (
-                history_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                task_id TEXT NOT NULL,
-                status TEXT NOT NULL,
-                changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                result TEXT,
-                error_message TEXT,
-                FOREIGN KEY (task_id) REFERENCES tasks(task_id)
-            )
-            """)
-
-    def add_task(self, task_id: str, description: str, file_path: str,
-                 priority: str = "normal") -> None:
-        """Add a new task to the queue"""
+    def add_task(self, description: str, file_path: str,
+                 priority: str = "normal") -> Task:
+        """Add a new task to the queue using ORM"""
+        self.logger.info(f"Adding task with: file_path={file_path}")
         try:
-            with self.connection():
-                self.conn.execute(
-                    """
-                    INSERT INTO tasks (task_id, description, file_path, priority)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    (task_id, description, file_path, priority)
-                )
-        except sqlite3.IntegrityError as e:
+            # Create new task instance with all required fields
+            new_task = Task.create(
+                description=description,
+                file_path=file_path,
+                priority=priority
+            )
+            return new_task
+
+        except IntegrityError as e:
             print(f"Error: Task already exists: {e}")
             raise ValueError(f"Task already exists: {e}")
 
-    def _execute_select_query(self, query, params: list=None, limit: Optional[int] = None):
-        """
-        Executes a SELECT query and returns the results as a list of dictionaries.
+    def get_task(self, task_id) -> Task:
+        self.logger.info("Retrieving task with id: {task_id} ...")
+        return Task.select().where(Task.task_id==task_id).get()
 
-        Args:
-            query (str): The SQL SELECT query to execute.
-            params (list, optional): Parameters for the SQL query. Defaults to None.
-            limit (int, optional): Maximum number of results to return. Defaults to None.
-
-        Returns:
-            list[Dict]: A list of dictionaries representing the query results.
-        """
-        if params is None:
-            params = []
-
+    def get_all_tasks(self, limit: Optional[int] = None):
+        """Get all tasks using ORM query"""
+        self.logger.info("Retrieving all tasks ...")
+        query = Task.select()
         if limit is not None:
-            query += " LIMIT ?"
-            params.append(limit)
-        with self.connection():
-            cursor = self.conn.execute(query, params)
-            tasks = [self._row_to_dict(row) for row in cursor.fetchall()]
-            return tasks
-
-    def get_all_tasks(self, limit: Optional[int] = None) -> List[Dict]:
-        """Get all tasks"""
-        # query = "SELECT * FROM tasks WHERE status = 'pending'"
-        query = "SELECT * FROM tasks"
-        return self._execute_select_query(query, limit=limit)
+            query = query.limit(limit)
+        return query
 
     def get_pending_tasks(self, limit: Optional[int] = None) -> List[Dict]:
-        """Get pending tasks for processing"""
-        query = "SELECT * FROM tasks WHERE status = 'pending'"
-        return self._execute_select_query(query, limit=limit)
+        """Get pending tasks for processing using ORM"""
+        self.logger.info("Retrieving all pending tasks ...")
+        query = Task.select().where(Task.status == 'pending')
+        if limit is not None:
+            query = query.limit(limit)
+        return [row for row in query.dicts()]
 
     def update_task_status(self, task_id: str, status: str,
-                          result: Optional[str] = None, error: Optional[str] = None) -> None:
-        """Update task status with optional result/error"""
+                           result: Optional[str] = None, error: Optional[str] = None,
+                           output_directory: Optional[str] = None) -> None:
+        """Update task status with ORM operations and history logging"""
+
+        self.logger.info(f"Updating task status for task with id: {task_id} ...")
+
         try:
-            with self.connection():
-                query = """
-                UPDATE tasks
-                SET status = ?,
-                    result = ?,
-                    error_message = ?,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE task_id = ?
-                """
+            # Retrieve the task
+            task = Task.get(Task.task_id == task_id)
+            
+            # Update fields directly on model instance
+            task.status = status
+            task.result = result
+            task.error_message = error
+            task.output_directory = output_directory
+            task.save()
+            
+            # Log to history table using ORM
+            TaskHistory.create(
+                task=task,
+                status=status,
+                result=result,
+                error_message=error
+            )
+        except DoesNotExist:
+            print(f"Task {task_id} not found")
+            raise ValueError(f"Task {task_id} not found")
+        except Exception as e:
+            print(f"Failed to update task status: {e}")
+            raise
+    
+    def remove_task(self, task_id: str) -> None:
+        """
+        Remove a task from the queue.
 
-                self.conn.execute(query, (status, result or None, error or None, task_id))
+        Args:
+            task_id (str): Unique identifier for the task to remove
 
-                # Also log to history table
-                self._log_task_history(task_id, status, result, error)
-        except sqlite3.Error as e:
-            print(f"An Error occured during updating the task status: {e}")
-            raise Exception(f"Failed to update task status: {e}")
-
-    def _log_task_history(self, task_id: str, status: str,
-                          result: Optional[str] = None, error: Optional[str] = None) -> None:
-        """Log status change to history table"""
+        Raises:
+            Exception: If database operation fails
+        """
         try:
-            with self.connection():
-                self.conn.execute(
-                    """
-                    INSERT INTO task_history (task_id, status, result, error_message)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    (task_id, status, result, error)
-                )
-        except sqlite3.Error as e:
-            # Don't fail the main operation if history logging fails
-            print(f"Warning: Failed to log history for {task_id}: {e}")
-
-    def _row_to_dict(self, row) -> Dict:
-        """Convert database row to dictionary"""
-        return dict(row)
-
+            qry=Task.delete().where(Task.task_id==task_id)
+            qry.execute()
+        except Exception as e:
+            raise Exception(f"Failed to remove task {task_id}: {e}")
+        
     def close(self):
-        """Close the database connection"""
-        if self.conn:
-            self.conn.close()
-            self.conn = None
-
-    def __enter__(self):
-        """Support context manager protocol"""
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Support context manager protocol"""
-        self.close()
+        """Close the database connection (handled by Peewee)"""
+        db.close()

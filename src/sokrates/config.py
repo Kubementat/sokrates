@@ -21,6 +21,7 @@ class Config:
   """
 
   DEFAULT_CONFIGURATION = {
+    "log_level": Constants.DEFAULT_LOG_LEVEL,
     "home_path": Constants.DEFAULT_HOME_PATH,
     "prompts_directory": Constants.DEFAULT_PROMPTS_DIRECTORY,
     "default_provider": Constants.DEFAULT_PROVIDER_NAME,

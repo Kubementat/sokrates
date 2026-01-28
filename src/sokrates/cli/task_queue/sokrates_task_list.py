@@ -11,10 +11,9 @@ Usage:
 Options:
     --status, -s: Filter by status (values: pending, in_progress, completed, failed)
     --priority, -p: Filter by priority (values: high, normal, low)
-    --verbose, -v: Show detailed task information
 
 Example:
-    python queue_list.py --status pending --priority high --verbose
+    python queue_list.py --status pending --priority high
 """
 
 import argparse
@@ -49,18 +48,9 @@ def main():
         help='Filter tasks by priority'
     )
 
-    parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Show detailed task information'
-    )
-
     # Parse arguments
     args = parser.parse_args()
     config = Helper.load_config()
-
-    if args.verbose:
-        print(f"{Colors.BRIGHT_BLUE}Retrieving tasks from queue...{Colors.RESET}")
 
     try:
         # Initialize TaskQueueManager
@@ -76,15 +66,16 @@ def main():
         # Get tasks from queue (for now, get all - we'll implement filtering in the manager later)
         tasks = manager.get_all_tasks()
 
+        # TODO: do this on db level
         # Filter tasks based on arguments
         filtered_tasks = tasks
         if args.status and args.status != 'all':
-            filtered_tasks = [t for t in tasks if t['status'] == args.status]
+            filtered_tasks = [t for t in tasks if t.status == args.status]
         if args.priority and args.priority != 'all':
-            filtered_tasks = [t for t in tasks if t['priority'] == args.priority]
+            filtered_tasks = [t for t in tasks if t.priority == args.priority]
 
         # Display tasks
-        OutputPrinter.print_section("QUEUED TASKS", Colors.BRIGHT_BLUE, "=")
+        OutputPrinter.print_section("TASKS", Colors.BRIGHT_BLUE, "=")
 
         if not filtered_tasks:
             print(f"{Colors.YELLOW}No tasks found matching the criteria.{Colors.RESET}")
@@ -95,17 +86,19 @@ def main():
                     'in_progress': Colors.BLUE,
                     'completed': Colors.GREEN,
                     'failed': Colors.RED
-                }.get(task['status'], Colors.WHITE)
+                }.get(task.status, Colors.WHITE)
 
-                print(f"{Colors.BRIGHT_WHITE}{task['task_id']}{Colors.RESET} | "
-                      f"{status_color}{task['status'].upper()}{Colors.RESET} | "
-                      f"{Colors.CYAN}{task['priority'].upper()}{Colors.RESET} | "
-                      f"{Colors.GREEN}{task['description'][:50]}{'...' if len(task['description']) > 50 else ''}{Colors.RESET}")
+                
 
-                if args.verbose:
-                    print(f"    {Colors.BRIGHT_BLUE}File:{Colors.RESET} {task['file_path']}")
-                    print(f"    {Colors.BRIGHT_BLUE}Created:{Colors.RESET} {task['created_at']}")
-                    print(f"    {Colors.BRIGHT_BLUE}Updated:{Colors.RESET} {task['updated_at']}")
+                print(f"{Colors.BRIGHT_WHITE}{task.task_id}{Colors.RESET} | "
+                      f"{status_color}{task.status.upper()}{Colors.RESET} | "
+                      f"{Colors.CYAN}{task.priority.upper()}{Colors.RESET} | "
+                      f"{Colors.GREEN}{task.description[:50]}{'...' if len(task.description) > 50 else ''}{Colors.RESET}")
+
+                print(f"    {Colors.BRIGHT_BLUE}Source File:{Colors.RESET} {task.file_path}")
+                print(f"    {Colors.BRIGHT_BLUE}Output Directory:{Colors.RESET} {task.output_directory}")
+                print(f"    {Colors.BRIGHT_BLUE}Created:{Colors.RESET} {task.created_at}")
+                print(f"    {Colors.BRIGHT_BLUE}Updated:{Colors.RESET} {task.updated_at}")
 
         OutputPrinter.print(f"Total tasks: {len(filtered_tasks)}")
 

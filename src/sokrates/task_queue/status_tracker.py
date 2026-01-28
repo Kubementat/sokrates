@@ -33,7 +33,7 @@ class StatusTracker:
         """
         self.manager = manager
 
-    def update_status(self, task_id, status, result=None, error=None):
+    def update_status(self, task_id, status, result=None, error=None, output_directory=None):
         """
         Update the status of a task.
 
@@ -42,12 +42,15 @@ class StatusTracker:
             status (str): New status for the task
             result (str, optional): Execution result if completed
             error (str, optional): Error message if failed
+            output_directory (str, optional): Output directory of the task
 
         Raises:
             Exception: If database operation fails
         """
         try:
-            self.manager.update_task_status(task_id, status, result, error)
+            self.manager.update_task_status(task_id=task_id,
+                status=status, result=result, 
+                error=error, output_directory=output_directory)
         except Exception as e:
             raise Exception(f"Failed to update task status: {e}")
 
@@ -64,6 +67,6 @@ class StatusTracker:
         try:
             # In a real implementation, we would query the database directly
             tasks = self.manager.get_all_tasks()
-            return next((t for t in tasks if t['task_id'] == task_id), None)
+            return next((t for t in tasks if t.task_id == task_id), None)
         except Exception as e:
             raise Exception(f"Failed to retrieve task status: {e}")

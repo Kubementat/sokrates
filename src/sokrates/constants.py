@@ -1,6 +1,8 @@
 from pathlib import Path
 
 class Constants:  
+  DEFAULT_LOG_LEVEL = "INFO"
+
   # Endpoint
   DEFAULT_PROVIDER_NAME = "local"
   DEFAULT_PROVIDER_TYPE = "openai"

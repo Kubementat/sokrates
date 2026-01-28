@@ -1,6 +1,6 @@
 [project]
 name = "sokrates"
-version = "0.12.1"
+version = "0.13.0"
 description = "A collection of tools for LLM interactions like prompt refinement and idea generation. It also provides a console chat client with speech to text feature."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -24,6 +24,7 @@ dependencies = [
     "watchdog",
     "mergedeep",
     "python-frontmatter>=1.1.0",
+    "peewee[playhouse]>=3.18.2",
 ]
 
 [project.optional-dependencies]
@@ -54,9 +55,6 @@ where = ["src"]
 include = ["sokrates*"]
 
 [project.scripts]
-sokrates-benchmark-model = "sokrates.cli.sokrates_benchmark_model:main"
-sokrates-benchmark-results-merger = "sokrates.cli.sokrates_benchmark_results_merger:main"
-sokrates-benchmark-results-to-markdown = "sokrates.cli.sokrates_benchmark_results_to_markdown:main"
 sokrates-breakdown-task = "sokrates.cli.sokrates_breakdown_task:main"
 sokrates-chat = "sokrates.cli.sokrates_chat:main"
 sokrates-execute-tasks = "sokrates.cli.sokrates_execute_tasks:main"

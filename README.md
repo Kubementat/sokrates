@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.12.1](https://img.shields.io/badge/version-0.12.1-green)](https://github.com/Kubementat/sokrates)
+[![Version: 0.13.0](https://img.shields.io/badge/version-0.13.0-green)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -156,11 +156,6 @@ uv run | grep sokrates
 - `sokrates-generate-mantra`: Generate mantras or affirmations
 - `sokrates-fetch-to-md`: Fetch web content and convert to markdown
 - `sokrates-merge-ideas`: Merge multiple documents or ideas into a coherent output
-
-#### Benchmarking & Analysis
-- `sokrates-benchmark-model`: Benchmark LLM models with performance metrics
-- `sokrates-benchmark-results-merger`: Merge multiple benchmark results
-- `sokrates-benchmark-results-to-markdown`: Convert benchmark results to formatted markdown
 
 #### Python coding tools
 - `sokrates-code-analyze`: Parse a directory with any source code (e.g. a git repository) and generate an analysis report as introduction to the code base. This is very handy for diving into new code bases :D
@@ -386,16 +381,6 @@ sokrates-fetch-to-md --url "https://example.com/article" --output article.md
 sokrates-merge-ideas --source-documents 'docs/idea1.md,docs/idea2.md' --output-file merged-ideas.md
 ```
 
-#### Benchmarking & Analysis
-
-```bash
-# Benchmark model performance
-sokrates-benchmark-model --model qwen3-4b-instruct-2507-mlx --iterations 10 --temperature 0.7
-
-# Convert benchmark results to markdown
-sokrates-benchmark-results-to-markdown --input benchmark_results.json --output benchmark_report.md
-```
-
 #### Python coding tools
 ```bash
 # Analyze a directory with a code base the `/dir/to/my_git_repo` directory and write the result to `/dir/to/my_git_repo/docs/code_analysis.md`
@@ -431,12 +416,6 @@ sokrates-code-review --files src/sokrates/config.py --verbose -o docs/code_revie
 - **Conversation Logging**: Automatic chat history logging with timestamps
 - **Context Switching**: Dynamic context addition during conversations
 
-### 📊 System Monitoring & Analytics
-- **Real-time Monitoring**: CPU, memory, and resource usage tracking
-- **Performance Metrics**: Token generation speed, response times, and throughput
-- **Benchmarking Tools**: Comprehensive model performance analysis
-- **Logging Infrastructure**: Structured logging with configurable levels
-
 ### 🔧 Developer Tools
 - **Modular Architecture**: Clean, extensible component design
 - **Configuration Management**: Flexible environment-based configuration
@@ -470,7 +449,7 @@ source .venv/bin/activate
 ```
 
 ### Run the testsuite
-For the testsuite we expect a locally running LM Studio instance with the default model [qwen3-4b-instruct-2507-mlx](https://huggingface.co/lmstudio-community/Qwen3-4B-Instruct-2507-MLX-4bit) available and ready for execution.
+For the testsuite we expect a locally running LM Studio instance with the default model [qwen3-4b-instruct-2507-mlx](https://huggingface.co/lmstudio-community/Qwen3-4B-Instruct-2507-MLX-4bit) available and ready for execution. You can also specify another testing model in [conftest.py](tests/conftest.py).
 For details for setting up LM Studio visit [their documentation](https://lmstudio.ai/docs/app).
 
 ```bash

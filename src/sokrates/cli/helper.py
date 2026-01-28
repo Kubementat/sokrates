@@ -56,6 +56,7 @@ class Helper:
         OutputPrinter.print_info("config_path", config.get('config_path'))
         OutputPrinter.print_info("database_path", config.get('database_path'))
         OutputPrinter.print_info("daemon.logfile_path", config.get('daemon.logfile_path'))
+        OutputPrinter.print_info("log_level", config.get('log_level'))
         OutputPrinter.print_info("daemon.processing_interval", config.get('daemon.processing_interval'))
         OutputPrinter.print_info("daemon.file_watcher.enabled", config.get('daemon.file_watcher.enabled'))
         OutputPrinter.print_info("daemon.file_watcher.watched_directories", config.get('daemon.file_watcher.watched_directories'))

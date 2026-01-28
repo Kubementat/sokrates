@@ -3,7 +3,7 @@
   "subtasks": [
     {
       "id": 1,
-      "description": "Create a complete HTML page for a portfolio website for a Software developer; who is a cat; with semantic HTML structure, CSS Flexbox layout, and responsive design that works on mobile, tablet, and desktop screens.",
+      "description": "Create a complete HTML page for a portfolio website for a Software developer; who is a cat; with semantic HTML structure, CSS Flexbox layout, and responsive design that works on mobile, tablet, and desktop screens in one html file.",
       "complexity": 7
     },
     {

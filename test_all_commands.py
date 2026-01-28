@@ -100,10 +100,6 @@ def test_all_commands(api_endpoint, api_key, model):
         {
             "cmd": "sokrates-code-analyze",
             "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' -m '{model}' --source-directory . -o '{TEST_OUTPUT_DIRECTORY}/code_analysis.md' --max-tokens 30000"
-        },
-        {
-            "cmd": "sokrates-benchmark-model",
-            "args": f"--api-endpoint '{api_endpoint}' --api-key '{api_key}' --model '{model}' --input-directory tests/prompts_minimal --results-directory '{TEST_OUTPUT_DIRECTORY}/benchmark_results' --store-results"
         }
     ]
 

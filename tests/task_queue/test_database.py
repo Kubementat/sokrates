@@ -1,11 +1,11 @@
 import pytest
-from sokrates.task_queue.database import TaskQueueDatabase
+from sokrates.task_queue.database import TaskQueueORMDatabase
 
 # Test setup: Create a temporary in-memory database for all tests
 @pytest.fixture(scope="function")
 def db():
     """Fixture to create and clean up a fresh in-memory database instance."""
-    db = TaskQueueDatabase(":memory:")
+    db = TaskQueueORMDatabase(":memory:")
     yield db
     db.close()
 

@@ -130,7 +130,9 @@ class SequentialTaskExecutor:
             "total_tasks": len(tasks.get("subtasks", [])),
             "successful_tasks": 0,
             "failed_tasks": 0,
-            "details": []
+            "details": [],
+            "output_directory": self.output_dir,
+            "output_files": []
         }
 
         for subtask in tasks.get("subtasks", []):
@@ -146,8 +148,13 @@ class SequentialTaskExecutor:
                 continue
 
             try:
-                self._process_single_task_file(task_desc=task_desc, 
-                                                        task_id=task_id, main_task=main_task)
+                processing_result = self._process_single_task_file(task_desc=task_desc, 
+                    task_id=task_id, main_task=main_task)
+                self.logger.info(f"Processing result: {processing_result}")
+                
+                output_file = processing_result['output_file']
+                
+                results["output_files"].append(output_file)
                 results["successful_tasks"] += 1
                 status = "completed"
                 message = "Task executed successfully"
@@ -159,17 +166,19 @@ class SequentialTaskExecutor:
             results["details"].append({
                 "task_id": task_id,
                 "status": status,
-                "message": message
+                "message": message,
+                "output_file": output_file
             })
 
         self.logger.info("Task execution summary:")
         self.logger.info(f"- Total tasks: {results['total_tasks']}")
         self.logger.info(f"- Successful: {results['successful_tasks']}")
         self.logger.info(f"- Failed: {results['failed_tasks']}")
+        self.logger.info(f"- Output files: {results['output_files']}")
 
         return results
 
-    def _process_single_task_file(self, task_desc: str, task_id: int, main_task: str = "") -> str:
+    def _process_single_task_file(self, task_desc: str, task_id: int, main_task: str = "") -> dict:
         """
         Processes a single task file through the complete workflow:
         1. Generate initial prompt from task description
@@ -181,9 +190,6 @@ class SequentialTaskExecutor:
             task_desc (str): Task description text
             task_id (int): Unique identifier for the task
 
-        Returns:
-            str: The execution result from the LLM
-
         Raises:
             Exception: If any step in the processing fails (e.g., file reading,
                        prompt refinement, or API execution errors)
@@ -192,7 +198,7 @@ class SequentialTaskExecutor:
             - Modifies conversation history with refined prompts and results
             - Creates output files in the specified directory
         """
-        self.logger.info(f" Processing task {task_id} ...")
+        self.logger.info(f" Processing task with id: {task_id} ...")
         self.logger.debug(f"Task description: {task_desc}")
         # Step 1: Generate initial prompt from main task and sub-task description
         sub_task_prompt = f"Sub-Task {task_id}: {task_desc}" 
@@ -252,4 +258,7 @@ Handle the sub-task in the context of the main objective.
 
         self.logger.info(f"Result saved to {output_file}")
 
-        return execution_result
+        return {
+            "output_file": output_file,
+            "response": execution_result
+        }
