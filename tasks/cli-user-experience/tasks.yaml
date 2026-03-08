@@ -1,0 +1,371 @@
+featureName: cli-user-experience
+branchName: feat/cli-user-experience
+tasks:
+  - id: "task-001"
+    title: "Write integration test suite for unified CLI"
+    description: >
+      Create the integration test file `tests/integration_tests/test_cli_user_experience.py` covering all user-facing
+      CLI behaviors for the cli-user-experience feature. Tests must use Click's CliRunner to invoke the unified
+      `sokrates` group and verify: the entry point exists and returns exit code 0, all existing commands are registered
+      as subcommands (chat, code-review, send-prompt, task-add, daemon, refine-and-send-prompt, etc.), subcommand names
+      are derived correctly (sokrates-code-review → code-review), standalone aliases produce equivalent help output,
+      categorized help output contains category headers (Prompts, Workflows, Code Analysis, Task Queue, Interactive,
+      Utilities), project overview appears at top of --help, onboarding message appears when config is missing and
+      disappears when config exists, unknown commands show error with category listing and --help suggestion, epilog
+      examples appear in subcommand --help output, and guide/chat subcommands start correctly. Use fixtures from
+      tests.md (CliRunner, temp_home, mock_llm_client). The test suite is expected to fail initially since the
+      implementation does not exist yet — a test task is considered complete without a green test suite.
+    source:
+      - "specification/features/cli-user-experience/tests.md#integration-tests-user-facing-command-behavior"
+      - "specification/features/cli-user-experience/tests.md#0-unified-cli-entry-point"
+      - "specification/features/cli-user-experience/tests.md#1-central-command-discovery-sokrates---help"
+      - "specification/features/cli-user-experience/tests.md#2-subcommand-help-with-examples"
+      - "specification/features/cli-user-experience/tests.md#3-unknown-command-handling"
+      - "specification/features/cli-user-experience/tests.md#4-interactive-guide-mode-sokrates-guide"
+      - "specification/features/cli-user-experience/tests.md#5-chat-alias-sokrates-chat"
+    priority: 1
+    dependsOn: []
+    successCriteria:
+      - "File tests/integration_tests/test_cli_user_experience.py exists with test classes covering Behaviors 0–5 and 7"
+      - "Tests use Click's CliRunner fixture and temp_home fixture for config detection"
+      - "Tests cover: unified entry point, subcommand registration, standalone alias equivalence, categorized help, project overview, onboarding message, unknown command handling, epilog examples, guide mode, chat alias"
+      - "Test file is syntactically valid Python and can be collected by pytest (even if tests fail)"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-002"
+    title: "Write unit test suite for CLI components"
+    description: >
+      Create the unit test file `tests/unit_tests/test_cli_user_experience.py` covering internal components of
+      the cli-user-experience feature. Tests must cover: command registration system (commands correctly registered
+      and discoverable, categories assigned properly, example snippets attached), help formatter (consistent formatting,
+      example section rendering, line wrapping at max width), guide system prompt generator (role definition included,
+      capabilities summary included, command reference included, behavioral instructions included, fallback text menu
+      generation), and first-time user detection (missing config returns True, config exists returns False). Use mocks
+      for Click context and LLM client. The test suite is expected to fail initially since the implementation does not
+      exist yet — a test task is considered complete without a green test suite.
+    source:
+      - "specification/features/cli-user-experience/tests.md#unit-tests-internal-components"
+      - "specification/features/cli-user-experience/tests.md#6-command-registration-system"
+      - "specification/features/cli-user-experience/tests.md#7-help-formatter"
+      - "specification/features/cli-user-experience/tests.md#8-guide-system-prompt-generator"
+      - "specification/features/cli-user-experience/tests.md#9-first-time-user-experience"
+      - "specification/features/cli-user-experience/tests.md#10-ai-agent-usage-patterns"
+    priority: 2
+    dependsOn: []
+    successCriteria:
+      - "File tests/unit_tests/test_cli_user_experience.py exists with test classes covering Behaviors 6–10"
+      - "Tests use unittest.mock for all external dependencies (Click context, LLM client, file system)"
+      - "Tests cover: command registration, category assignment, example snippets, help formatting, guide system prompt content, fallback menu, first-time user detection, AI agent parseable output"
+      - "Test file is syntactically valid Python and can be collected by pytest (even if tests fail)"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-003"
+    title: "Create unified Click group entry point"
+    description: >
+      Create a new module `src/sokrates/cli/main.py` containing a Click group `cli` decorated with `@click.group()`.
+      The group's `help` parameter must contain the project overview text: one-line summary
+      ("Sokrates — A CLI toolkit for effective LLM interactions"), 2–3 sentences describing core capabilities
+      (prompt refinement, code analysis, task queue, interactive chat), and a note to run `sokrates guide` for an
+      interactive introduction. The group should use `invoke_without_command=True` so that running `sokrates` without
+      arguments displays the help output. This module will serve as the central entry point for the unified CLI.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#0-unified-cli-entry-point"
+      - "specification/features/cli-user-experience/behaviors.md#1-central-command-discovery-sokrates---help"
+    priority: 3
+    dependsOn:
+      - "task-001"
+      - "task-002"
+    successCriteria:
+      - "File src/sokrates/cli/main.py exists with a @click.group() named 'cli'"
+      - "The group help text includes 'Sokrates' summary, core capabilities, and 'sokrates guide' suggestion"
+      - "Running the group without arguments displays the help output (invoke_without_command=True)"
+      - "The module is importable without errors: 'from sokrates.cli.main import cli' succeeds"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-004"
+    title: "Register all existing commands as subcommands"
+    description: >
+      In `src/sokrates/cli/main.py`, register all existing CLI commands as subcommands of the unified Click group
+      using `cli.add_command()`. The mapping must derive subcommand names by dropping the `sokrates-` prefix:
+      sokrates-chat → chat, sokrates-code-review → code-review, sokrates-send-prompt → send-prompt,
+      sokrates-refine-prompt → refine-prompt, sokrates-refine-and-send-prompt → refine-and-send-prompt,
+      sokrates-idea-generator → idea-generator, sokrates-merge-ideas → merge-ideas,
+      sokrates-generate-mantra → generate-mantra, sokrates-breakdown-task → breakdown-task,
+      sokrates-execute-tasks → execute-tasks, sokrates-list-models → list-models,
+      sokrates-fetch-to-md → fetch-to-md, sokrates-code-analyze → code-analyze,
+      sokrates-code-summarize → code-summarize, sokrates-code-review → code-review,
+      sokrates-code-generate-tests → code-generate-tests, sokrates-task-add → task-add,
+      sokrates-task-list → task-list, sokrates-task-status → task-status,
+      sokrates-task-remove → task-remove, sokrates-daemon → daemon. Each existing command's `main` function
+      must be wrapped as a Click command if it uses argparse (since existing commands use argparse, not Click).
+      Consider wrapping argparse-based commands using `click.Command` with `context_settings` that pass through
+      arguments, or convert them to Click-compatible wrappers that delegate to the original `main()`.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#0-unified-cli-entry-point"
+    priority: 4
+    dependsOn:
+      - "task-003"
+    successCriteria:
+      - "All existing commands are registered as subcommands with correct names (prefix removed)"
+      - "Running 'sokrates <subcommand> --help' works for every registered subcommand"
+      - "Subcommands correctly delegate to the original command logic"
+      - "No subcommand retains the 'sokrates-' prefix in its name"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-005"
+    title: "Add pyproject.toml unified entry point"
+    description: >
+      Add the unified `sokrates` entry point to `[project.scripts]` in `pyproject.toml` as:
+      `sokrates = "sokrates.cli.main:cli"`. All existing standalone entry points (sokrates-chat, sokrates-code-review,
+      etc.) must be preserved as aliases so that existing scripts and workflows continue to work. After adding the
+      entry point, run `uv sync` to install the new entry point. Verify that `sokrates --help` works and lists
+      subcommands, and that all existing standalone commands still function.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#0-unified-cli-entry-point"
+    priority: 5
+    dependsOn:
+      - "task-004"
+    successCriteria:
+      - "pyproject.toml [project.scripts] contains 'sokrates = \"sokrates.cli.main:cli\"'"
+      - "All existing standalone entry points are preserved in [project.scripts]"
+      - "After uv sync, running 'sokrates --help' displays the unified help output"
+      - "All existing standalone commands (e.g., sokrates-chat, sokrates-list-models) still work"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-006"
+    title: "Implement lazy-loading with error resilience"
+    description: >
+      Modify the command registration in `src/sokrates/cli/main.py` to use lazy loading so that if any single
+      command module fails to import (e.g., due to missing optional dependencies like voice libraries), the
+      remaining commands still load successfully. Wrap each `import` and `add_command` call in a try/except block
+      that catches ImportError and logs a warning using Python's logging module (e.g.,
+      `logger.warning(f"Could not load command '{name}': {e}")`). The CLI group must never crash due to a single
+      command failing to register.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#0-unified-cli-entry-point"
+    priority: 6
+    dependsOn:
+      - "task-004"
+    successCriteria:
+      - "Each command registration is wrapped in try/except ImportError"
+      - "A warning is logged (not printed) when a command fails to register"
+      - "If one command module has an import error, all other commands still load and function"
+      - "The CLI group does not crash or show a traceback for import failures"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-007"
+    title: "Implement categorized help formatter"
+    description: >
+      Create a custom Click help formatter (by subclassing `click.Group` or overriding `format_commands`) in
+      `src/sokrates/cli/main.py` that groups subcommands by category when displaying `sokrates --help`. The
+      categories and their assigned commands are: Prompts (send-prompt, refine-prompt, refine-and-send-prompt),
+      Workflows (idea-generator, merge-ideas, generate-mantra, breakdown-task, execute-tasks), Code Analysis
+      (code-review, code-analyze, code-summarize, code-generate-tests), Task Queue (task-add, task-list,
+      task-status, task-remove, daemon), Interactive (chat, guide), Utilities (list-models, fetch-to-md). Each
+      category should be displayed as a header followed by its commands with one-line descriptions. The category-
+      to-command mapping should be defined as a data structure (e.g., OrderedDict) for maintainability. Lines must
+      not exceed 120 characters.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#1-central-command-discovery-sokrates---help"
+      - "specification/features/cli-user-experience/behaviors.md#6-ai-agent-discoverability"
+    priority: 7
+    dependsOn:
+      - "task-004"
+    successCriteria:
+      - "Running 'sokrates --help' shows commands grouped under category headers: Prompts, Workflows, Code Analysis, Task Queue, Interactive, Utilities"
+      - "Each command appears under its correct category with a one-line description"
+      - "The category-to-command mapping is defined as a maintainable data structure"
+      - "Output lines do not exceed 120 characters"
+      - "Output contains no dynamic content (timestamps, random elements) for AI agent parseability"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-008"
+    title: "Add project overview to group help"
+    description: >
+      Ensure the `sokrates --help` output displays a project overview at the top before command listings. The
+      overview must contain: a one-line summary ("Sokrates — A CLI toolkit for effective LLM interactions"),
+      2–3 sentences describing core capabilities (prompt refinement, code analysis, task queue, interactive chat),
+      and a note to run `sokrates guide` for an interactive introduction. This is set via the Click group's `help`
+      parameter (already created in task-003) but must be verified to render correctly above the categorized
+      command listing from task-007. Adjust formatting if needed so the overview appears cleanly separated from
+      the category sections.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#1-central-command-discovery-sokrates---help"
+    priority: 8
+    dependsOn:
+      - "task-007"
+    successCriteria:
+      - "Running 'sokrates --help' shows project overview text before any command listings"
+      - "Overview contains 'Sokrates' name, core capabilities summary, and 'sokrates guide' suggestion"
+      - "Overview is visually separated from the categorized command sections"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-009"
+    title: "Add epilog examples to all subcommands"
+    description: >
+      Add usage examples to every subcommand's help output via Click's `epilog` parameter. For argparse-wrapped
+      commands, add the examples to the wrapper's help/epilog. Each command must have at least one complete usage
+      example showing real-world application with correct flag names and valid arguments. The examples section
+      must appear after the options listing and be prefixed with an "Examples:" header. Examples must use correct
+      command syntax matching the unified CLI format (e.g., `sokrates code-review --path ./src`). Cover all
+      commands: send-prompt, refine-prompt, refine-and-send-prompt, idea-generator, merge-ideas, generate-mantra,
+      breakdown-task, execute-tasks, code-review, code-analyze, code-summarize, code-generate-tests, task-add,
+      task-list, task-status, task-remove, daemon, chat, guide, list-models, fetch-to-md.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#2-subcommand-help-sokrates-subcommand-help"
+    priority: 9
+    dependsOn:
+      - "task-004"
+    successCriteria:
+      - "Every subcommand's --help output contains an 'Examples:' section after the options listing"
+      - "Each example uses correct flag names and valid argument syntax"
+      - "Examples use the unified CLI format (e.g., 'sokrates code-review' not 'sokrates-code-review')"
+      - "At least one complete usage example is present per command"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-010"
+    title: "Implement unknown command handling with categories"
+    description: >
+      Override the Click group's error handling in `src/sokrates/cli/main.py` so that when a user runs an unknown
+      command (e.g., `sokrates unknown-command`), the output includes: Click's default error message with the
+      unknown command name, Click's built-in fuzzy matching suggestions (via difflib.get_close_matches), a list
+      of available commands grouped by category (reusing the categorized format from task-007), and a suggestion
+      to run `sokrates --help` for complete documentation. This can be implemented by overriding `resolve_command`
+      or `get_command` on the custom Click group class. Empty command input (just `sokrates`) should show the
+      main help, not an error.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#3-unknown-command-handling-sokrates-unknown"
+    priority: 10
+    dependsOn:
+      - "task-007"
+    successCriteria:
+      - "Running 'sokrates unknown-command' shows an error message containing the unknown command name"
+      - "Close matches are suggested when available (e.g., 'sokrates codr' suggests 'code-review')"
+      - "Available commands are listed grouped by category in the error output"
+      - "Output includes a suggestion to run 'sokrates --help'"
+      - "Running 'sokrates' without arguments shows main help, not an error"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-011"
+    title: "Implement onboarding message for first-time users"
+    description: >
+      Add first-time user detection to the unified CLI group in `src/sokrates/cli/main.py`. When
+      `$SOKRATES_HOME_PATH/config.yml` (default `$HOME/.sokrates/config.yml`) does not exist, display a brief
+      onboarding message at the top of the `sokrates --help` output. The message should explain core capabilities
+      without overwhelming the user and suggest trying `sokrates guide` for an interactive introduction. Once the
+      config file exists, the onboarding message must no longer appear. If detection of the config file fails
+      (e.g., permission error), proceed with standard help without the onboarding message. Use the existing
+      `SOKRATES_HOME_PATH` environment variable respected by the Config class.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#7-onboarding-experience"
+    priority: 11
+    dependsOn:
+      - "task-007"
+    successCriteria:
+      - "When config.yml is missing, 'sokrates --help' shows an onboarding message at the top"
+      - "The onboarding message suggests running 'sokrates guide'"
+      - "When config.yml exists, the onboarding message does not appear"
+      - "Permission errors during config detection are silently handled (no crash)"
+      - "The onboarding message does not block the full command listing from being displayed"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-012"
+    title: "Implement guide command with teacher persona"
+    description: >
+      Create a new `sokrates guide` command in `src/sokrates/cli/sokrates_guide.py` that starts an interactive
+      chat session serving as a "Sokrates Teacher". The command must reuse the existing chat infrastructure from
+      `sokrates_chat.py` (LLM interaction, voice features, conversation logging). The key difference is the system
+      prompt, which must include: (1) role definition ("You are the Sokrates Teacher, an interactive guide for the
+      Sokrates CLI toolkit"), (2) capabilities summary describing Sokrates and its core capabilities, (3) the full
+      category-to-command reference mapping (Prompts, Workflows, Code Analysis, Task Queue, Interactive, Utilities
+      with all commands listed), and (4) behavioral instructions to provide practical examples, match user goals
+      to relevant commands, and keep responses concise. The system prompt generator should be a separate function
+      (e.g., `generate_guide_system_prompt()`) for testability. Also implement a fallback text-based help menu
+      function that is displayed if the LLM endpoint is unavailable, containing a brief Sokrates summary, command
+      categories with descriptions, and suggestions to run `sokrates --help` and check LLM configuration.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#4-interactive-guide-mode-sokrates-guide"
+    priority: 12
+    dependsOn:
+      - "task-004"
+    successCriteria:
+      - "File src/sokrates/cli/sokrates_guide.py exists with a 'main' function implementing the guide command"
+      - "The system prompt includes Sokrates Teacher role, capabilities summary, full command reference, and behavioral instructions"
+      - "The system prompt generator is a separate testable function (generate_guide_system_prompt)"
+      - "A fallback text menu function exists that displays help when LLM is unavailable"
+      - "The guide command reuses existing chat infrastructure (LLMApi, config loading, conversation logging)"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-013"
+    title: "Implement guide fallback and graceful exit"
+    description: >
+      Enhance the `sokrates guide` command to handle error cases gracefully. When the LLM endpoint is unavailable
+      (connection error, timeout, etc.), catch the exception and display the static fallback text-based help menu
+      (created in task-012) instead of crashing. The fallback menu must contain: a brief "What is Sokrates?" summary,
+      command categories with top commands and one-line descriptions, a suggestion to run `sokrates --help`, and a
+      suggestion to check LLM endpoint configuration. When the user exits with Ctrl+C, display a goodbye message
+      (e.g., "Goodbye! Run 'sokrates guide' again to restart.") and exit cleanly without traceback. Ensure
+      KeyboardInterrupt and EOFError are caught properly.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#4-interactive-guide-mode-sokrates-guide"
+    priority: 13
+    dependsOn:
+      - "task-012"
+    successCriteria:
+      - "When LLM endpoint is unavailable, the fallback help menu is displayed instead of a crash"
+      - "The fallback menu contains Sokrates summary, command categories, and configuration suggestions"
+      - "Ctrl+C displays a goodbye message and suggests running 'sokrates guide' again"
+      - "No traceback or unhandled exception is shown on Ctrl+C or EOFError"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
+
+  - id: "task-014"
+    title: "Register chat and guide as subcommands"
+    description: >
+      Ensure both `chat` and `guide` commands are registered in the unified CLI group in `src/sokrates/cli/main.py`.
+      The `chat` subcommand must be the existing `sokrates-chat` logic registered via the same wrapping mechanism
+      used for other argparse-based commands. The `guide` subcommand must register the new guide command from
+      `sokrates_guide.py`. Both must appear under the "Interactive" category in the categorized help output. Verify
+      that `sokrates chat` behaves identically to `sokrates-chat` (same options, same output) and that
+      `sokrates guide` uses the teacher persona (not the standard assistant persona). The `chat` and `guide`
+      commands must have no shared session state — they are separate invocations.
+    source:
+      - "specification/features/cli-user-experience/behaviors.md#5-chat-alias-sokrates-chat"
+      - "specification/features/cli-user-experience/behaviors.md#4-interactive-guide-mode-sokrates-guide"
+    priority: 14
+    dependsOn:
+      - "task-012"
+      - "task-005"
+    successCriteria:
+      - "Running 'sokrates chat --help' works and shows the same options as 'sokrates-chat --help'"
+      - "Running 'sokrates guide --help' works and describes the interactive guide mode"
+      - "Both 'chat' and 'guide' appear under the 'Interactive' category in 'sokrates --help'"
+      - "'sokrates chat' and 'sokrates guide' have no shared session state"
+      - "All existing tests continue to pass"
+    status: pending
+    attempts: 0
