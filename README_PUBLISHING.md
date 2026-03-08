@@ -29,16 +29,22 @@ uv publish --index testpypi --token "$PYPI_API_TOKEN"
 
 # Test the test package
 TEMP_DIR="/tmp/test_sokrates"
+rm -rf $TEMP_DIR
 mkdir -p $TEMP_DIR
 
 cd $TEMP_DIR
 uv venv
 source .venv/bin/activate
-uv pip install --index-url https://test.pypi.org/simple/ sokrates
+# Install from TestPyPI but resolve dependencies from regular PyPI
+# --index-strategy unsafe-best-match is needed because sokrates also exists on
+# regular PyPI; without it uv refuses to install a TestPyPI-only version.
+uv pip install --index-url https://test.pypi.org/simple/ sokrates \
+  --extra-index-url https://pypi.org/simple/ \
+  --index-strategy unsafe-best-match
 
 # test cli tool
-uv run sokrates list-models
-uv run sokrates chat
+sokrates list-models
+sokrates chat
 ```
 
 ## publish to pypi prod instance
@@ -59,6 +65,6 @@ source .venv/bin/activate
 uv pip install sokrates
 
 # test cli tool
-uv run sokrates list-models
-uv run sokrates chat
+sokrates list-models
+sokrates chat
 ```
