@@ -1,10 +1,23 @@
 ## Changelog
-**version 0.13.0**
+
+**version 0.14.0** (2026-03-08)
+- features:
+  - unified CLI with central entry point and subcommands (`sokrates <command>` syntax)
+  - `sokrates guide` command for interactive CLI guidance
+  - all existing CLI commands migrated to subcommand structure
+- refactoring:
+  - removed `.claude`, `.pi`, and `.opencode` directories
+  - improved CLI structure with main.py entry point
+  - added comprehensive integration and unit tests for CLI functionality
+
+**version 0.13.0** (2026-02-xx)
 - features:
   - sokrates daemon - Directory watcher and executor for tasks (see README.md)
 - refactoring:
   - fully refactor configuration to yaml format (see config.yml.example)
   - task queue database -> Migrated direct sql usage to Peewee ORM
+
+**version 0.11.1**
 
 **version 0.11.1**
 - refactoring:
