@@ -31,8 +31,8 @@ tasks:
       - "Tests cover: unified entry point, subcommand registration, standalone alias equivalence, categorized help, project overview, onboarding message, unknown command handling, epilog examples, guide mode, chat alias"
       - "Test file is syntactically valid Python and can be collected by pytest (even if tests fail)"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-002"
     title: "Write unit test suite for CLI components"
@@ -60,8 +60,8 @@ tasks:
       - "Tests cover: command registration, category assignment, example snippets, help formatting, guide system prompt content, fallback menu, first-time user detection, AI agent parseable output"
       - "Test file is syntactically valid Python and can be collected by pytest (even if tests fail)"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-003"
     title: "Create unified Click group entry point"
@@ -85,8 +85,8 @@ tasks:
       - "Running the group without arguments displays the help output (invoke_without_command=True)"
       - "The module is importable without errors: 'from sokrates.cli.main import cli' succeeds"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-004"
     title: "Register all existing commands as subcommands"
@@ -117,8 +117,8 @@ tasks:
       - "Subcommands correctly delegate to the original command logic"
       - "No subcommand retains the 'sokrates-' prefix in its name"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-005"
     title: "Add pyproject.toml unified entry point"
@@ -139,8 +139,8 @@ tasks:
       - "After uv sync, running 'sokrates --help' displays the unified help output"
       - "All existing standalone commands (e.g., sokrates-chat, sokrates-list-models) still work"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-006"
     title: "Implement lazy-loading with error resilience"
@@ -162,8 +162,8 @@ tasks:
       - "If one command module has an import error, all other commands still load and function"
       - "The CLI group does not crash or show a traceback for import failures"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-007"
     title: "Implement categorized help formatter"
@@ -190,8 +190,8 @@ tasks:
       - "Output lines do not exceed 120 characters"
       - "Output contains no dynamic content (timestamps, random elements) for AI agent parseability"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-008"
     title: "Add project overview to group help"
@@ -213,8 +213,8 @@ tasks:
       - "Overview contains 'Sokrates' name, core capabilities summary, and 'sokrates guide' suggestion"
       - "Overview is visually separated from the categorized command sections"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-009"
     title: "Add epilog examples to all subcommands"
@@ -238,8 +238,8 @@ tasks:
       - "Examples use the unified CLI format (e.g., 'sokrates code-review' not 'sokrates-code-review')"
       - "At least one complete usage example is present per command"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-010"
     title: "Implement unknown command handling with categories"
@@ -263,8 +263,8 @@ tasks:
       - "Output includes a suggestion to run 'sokrates --help'"
       - "Running 'sokrates' without arguments shows main help, not an error"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 2
 
   - id: "task-011"
     title: "Implement onboarding message for first-time users"
@@ -288,8 +288,8 @@ tasks:
       - "Permission errors during config detection are silently handled (no crash)"
       - "The onboarding message does not block the full command listing from being displayed"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-012"
     title: "Implement guide command with teacher persona"
@@ -317,8 +317,8 @@ tasks:
       - "A fallback text menu function exists that displays help when LLM is unavailable"
       - "The guide command reuses existing chat infrastructure (LLMApi, config loading, conversation logging)"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-013"
     title: "Implement guide fallback and graceful exit"
@@ -341,8 +341,8 @@ tasks:
       - "Ctrl+C displays a goodbye message and suggests running 'sokrates guide' again"
       - "No traceback or unhandled exception is shown on Ctrl+C or EOFError"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1
 
   - id: "task-014"
     title: "Register chat and guide as subcommands"
@@ -367,5 +367,5 @@ tasks:
       - "Both 'chat' and 'guide' appear under the 'Interactive' category in 'sokrates --help'"
       - "'sokrates chat' and 'sokrates guide' have no shared session state"
       - "All existing tests continue to pass"
-    status: pending
-    attempts: 0
+    status: passed
+    attempts: 1

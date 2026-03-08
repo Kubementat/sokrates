@@ -4137,6 +4137,8 @@ name = "sokrates"
 version = "0.13.0"
 source = { editable = "." }
 dependencies = [
+    { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "click", version = "8.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "colorama" },
     { name = "html2text" },
     { name = "markdownify" },
@@ -4153,6 +4155,8 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "click", version = "8.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
@@ -4168,6 +4172,8 @@ voice = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click" },
+    { name = "click", marker = "extra == 'dev'" },
     { name = "colorama" },
     { name = "html2text" },
     { name = "markdownify" },

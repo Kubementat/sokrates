@@ -10,3 +10,7 @@ tmp/
 .venv/
 .pytest_cache/
 task_queue.db*
+tasks/agent_logs/*
+.pi/
+.opencode/
+.claude/

@@ -25,6 +25,7 @@ dependencies = [
     "mergedeep",
     "python-frontmatter>=1.1.0",
     "peewee[playhouse]>=3.18.2",
+    "click",
 ]
 
 [project.optional-dependencies]
@@ -39,7 +40,8 @@ dev = [
     "pytest",
     "pytest-mock",
     "pytest-cov",
-    "ruff"
+    "ruff",
+    "click"
 ]
 
 [project.urls]
@@ -55,6 +57,7 @@ where = ["src"]
 include = ["sokrates*"]
 
 [project.scripts]
+sokrates = "sokrates.cli.main:cli"
 sokrates-breakdown-task = "sokrates.cli.sokrates_breakdown_task:main"
 sokrates-chat = "sokrates.cli.sokrates_chat:main"
 sokrates-execute-tasks = "sokrates.cli.sokrates_execute_tasks:main"
