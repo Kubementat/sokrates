@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.14.0](https://img.shields.io/badge/version-0.14.0-green)](https://github.com/Kubementat/sokrates)
+[![Version: 0.15.0](https://img.shields.io/badge/version-0.15.0-green)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -11,9 +11,9 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 - [Description](#description)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Available Commands](#available-commands)
+  - [Basic Command Structure](#basic-command-structure)
   - [Task Queuing System](#task-queuing-system)
-  - [sokrates-chat Commands](#sokrates-chat-commands)
+  - [Daemon & File Watcher](#daemon--file-watcher)
 - [Features](#features)
 - [Contributing](#contributing)
 - [License](#license)
@@ -35,8 +35,7 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
   - generate code reviews
   - generate test cases
   - summarize functionality
-- **Extensive CLI Interface**: 15+ specialized commands for rapid experimentation and automation
-
+- **Comprehensive CLI Tools**: A unified command-line interface with multiple subcommands for LLM interaction, task management, code analysis, and content generation
 
 ### Key Features:
 
@@ -46,7 +45,7 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 - **Output Processing**: Advanced text cleaning and formatting utilities for LLM-generated content
 - **Performance Analytics**: Detailed timing metrics and token generation statistics
 - **File Management**: Comprehensive file handling for context loading and result storage
-- **CLI Tools**: For interacting with LLMs (for details: see below)
+- **CLI Tools**: For interacting with LLMs (for details: see [Usage](#usage))
 
 ## MCP available
 There's the [sokrates-mcp server](https://github.com/Kubementat/sokrates-mcp) available for integrating sokrates tools via MCP.
@@ -84,7 +83,7 @@ uv pip install sokrates
 uv pip install sokrates[voice]
 
 # Test the installation (this expects you to have an OpenAI compatbile endpoint running on localhost:1234/v1 , e.g. via LM Studio or ollama)
-sokrates-list-models --api-endpoint http://localhost:1234/v1
+sokrates list-models --api-endpoint http://localhost:1234/v1
 ```
 
 ### Install for Development
@@ -94,6 +93,26 @@ git clone https://github.com/Kubementat/sokrates.git
 cd sokrates
 uv sync # for basic version
 uv sync --all-extras # for voice support enabled version
+```
+
+### Build the Library
+
+To build a distributable package using `uv`:
+
+```bash
+# Basic version (without voice features)
+uv build
+
+# Build with all optional dependencies (voice support)
+uv pip install -e ".[voice]"
+uv build
+```
+
+This creates wheel and source distributions in the `dist/` directory. Verify with:
+
+```bash
+ls -la dist/
+# Should show sokrates-$VERSION-py3-none-any.whl and similar files
 ```
 
 ### Dependencies
@@ -116,81 +135,25 @@ vim $HOME/.sokrates/config.yml
 
 ### Basic Command Structure
 
-Most commands follow this structure:
-```bash
-command --option1 value1 --option2 value2
-```
-
-You can always display the help via:
-```
-command --help
-
-e.g.
-
-uv run sokrates-list-models --help
-
-# for listing all available commands run:
-uv run | grep sokrates
-```
-
-### Available Commands
-
-#### Core LLM Operations
-- `sokrates-list-models`: List available LLM models from your endpoint
-- `sokrates-send-prompt`: Send a prompt to an LLM API
-- `sokrates-chat`: Interactive chat interface with LLMs (supports voice mode)
-- `sokrates-refine-prompt`: Refine prompts for better LLM performance
-- `sokrates-refine-and-send-prompt`: Combine refinement and execution in one command
-
-#### Task Management
-- `sokrates-breakdown-task`: Break down complex tasks into manageable sub-tasks
-- `sokrates-execute-tasks`: Execute tasks sequentially from JSON task lists
-- `sokrates-task-add`: Add tasks to the background task queue
-- `sokrates-task-list`: List queued tasks with status and priority
-- `sokrates-task-status`: Check detailed status of specific tasks
-- `sokrates-task-remove`: Remove tasks from the queue
-- `sokrates-daemon`: Start/stop/restart the task queue daemon
-
-#### Idea Generation & Content Creation
-- `sokrates-idea-generator`: Generate ideas using multi-stage workflows with topic categorization
-- `sokrates-generate-mantra`: Generate mantras or affirmations
-- `sokrates-fetch-to-md`: Fetch web content and convert to markdown
-- `sokrates-merge-ideas`: Merge multiple documents or ideas into a coherent output
-
-#### Python coding tools
-- `sokrates-code-analyze`: Parse a directory with any source code (e.g. a git repository) and generate an analysis report as introduction to the code base. This is very handy for diving into new code bases :D
-- `sokrates-code-summarize`: Parse a directory with python sources and generate a summary including all present classes and functions with signatures and documentation
-- `sokrates-code-review`: Parse a directory or a list of files with python sources and generate code reviews for each provided file
-- `sokrates-code-generate-tests`: Parse a directory or a list of files with python sources and generate tests for the code
-
-### Task Queuing System
-
-The task queue system allows you to queue LLM processing tasks in JSON format for reliable execution:
+The sokrates CLI provides a comprehensive set of commands for working with LLMs, managing tasks, analyzing code, and generating content. All commands follow a consistent structure:
 
 ```bash
-# Add a new task to the queue
-sokrates-task-add tasks/new_task.json --priority high
-
-# List all queued tasks
-sokrates-task-list --status pending --priority high
-
-# Get detailed status of specific task
-sokrates-task-status task-123 --verbose
-
-# Remove a task from the queue
-sokrates-task-remove task-789 --force
-
-# Start the daemon to process queued tasks
-sokrates-daemon start
-
-# Restart the daemon
-sokrates-daemon restart
-
-# Stop the daemon
-sokrates-daemon stop
+sokrates <command> --option1 value1 --option2 value2
 ```
 
-### Daemon - Background Prompt File Processing
+You can always display the help for any command via:
+
+```bash
+sokrates <command> --help
+```
+
+To list all available commands, run:
+
+```bash
+sokrates --help
+```
+
+### Daemon & File Watcher
 
 The sokrates daemon includes a background file processor that monitors specified directories for new files and automatically processes them through the LLM refinement pipeline. This feature allows you to submit prompts by simply dropping text or markdown files into designated directories.
 
@@ -282,49 +245,10 @@ sokrates-send-prompt --model qwen3-4b-instruct-2507-mlx --prompt "Explain quantu
 
 # Interactive chat with voice support
 sokrates-chat --model qwen3-4b-instruct-2507-mlx --voice  # Enable voice mode
-sokrates-chat --model qwen3-4b-instruct-2507-mlx --context-files ./docs/context.md
 
 # Refine a prompt for better performance
 sokrates-refine-prompt --prompt "Write a story about a robot" --model qwen3-4b-instruct-2507-mlx
 ```
-
-### sokrates-chat Commands
-
-The sokrates-chat interface provides several special commands that enhance the chat experience:
-
-#### `/voice`
-Toggles between voice mode and text mode during the chat session.
-
-- **Usage**: Type `/voice` in the chat interface
-- **Description**: When enabled, voice mode allows you to speak your inputs instead of typing them. The system will use speech-to-text capabilities to transcribe your voice input. This requires the voice dependencies to be installed (FFmpeg and Whisper-cpp).
-- **Example**:
-  ```
-  You: /voice
-  [System message: Switched to voice mode.]
-  ```
-
-#### `/talk`
-Enables text-to-speech functionality for the AI's responses.
-
-- **Usage**: Type `/talk` in the chat interface
-- **Description**: When activated, the AI will speak its responses aloud using text-to-speech capabilities. This is useful for hands-free interaction or when you prefer to listen rather than read the responses.
-- **Example**:
-  ```
-  You: /talk
-  [System message: Text-to-speech enabled for AI responses.]
-  ```
-
-#### `/add <Filepath>`
-Adds additional context to the conversation from a file.
-
-- **Usage**: Type `/add <path/to/file>` in the chat interface
-- **Description**: Loads content from the specified file and adds it to the conversation history as a system message. This allows you to provide additional context or reference material during the conversation without restarting the chat.
-- **Example**:
-  ```
-  You: /add ./docs/project-context.md
-  [System message: Added context from ./docs/project-context.md]
-  ```
-- **Note**: The file path can be absolute or relative to the current working directory.
 
 #### Task Management
 
@@ -348,23 +272,6 @@ sokrates-task-status --task-id abc123 --verbose
 sokrates-task-list --status pending --priority high
 ```
 
-#### File Watcher
-The file watcher automatically monitors specified directories for new files and processes them through the LLM refinement pipeline:
-
-```bash
-# Enable file watcher in your config file
-# see daemon/file_watcher configuration
-vim $HOME/.sokrates/config.yml
-
-# Start the daemon with file watcher enabled
-sokrates-daemon start
-
-# Now just drop text files into the watched directories
-# and they will be automatically processed!
-echo "Write a Python function to calculate fibonacci numbers" > /your_configured_dir/my_request.txt
-# The daemon will detect the file, refine the prompt, and execute it via LLM
-```
-
 #### Idea Generation & Content Creation
 
 ```bash
@@ -383,10 +290,10 @@ sokrates-merge-ideas --source-documents 'docs/idea1.md,docs/idea2.md' --output-f
 
 #### Python coding tools
 ```bash
-# Analyze a directory with a code base the `/dir/to/my_git_repo` directory and write the result to `/dir/to/my_git_repo/docs/code_analysis.md`
+# Analyze a directory with a code base and write the result to docs/code_analysis.md
 sokrates-code-analyze --source-directory /dir/to/my_git_repo --output /dir/to/my_git_repo/docs/code_analysis.md
 
-# Summarize python source dode classes and functions in the `src` directory and write the result to `docs/code_summary.md`
+# Summarize python source classes and functions in the `src` directory
 sokrates-code-summarize --source-directory src/ --output docs/code_summary.md
 
 # Perform a code review for a list of code files or a directory

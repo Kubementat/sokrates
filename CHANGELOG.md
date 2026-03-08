@@ -1,6 +1,6 @@
 ## Changelog
 
-**version 0.14.0** (2026-03-08)
+**version 0.15.0** (2026-03-08)
 - features:
   - unified CLI with central entry point and subcommands (`sokrates <command>` syntax)
   - `sokrates guide` command for interactive CLI guidance
