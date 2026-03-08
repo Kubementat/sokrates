@@ -1,7 +1,7 @@
 # sokrates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.15.0](https://img.shields.io/badge/version-0.15.0-green)](https://github.com/Kubementat/sokrates)
+[![Version: 0.16.0](https://img.shields.io/badge/version-0.16.0-green)](https://github.com/Kubementat/sokrates)
 
 A comprehensive framework for Large Language Model (LLM) interactions, featuring advanced prompt refinement, system monitoring, extensive CLI tools, and a robust task queue system. Designed to facilitate working with LLMs through modular components, well-documented APIs, and production-ready utilities.
 
@@ -200,7 +200,7 @@ Your prompt content goes here...
 To use this feature:
 
 1. Configure the file watcher in your config.yml as shown above
-2. Start the daemon: `sokrates-daemon start`
+2. Start the daemon: `sokrates daemon start`
 3. Drop text or markdown files into the configured watched directories
 4. The daemon will automatically process each file and save results to the output directory
 
@@ -238,66 +238,66 @@ tail -f $HOME/.sokrates/logs/daemon.log
 
 ```bash
 # List available models
-sokrates-list-models --api-endpoint http://localhost:1234/v1
+sokrates list-models --api-endpoint http://localhost:1234/v1
 
 # Send a simple prompt
-sokrates-send-prompt --model qwen3-4b-instruct-2507-mlx --prompt "Explain quantum computing in simple terms"
+sokrates send-prompt --model qwen3-4b-instruct-2507-mlx "Explain quantum computing in simple terms"
 
 # Interactive chat with voice support
-sokrates-chat --model qwen3-4b-instruct-2507-mlx --voice  # Enable voice mode
+sokrates chat --model qwen3-4b-instruct-2507-mlx --voice  # Enable voice mode
 
 # Refine a prompt for better performance
-sokrates-refine-prompt --prompt "Write a story about a robot" --model qwen3-4b-instruct-2507-mlx
+sokrates refine-prompt --text-prompt "Write a story about a robot" --model qwen3-4b-instruct-2507-mlx
 ```
 
 #### Task Management
 
 ```bash
 # Break down a complex project into tasks
-sokrates-breakdown-task --task "Build a web application for task management" --output project-tasks.json
+sokrates breakdown-task --task "Build a web application for task management" --output project-tasks.json
 
 # Execute the generated tasks sequentially
-sokrates-execute-tasks --task-file project-tasks.json --output-dir ./results
+sokrates execute-tasks --task-file project-tasks.json --output-dir ./results
 
 # Add a task to the background queue
-sokrates-task-add tasks/feature_request.json --priority high
+sokrates task-add tasks/feature_request.json --priority high
 
 # Start the task queue daemon
-sokrates-daemon start
+sokrates daemon start
 
 # Check task status
-sokrates-task-status --task-id abc123 --verbose
+sokrates task-status abc123 --verbose
 
 # List all pending tasks
-sokrates-task-list --status pending --priority high
+sokrates task-list --status pending --priority high
 ```
 
 #### Idea Generation & Content Creation
 
 ```bash
 # Generate creative ideas with topic categorization
-sokrates-idea-generator --topic "AI in healthcare" --output-dir ./healthcare-ideas --idea-count 5
+sokrates idea-generator --topic "AI in healthcare" --output-directory ./healthcare-ideas --idea-count 5
 
 # Generate mantras for motivation
-sokrates-generate-mantra -o my_mantra.md
+sokrates generate-mantra -o my_mantra.md
 
 # Convert web content to markdown
-sokrates-fetch-to-md --url "https://example.com/article" --output article.md
+sokrates fetch-to-md --url "https://example.com/article" --output-file article.md
 
 # Merge multiple documents or ideas
-sokrates-merge-ideas --source-documents 'docs/idea1.md,docs/idea2.md' --output-file merged-ideas.md
+sokrates merge-ideas --source-documents 'docs/idea1.md,docs/idea2.md' --output-file merged-ideas.md
 ```
 
 #### Python coding tools
 ```bash
 # Analyze a directory with a code base and write the result to docs/code_analysis.md
-sokrates-code-analyze --source-directory /dir/to/my_git_repo --output /dir/to/my_git_repo/docs/code_analysis.md
+sokrates code-analyze --source-directory /dir/to/my_git_repo --output /dir/to/my_git_repo/docs/code_analysis.md
 
 # Summarize python source classes and functions in the `src` directory
-sokrates-code-summarize --source-directory src/ --output docs/code_summary.md
+sokrates code-summarize --source-directory src/ --output docs/code_summary.md
 
 # Perform a code review for a list of code files or a directory
-sokrates-code-review --files src/sokrates/config.py --verbose -o docs/code_reviews
+sokrates code-review --files src/sokrates/config.py --verbose -o docs/code_reviews
 ```
 
 ## Features

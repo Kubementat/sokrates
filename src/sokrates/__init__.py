@@ -9,7 +9,6 @@ from .file_helper import FileHelper
 from .llm_api import LLMApi
 from .prompt_refiner import PromptRefiner
 from .prompt_constructor import PromptConstructor
-from .system_monitor import SystemMonitor
 from .utils import Utils
 
 # workflows
@@ -32,7 +31,6 @@ __all__ = [
   "OutputPrinter",
   "PromptRefiner",
   "PromptConstructor",
-  "SystemMonitor",
   "Utils",
   "IdeaGenerationWorkflow",
   "MergeIdeasWorkflow",

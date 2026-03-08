@@ -8,15 +8,14 @@ This document describes the high-level technical design of Sokrates, including t
 
 ### Core Technologies
 
-| Category | Technology | Purpose |
-|----------|------------|---------|
-| **Language** | Python 3.9+ | Primary development language with full type hint support |
-| **CLI Framework** | Click | Command-line interface definition and parsing |
-| **LLM SDK** | OpenAI | Unified API for LLM interactions (supports compatible endpoints) |
-| **Database ORM** | Peewee [playhouse] | SQLite database operations with connection pooling |
-| **YAML Parsing** | ruamel.yaml | Configuration file handling with formatting preservation |
-| **System Monitoring** | psutil | System resource monitoring and metrics collection |
-| **File Watching** | watchdog | Directory monitoring for automatic file processing |
+| Category          | Technology         | Purpose                                                          |
+| -------------------| --------------------| ------------------------------------------------------------------|
+| **Language**      | Python 3.9+        | Primary development language with full type hint support         |
+| **CLI Framework** | Click              | Command-line interface definition and parsing                    |
+| **LLM SDK**       | OpenAI             | Unified API for LLM interactions (supports compatible endpoints) |
+| **Database ORM**  | Peewee [playhouse] | SQLite database operations with connection pooling               |
+| **YAML Parsing**  | ruamel.yaml        | Configuration file handling with formatting preservation         |
+| **File Watching** | watchdog           | Directory monitoring for automatic file processing               |
 
 ### Optional Dependencies (Voice Features)
 
