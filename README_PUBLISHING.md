@@ -28,7 +28,7 @@ PYPI_API_TOKEN="REPLACEME"
 uv publish --index testpypi --token "$PYPI_API_TOKEN"
 
 # Test the test package
-TEMP_DIR="~/tmp/test_sokrates"
+TEMP_DIR="/tmp/test_sokrates"
 mkdir -p $TEMP_DIR
 
 cd $TEMP_DIR
@@ -48,7 +48,7 @@ PYPI_API_TOKEN="REPLACEME"
 uv publish --token "$PYPI_API_TOKEN"
 
 # Test the published package
-TEMP_DIR="~/tmp/test_sokrates_prd"
+TEMP_DIR="/tmp/test_sokrates_prd"
 rm -r $TEMP_DIR
 mkdir -p $TEMP_DIR
 
