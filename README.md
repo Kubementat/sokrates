@@ -24,31 +24,56 @@ A comprehensive framework for Large Language Model (LLM) interactions, featuring
 
 `sokrates` is a comprehensive framework for working with Large Language Models (LLMs). It provides a complete toolkit for developers and researchers to interact with LLMs efficiently and effectively.
 
-### Core Capabilities:
+## Features
 
-- **Advanced Prompt Engineering**: Sophisticated prompt refinement tools that optimize LLM input/output for better performance
-- **Voice-Enabled Chat**: Interactive command-line chat interface with optional voice input/output using OpenAI Whisper
-- **Task Queue System**: Robust background task processing with persistence, error handling, and retry mechanisms
-- **Task File Watcher**: Watcher checks for new file creations in a given directory and executes the task prompts within the files in the background
-- **Multi-stage Workflows**: Complex task breakdown, idea generation, and sequential task execution
-- **Python coding tools**: A set of useful tools for python coding
-  - generate code reviews
-  - generate test cases
-  - summarize functionality
-- **Comprehensive CLI Tools**: A unified command-line interface with multiple subcommands for LLM interaction, task management, code analysis, and content generation
+### 🚀 Core LLM Capabilities
+- **Advanced Prompt Refinement**: Multi-stage prompt optimization with context awareness
+- **Streaming Responses**: Real-time token streaming with performance metrics
+- **Multi-model Support**: Compatible with any OpenAI-compatible LLM endpoint
+- **Context Management**: Flexible context loading from files, directories, or text
+- **Response Processing**: Intelligent cleaning and formatting of LLM outputs
 
-### Key Features:
+### 🎯 Task Management & Workflows
+- **Task Queue System**: Background task processing with SQLite persistence
+- **File Watcher**: Automatic directory monitoring with file content processing via LLM refinement
+- **Sequential Task Execution**: Complex multi-step task automation
+- **Task Breakdown**: AI-powered task decomposition into manageable sub-tasks
+- **Priority Queue**: Task prioritization and status tracking
+- **Error Handling**: Comprehensive error recovery and logging
 
-- **Modular Architecture**: Easily extensible components with clean separation of concerns
-- **OpenAI-Compatible API**: Works with any OpenAI-compatible endpoint (LocalAI, Ollama, LM Studio, etc.)
-- **Configuration Management**: Flexible configuration system with environment variable support
-- **Output Processing**: Advanced text cleaning and formatting utilities for LLM-generated content
-- **Performance Analytics**: Detailed timing metrics and token generation statistics
-- **File Management**: Comprehensive file handling for context loading and result storage
-- **CLI Tools**: For interacting with LLMs (for details: see [Usage](#usage))
+### 💬 Interactive Features
+- **Voice-Enabled Chat**: Speech-to-text and text-to-speech capabilities using Whisper
+- **Interactive CLI**: Rich command-line interface with colorized output
+- **Conversation Logging**: Automatic chat history logging with timestamps
+- **Context Switching**: Dynamic context addition during conversations
+
+### 🔧 Developer Tools
+- **Modular Architecture**: Clean, extensible component design
+- **Configuration Management**: Flexible environment-based configuration
+- **File Management**: Comprehensive file handling utilities
+- **Testing Framework**: Integrated pytest with comprehensive test coverage
+- **Documentation**: Extensive inline documentation and examples
+
+### 🎨 User Experience
+- **Rich CLI Output**: Colorized, formatted output with progress indicators
+- **Help System**: Comprehensive help and usage instructions for all commands
+- **Error Handling**: User-friendly error messages and recovery suggestions
+- **Cross-platform**: Works on macOS, Linux, and Windows
 
 ## MCP available
 There's the [sokrates-mcp server](https://github.com/Kubementat/sokrates-mcp) available for integrating sokrates tools via MCP.
+
+## Quick Start
+
+Run it via uvx:
+
+```bash
+# show available commands
+uvx sokrates --help
+
+# run chat with guide
+uvx sokrates guide
+```
 
 ## Installation
 
@@ -83,7 +108,7 @@ uv pip install sokrates
 uv pip install sokrates[voice]
 
 # Test the installation (this expects you to have an OpenAI compatbile endpoint running on localhost:1234/v1 , e.g. via LM Studio or ollama)
-sokrates list-models --api-endpoint http://localhost:1234/v1
+uv run sokrates list-models --api-endpoint http://localhost:1234/v1
 ```
 
 ### Install for Development
@@ -115,16 +140,13 @@ ls -la dist/
 # Should show sokrates-$VERSION-py3-none-any.whl and similar files
 ```
 
-### Dependencies
-
-For a list of all dependencies view the [pyproject.toml](pyproject.toml) file.
-
 ## Configuration
 
 You can configure the library via a yml configuration file in $HOME/.sokrates/config.yml
 
 ```
-# Copy
+# Copy config
+mkdir -p $HOME/.sokrates
 cp config.yml.example $HOME/.sokrates/config.yml
 
 # adjust to your needs
@@ -232,110 +254,6 @@ Watch the log stream via:
 tail -f $HOME/.sokrates/logs/daemon.log
 ```
 
-### Example Usage
-
-#### Basic LLM Operations
-
-```bash
-# List available models
-sokrates list-models --api-endpoint http://localhost:1234/v1
-
-# Send a simple prompt
-sokrates send-prompt --model qwen3-4b-instruct-2507-mlx "Explain quantum computing in simple terms"
-
-# Interactive chat with voice support
-sokrates chat --model qwen3-4b-instruct-2507-mlx --voice  # Enable voice mode
-
-# Refine a prompt for better performance
-sokrates refine-prompt --text-prompt "Write a story about a robot" --model qwen3-4b-instruct-2507-mlx
-```
-
-#### Task Management
-
-```bash
-# Break down a complex project into tasks
-sokrates breakdown-task --task "Build a web application for task management" --output project-tasks.json
-
-# Execute the generated tasks sequentially
-sokrates execute-tasks --task-file project-tasks.json --output-dir ./results
-
-# Add a task to the background queue
-sokrates task-add tasks/feature_request.json --priority high
-
-# Start the task queue daemon
-sokrates daemon start
-
-# Check task status
-sokrates task-status abc123 --verbose
-
-# List all pending tasks
-sokrates task-list --status pending --priority high
-```
-
-#### Idea Generation & Content Creation
-
-```bash
-# Generate creative ideas with topic categorization
-sokrates idea-generator --topic "AI in healthcare" --output-directory ./healthcare-ideas --idea-count 5
-
-# Generate mantras for motivation
-sokrates generate-mantra -o my_mantra.md
-
-# Convert web content to markdown
-sokrates fetch-to-md --url "https://example.com/article" --output-file article.md
-
-# Merge multiple documents or ideas
-sokrates merge-ideas --source-documents 'docs/idea1.md,docs/idea2.md' --output-file merged-ideas.md
-```
-
-#### Python coding tools
-```bash
-# Analyze a directory with a code base and write the result to docs/code_analysis.md
-sokrates code-analyze --source-directory /dir/to/my_git_repo --output /dir/to/my_git_repo/docs/code_analysis.md
-
-# Summarize python source classes and functions in the `src` directory
-sokrates code-summarize --source-directory src/ --output docs/code_summary.md
-
-# Perform a code review for a list of code files or a directory
-sokrates code-review --files src/sokrates/config.py --verbose -o docs/code_reviews
-```
-
-## Features
-
-### 🚀 Core LLM Capabilities
-- **Advanced Prompt Refinement**: Multi-stage prompt optimization with context awareness
-- **Streaming Responses**: Real-time token streaming with performance metrics
-- **Multi-model Support**: Compatible with any OpenAI-compatible LLM endpoint
-- **Context Management**: Flexible context loading from files, directories, or text
-- **Response Processing**: Intelligent cleaning and formatting of LLM outputs
-
-### 🎯 Task Management & Workflows
-- **Task Queue System**: Background task processing with SQLite persistence
-- **File Watcher**: Automatic directory monitoring with file content processing via LLM refinement
-- **Sequential Task Execution**: Complex multi-step task automation
-- **Task Breakdown**: AI-powered task decomposition into manageable sub-tasks
-- **Priority Queue**: Task prioritization and status tracking
-- **Error Handling**: Comprehensive error recovery and logging
-
-### 💬 Interactive Features
-- **Voice-Enabled Chat**: Speech-to-text and text-to-speech capabilities using Whisper
-- **Interactive CLI**: Rich command-line interface with colorized output
-- **Conversation Logging**: Automatic chat history logging with timestamps
-- **Context Switching**: Dynamic context addition during conversations
-
-### 🔧 Developer Tools
-- **Modular Architecture**: Clean, extensible component design
-- **Configuration Management**: Flexible environment-based configuration
-- **File Management**: Comprehensive file handling utilities
-- **Testing Framework**: Integrated pytest with comprehensive test coverage
-- **Documentation**: Extensive inline documentation and examples
-
-### 🎨 User Experience
-- **Rich CLI Output**: Colorized, formatted output with progress indicators
-- **Help System**: Comprehensive help and usage instructions for all commands
-- **Error Handling**: User-friendly error messages and recovery suggestions
-- **Cross-platform**: Works on macOS, Linux, and Windows
-
 ## Contributing
 
 We welcome contributions! Please follow these steps:
@@ -345,15 +263,6 @@ We welcome contributions! Please follow these steps:
 3. **Run the test suite** to ensure everything works correctly
 4. **Submit a pull request** with a clear description of your changes
 
-### Development Setup
-
-```bash
-git clone https://github.com/Kubementat/sokrates.git
-cd sokrates
-uv sync --all-extras
-uv pip install -e .
-source .venv/bin/activate
-```
 
 ### Run the testsuite
 For the testsuite we expect a locally running LM Studio instance with the default model [qwen3-4b-instruct-2507-mlx](https://huggingface.co/lmstudio-community/Qwen3-4B-Instruct-2507-MLX-4bit) available and ready for execution. You can also specify another testing model in [conftest.py](tests/conftest.py).
@@ -381,8 +290,6 @@ uv run test_all_commands.py --help
 - Add tests for new functionality
 - Update documentation for significant changes
 - Ensure all existing tests pass
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
 
 ## License
 
